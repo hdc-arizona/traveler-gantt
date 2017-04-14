@@ -1,30 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2014, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory.
-//
-// This file is part of Ravel.
-// Written by Kate Isaacs, kisaacs@acm.org, All rights reserved.
-// LLNL-CODE-663885
-//
-// For details, see https://github.com/scalability-llnl/ravel
-// Please also see the LICENSE file for our notice and the LGPL.
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License (as published by
-// the Free Software Foundation) version 2.1 dated February 1999.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-// conditions of the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//////////////////////////////////////////////////////////////////////////////
 #include "otfimporter.h"
-#include <QString>
-#include <QElapsedTimer>
 #include <iostream>
 #include <cmath>
 #include "ravelutils.h"
@@ -53,8 +27,8 @@ OTFImporter::OTFImporter()
       fileManager(NULL),
       otfReader(NULL),
       handlerArray(NULL),
-      unmatched_recvs(new QVector<QLinkedList<CommRecord *> *>()),
-      unmatched_sends(new QVector<QLinkedList<CommRecord *> *>()),
+      unmatched_recvs(new std::vector<std::list<CommRecord *> *>()),
+      unmatched_sends(new std::vector<std::list<CommRecord *> *>()),
       rawtrace(NULL),
       primaries(NULL),
       functionGroups(NULL),
@@ -71,10 +45,10 @@ OTFImporter::OTFImporter()
 OTFImporter::~OTFImporter()
 {
 
-    for (QVector<QLinkedList<CommRecord *> *>::Iterator eitr
+    for (std::vector<std::list<CommRecord *> *>::iterator eitr
          = unmatched_recvs->begin(); eitr != unmatched_recvs->end(); ++eitr)
     {
-        for (QLinkedList<CommRecord *>::Iterator itr = (*eitr)->begin();
+        for (std::list<CommRecord *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             delete *itr;
@@ -85,12 +59,12 @@ OTFImporter::~OTFImporter()
     }
     delete unmatched_recvs;
 
-    for (QVector<QLinkedList<CommRecord *> *>::Iterator eitr
+    for (std::vector<std::list<CommRecord *> *>::iterator eitr
          = unmatched_sends->begin();
          eitr != unmatched_sends->end(); ++eitr)
     {
         // Don't delete, used elsewhere
-        /*for (QLinkedList<CommRecord *>::Iterator itr = (*eitr)->begin();
+        /*for (std::list<CommRecord *>::Iterator itr = (*eitr)->begin();
          itr != (*eitr)->end(); ++itr)
         {
             delete *itr;
@@ -109,10 +83,7 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
     sendcount = 0;
     recvcount = 0;
 
-    QElapsedTimer traceTimer;
-    qint64 traceElapsed;
-
-    traceTimer.start();
+    clock_t start = clock();
 
     fileManager = OTF_FileManager_open(1);
     otfReader = OTF_Reader_open(otf_file, fileManager);
@@ -120,14 +91,14 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
 
     setHandlers();
 
-    primaries = new QMap<int, PrimaryEntityGroup *>();
+    primaries = new std::map<int, PrimaryEntityGroup *>();
     primaries->insert(0, new PrimaryEntityGroup(0, "MPI_COMM_WORLD"));
-    functionGroups = new QMap<int, QString>();
-    functions = new QMap<int, Function *>();
-    entitygroups = new QMap<int, EntityGroup *>();
-    collective_definitions = new QMap<int, OTFCollective *>();
-    collectives = new QMap<unsigned long long, CollectiveRecord *>();
-    counters = new QMap<unsigned int, Counter *>();
+    functionGroups = new std::map<int, std::string>();
+    functions = new std::map<int, Function *>();
+    entitygroups = new std::map<int, EntityGroup *>();
+    collective_definitions = new std::map<int, OTFCollective *>();
+    collectives = new std::map<unsigned long long, CollectiveRecord *>();
+    counters = new std::map<unsigned int, Counter *>();
 
     std::cout << "Reading definitions" << std::endl;
     OTF_Reader_readDefinitions(otfReader, handlerArray);
@@ -141,28 +112,28 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
     rawtrace->collective_definitions = collective_definitions;
     rawtrace->collectives = collectives;
     rawtrace->counters = counters;
-    rawtrace->events = new QVector<QVector<EventRecord *> *>(num_processes);
-    rawtrace->messages = new QVector<QVector<CommRecord *> *>(num_processes);
-    rawtrace->messages_r = new QVector<QVector<CommRecord *> *>(num_processes);
-    rawtrace->counter_records = new QVector<QVector<CounterRecord *> *>(num_processes);
-    rawtrace->collectiveBits = new QVector<QVector<RawTrace::CollectiveBit *> *>(num_processes);
+    rawtrace->events = new std::vector<std::vector<EventRecord *> *>(num_processes);
+    rawtrace->messages = new std::vector<std::vector<CommRecord *> *>(num_processes);
+    rawtrace->messages_r = new std::vector<std::vector<CommRecord *> *>(num_processes);
+    rawtrace->counter_records = new std::vector<std::vector<CounterRecord *> *>(num_processes);
+    rawtrace->collectiveBits = new std::vector<std::vector<RawTrace::CollectiveBit *> *>(num_processes);
 
 
     delete unmatched_recvs;
-    unmatched_recvs = new QVector<QLinkedList<CommRecord *> *>(num_processes);
+    unmatched_recvs = new std::vector<std::list<CommRecord *> *>(num_processes);
     delete unmatched_sends;
-    unmatched_sends = new QVector<QLinkedList<CommRecord *> *>(num_processes);
+    unmatched_sends = new std::vector<std::list<CommRecord *> *>(num_processes);
     delete collectiveMap;
-    collectiveMap = new QVector<QMap<unsigned long long, CollectiveRecord *> *>(num_processes);
+    collectiveMap = new std::vector<std::map<unsigned long long, CollectiveRecord *> *>(num_processes);
     for (int i = 0; i < num_processes; i++) {
-        (*unmatched_recvs)[i] = new QLinkedList<CommRecord *>();
-        (*unmatched_sends)[i] = new QLinkedList<CommRecord *>();
-        (*collectiveMap)[i] = new QMap<unsigned long long, CollectiveRecord *>();
-        (*(rawtrace->events))[i] = new QVector<EventRecord *>();
-        (*(rawtrace->messages))[i] = new QVector<CommRecord *>();
-        (*(rawtrace->messages_r))[i] = new QVector<CommRecord *>();
-        (*(rawtrace->counter_records))[i] = new QVector<CounterRecord *>();
-        (*(rawtrace->collectiveBits))[i] = new QVector<RawTrace::CollectiveBit *>();
+        (*unmatched_recvs)[i] = new std::list<CommRecord *>();
+        (*unmatched_sends)[i] = new std::list<CommRecord *>();
+        (*collectiveMap)[i] = new std::map<unsigned long long, CollectiveRecord *>();
+        (*(rawtrace->events))[i] = new std::vector<EventRecord *>();
+        (*(rawtrace->messages))[i] = new std::vector<CommRecord *>();
+        (*(rawtrace->messages_r))[i] = new std::vector<CommRecord *>();
+        (*(rawtrace->counter_records))[i] = new std::vector<CounterRecord *>();
+        (*(rawtrace->collectiveBits))[i] = new std::vector<RawTrace::CollectiveBit *>();
     }
 
     std::cout << "Reading events" << std::endl;
@@ -176,11 +147,11 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
     std::cout << "Finish reading" << std::endl;
 
     int unmatched_recv_count = 0;
-    for (QVector<QLinkedList<CommRecord *> *>::Iterator eitr
+    for (std::vector<std::list<CommRecord *> *>::iterator eitr
          = unmatched_recvs->begin();
          eitr != unmatched_recvs->end(); ++eitr)
     {
-        for (QLinkedList<CommRecord *>::Iterator itr = (*eitr)->begin();
+        for (std::list<CommRecord *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             unmatched_recv_count++;
@@ -190,11 +161,11 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
         }
     }
     int unmatched_send_count = 0;
-    for (QVector<QLinkedList<CommRecord *> *>::Iterator eitr
+    for (std::vector<std::list<CommRecord *> *>::iterator eitr
          = unmatched_sends->begin();
          eitr != unmatched_sends->end(); ++eitr)
     {
-        for (QLinkedList<CommRecord *>::Iterator itr = (*eitr)->begin();
+        for (std::list<CommRecord *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             unmatched_send_count++;
@@ -207,7 +178,8 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
               << unmatched_recv_count << " unmatched recvs." << std::endl;
 
 
-    traceElapsed = traceTimer.nsecsElapsed();
+    clock_t end = clock();
+    double traceElapsed = double(end - start) / CLOCKS_PER_SEC;
     RavelUtils::gu_printTime(traceElapsed, "OTF Reading: ");
 
     return rawtrace;
@@ -320,7 +292,6 @@ uint64_t OTFImporter::convertTime(void* userData, uint64_t time)
 int OTFImporter::handleDefTimerResolution(void* userData, uint32_t stream,
                                           uint64_t ticksPerSecond)
 {
-    Q_UNUSED(stream);
     ((OTFImporter*) userData)->ticks_per_second = ticksPerSecond;
     ((OTFImporter*) userData)->second_magnitude
             = (int) floor(log10(ticksPerSecond));
@@ -337,9 +308,7 @@ int OTFImporter::handleDefTimerResolution(void* userData, uint32_t stream,
 int OTFImporter::handleDefFunctionGroup(void * userData, uint32_t stream,
                                         uint32_t funcGroup, const char * name)
 {
-    Q_UNUSED(stream);
-
-    (*(((OTFImporter *) userData)->functionGroups))[funcGroup] = QString(name);
+    (*(((OTFImporter *) userData)->functionGroups))[funcGroup] = std::string(name);
     return 0;
 }
 
@@ -347,10 +316,7 @@ int OTFImporter::handleDefFunction(void * userData, uint32_t stream,
                                    uint32_t func, const char* name,
                                    uint32_t funcGroup, uint32_t source)
 {
-    Q_UNUSED(stream);
-    Q_UNUSED(source);
-
-    (*(((OTFImporter*) userData)->functions))[func] = new Function(QString(name),
+    (*(((OTFImporter*) userData)->functions))[func] = new Function(std::string(name),
                                                                    funcGroup);
     return 0;
 }
@@ -362,12 +328,9 @@ int OTFImporter::handleDefProcess(void * userData, uint32_t stream,
                                   uint32_t process, const char* name,
                                   uint32_t parent)
 {
-    Q_UNUSED(stream);
-    Q_UNUSED(parent);
-
     PrimaryEntityGroup * MPI = ((OTFImporter *) userData)->primaries->value(0);
     MPI->entities->insert(process - 1,
-                       new Entity(process - 1, QString(name),
+                       new Entity(process - 1, std::string(name),
                        MPI));
     ((OTFImporter *) userData)->num_processes++;
     return 0;
@@ -378,19 +341,15 @@ int OTFImporter::handleDefCounter(void * userData, uint32_t stream,
                                   uint32_t properties, uint32_t counterGroup,
                                   const char* unit)
 {
-    Q_UNUSED(stream);
-    Q_UNUSED(properties);
-    Q_UNUSED(counterGroup);
     (*(((OTFImporter*) userData)->counters))[counter] = new Counter(counter,
-                                                                    QString(name),
-                                                                    QString(unit));
+                                                                    std::string(name),
+                                                                    std::string(unit));
     return 0;
 }
 
 int OTFImporter::handleEnter(void * userData, uint64_t time, uint32_t function,
                              uint32_t process, uint32_t source)
 {
-    Q_UNUSED(source);
     ((*((((OTFImporter*) userData)->rawtrace)->events))[process - 1])->append(new EventRecord(process - 1,
                                                                                               convertTime(userData,
                                                                                                           time),
@@ -402,7 +361,6 @@ int OTFImporter::handleEnter(void * userData, uint64_t time, uint32_t function,
 int OTFImporter::handleLeave(void * userData, uint64_t time, uint32_t function,
                              uint32_t process, uint32_t source)
 {
-    Q_UNUSED(source);
     ((*((((OTFImporter*) userData)->rawtrace)->events))[process - 1])->append(new EventRecord(process - 1,
                                                                                               convertTime(userData,
                                                                                                           time),
@@ -438,14 +396,12 @@ int OTFImporter::handleSend(void * userData, uint64_t time, uint32_t sender,
                             uint32_t receiver, uint32_t group, uint32_t type,
                             uint32_t length, uint32_t source)
 {
-    Q_UNUSED(source);
-
     // Every time we find a send, check the unmatched recvs
     // to see if it has a match
     time = convertTime(userData, time);
     CommRecord * cr = NULL;
-    QLinkedList<CommRecord *> * unmatched = (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1];
-    for (QLinkedList<CommRecord *>::Iterator itr = unmatched->begin();
+    std::list<CommRecord *> * unmatched = (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1];
+    for (std::list<CommRecord *>::Iterator itr = unmatched->begin();
          itr != unmatched->end(); ++itr)
     {
         if (OTFImporter::compareComms((*itr), sender, receiver, type))
@@ -478,13 +434,11 @@ int OTFImporter::handleRecv(void * userData, uint64_t time, uint32_t receiver,
                             uint32_t sender, uint32_t group, uint32_t type,
                             uint32_t length, uint32_t source)
 {
-    Q_UNUSED(source);
-
     // Look for match in unmatched_sends
     time = convertTime(userData, time);
     CommRecord * cr = NULL;
-    QLinkedList<CommRecord *> * unmatched = (*(((OTFImporter*) userData)->unmatched_sends))[sender - 1];
-    for (QLinkedList<CommRecord *>::Iterator itr = unmatched->begin();
+    std::list<CommRecord *> * unmatched = (*(((OTFImporter*) userData)->unmatched_sends))[sender - 1];
+    for (std::list<CommRecord *>::Iterator itr = unmatched->begin();
          itr != unmatched->end(); ++itr)
     {
         if (OTFImporter::compareComms((*itr), sender -1, receiver -1, type))
@@ -526,9 +480,7 @@ int OTFImporter::handleDefProcessGroup(void * userData, uint32_t stream,
                                        uint32_t numberOfProcs,
                                        const uint32_t * procs)
 {
-    Q_UNUSED(stream);
-
-    QString qname(name);
+    std::string qname(name);
     if (qname.contains("MPI_COMM_SELF")) // Probably won't use this
         return 0;
 
@@ -547,8 +499,6 @@ int OTFImporter::handleDefCollectiveOperation(void * userData, uint32_t stream,
                                               uint32_t collOp, const char * name,
                                               uint32_t type)
 {
-    Q_UNUSED(stream);
-
     (*(((OTFImporter *) userData)->collective_definitions))[collOp]
             = new OTFCollective(collOp, type, name);
 
@@ -565,9 +515,6 @@ int OTFImporter::handleCollectiveOperation(void * userData, uint64_t time,
                                            uint64_t duration,
                                            uint32_t source)
 {
-    Q_UNUSED(source); // Location in source code
-    Q_UNUSED(userData);
-
     std::cout << "Collective: " << time << ", proc: " << process << ", coll: " << collective;
     std::cout << ", root: " << rootProc << ", group: " << procGroup << ", sent: " << sent;
     std::cout << ", recv: " << received << ", dur: " << duration << std::endl;
@@ -581,16 +528,11 @@ int OTFImporter::handleBeginCollectiveOperation(void * userData, uint64_t time,
                                                 uint64_t matchingId,
                                                 uint32_t procGroup,
                                                 uint32_t rootProc,
-                                                uint32_t sent,
-                                                uint32_t received,
+                                                uint32_t sent, // Data volume received
+                                                uint32_t received, // Data volume sent
                                                 uint32_t scltoken,
                                                 OTF_KeyValueList * list)
 {
-    Q_UNUSED(list);
-    Q_UNUSED(scltoken);
-    Q_UNUSED(sent); // Data volume received
-    Q_UNUSED(received); // Data volume sent
-
     // Convert rootProc to 0..p-1 space if it truly is a root and not unrooted value
     if (rootProc > 0)
         rootProc--;
@@ -616,11 +558,5 @@ int OTFImporter::handleEndCollectiveOperation(void * userData, uint64_t time,
                                               uint64_t matchingId,
                                               OTF_KeyValueList * list)
 {
-    Q_UNUSED(userData);
-    Q_UNUSED(time);
-    Q_UNUSED(process);
-    Q_UNUSED(matchingId);
-    Q_UNUSED(list);
-
     return 0;
 }

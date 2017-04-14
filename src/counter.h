@@ -25,16 +25,16 @@
 #ifndef COUNTER_H
 #define COUNTER_H
 
-#include <QString>
+#include <string>
 
 class Counter
 {
 public:
-    Counter(int _id, QString _name, QString _unit);
+    Counter(int _id, std::string _name, std::string _unit);
 
     unsigned int id;
-    QString name;
-    QString unit;
+    std::string name;
+    std::string unit;
 };
 
 #endif // COUNTER_H

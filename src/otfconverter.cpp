@@ -1,34 +1,9 @@
-//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2014, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory.
-//
-// This file is part of Ravel.
-// Written by Kate Isaacs, kisaacs@acm.org, All rights reserved.
-// LLNL-CODE-663885
-//
-// For details, see https://github.com/scalability-llnl/ravel
-// Please also see the LICENSE file for our notice and the LGPL.
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License (as published by
-// the Free Software Foundation) version 2.1 dated February 1999.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-// conditions of the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//////////////////////////////////////////////////////////////////////////////
 #include "otfconverter.h"
-#include <QElapsedTimer>
-#include <QStack>
-#include <QSet>
 #include <cmath>
+#include <ctime>
 #include <climits>
 #include <iostream>
+#include <algorithm>
 
 #include "ravelutils.h"
 
@@ -54,11 +29,11 @@
 #include "metrics.h"
 
 
-const QString OTFConverter::collectives_string
-    = QString("MPI_BarrierMPI_BcastMPI_ReduceMPI_GatherMPI_Scatter")
-      + QString("MPI_AllgatherMPI_AllreduceMPI_AlltoallMPI_Scan")
-      + QString("MPI_Reduce_scatterMPI_Op_createMPI_Op_freeMPIMPI_Alltoallv")
-      + QString("MPI_AllgathervMPI_GathervMPI_Scatterv");
+const std::string OTFConverter::collectives_string
+    = std::string("MPI_BarrierMPI_BcastMPI_ReduceMPI_GatherMPI_Scatter")
+      + std::string("MPI_AllgatherMPI_AllreduceMPI_AlltoallMPI_Scan")
+      + std::string("MPI_Reduce_scatterMPI_Op_createMPI_Op_freeMPIMPI_Alltoallv")
+      + std::string("MPI_AllgathervMPI_GathervMPI_Scatterv");
 
 OTFConverter::OTFConverter()
     : rawtrace(NULL), trace(NULL)
@@ -70,13 +45,13 @@ OTFConverter::~OTFConverter()
 }
 
 
-Trace * OTFConverter::importOTF(QString filename)
+Trace * OTFConverter::importOTF(std::string filename)
 {
     #ifdef OTF1LIB
 
     // Start with the rawtrace similar to what we got from PARAVER
     OTFImporter * importer = new OTFImporter();
-    rawtrace = importer->importOTF(filename.toStdString().c_str());
+    rawtrace = importer->importOTF(filename.c_str());
     emit(finishRead());
 
     convert();
@@ -88,11 +63,11 @@ Trace * OTFConverter::importOTF(QString filename)
 }
 
 
-Trace * OTFConverter::importOTF2(QString filename)
+Trace * OTFConverter::importOTF2(std::string filename)
 {
     // Start with the rawtrace similar to what we got from PARAVER
     OTF2Importer * importer = new OTF2Importer();
-    rawtrace = importer->importOTF2(filename.toStdString().c_str());
+    rawtrace = importer->importOTF2(filename.c_str());
     emit(finishRead());
 
     convert();
@@ -105,9 +80,7 @@ Trace * OTFConverter::importOTF2(QString filename)
 void OTFConverter::convert()
 {
     // Time the rest of this
-    QElapsedTimer traceTimer;
-    qint64 traceElapsed;
-    traceTimer.start();
+    clock_t start = clock();
     trace = new Trace(rawtrace->num_entities, rawtrace->num_pes);
     trace->units = rawtrace->second_magnitude;
 
@@ -125,7 +98,7 @@ void OTFConverter::convert()
     trace->collective_definitions = rawtrace->collective_definitions;
 
     // Find the MPI Group key
-    for (QMap<int, QString>::Iterator fxnGroup = trace->functionGroups->begin();
+    for (std::map<int, std::string>::iterator fxnGroup = trace->functionGroups->begin();
          fxnGroup != trace->functionGroups->end(); ++fxnGroup)
     {
         if (fxnGroup.value().contains("MPI")) {
@@ -135,7 +108,7 @@ void OTFConverter::convert()
     }
 
     // Set up collective metrics
-    for (QMap<unsigned int, Counter *>::Iterator counter = rawtrace->counters->begin();
+    for (std::map<unsigned int, Counter *>::iterator counter = rawtrace->counters->begin();
          counter != rawtrace->counters->end(); ++counter)
     {
         trace->metrics->append((counter.value())->name);
@@ -147,14 +120,15 @@ void OTFConverter::convert()
     matchEvents();
 
     // Sort all the collective records
-    for (QMap<unsigned long long, CollectiveRecord *>::Iterator cr
+    for (std::map<unsigned long long, CollectiveRecord *>::iterator cr
          = trace->collectives->begin();
          cr != trace->collectives->end(); ++cr)
     {
         qSort((*cr)->events->begin(), (*cr)->events->end(), Event::eventEntityLessThan);
     }
 
-    traceElapsed = traceTimer.nsecsElapsed();
+    clock_t end = clock();
+    double traceElapsed = (end - start) / CLOCKS_PER_SEC;
     RavelUtils::gu_printTime(traceElapsed, "Event/Message Matching: ");
 
     delete rawtrace;
@@ -166,11 +140,11 @@ void OTFConverter::matchEvents()
 {
     trace->metrics->append("Function Count");
     // We can handle each set of events separately
-    QStack<EventRecord *> * stack = new QStack<EventRecord *>();
+    std::stack<EventRecord *> * stack = new std::stack<EventRecord *>();
 
     // Keep track of the counters at that time
-    QStack<CounterRecord *> * counterstack = new QStack<CounterRecord *>();
-    QMap<unsigned int, CounterRecord *> * lastcounters = new QMap<unsigned int, CounterRecord *>();
+    std::stack<CounterRecord *> * counterstack = new std::stack<CounterRecord *>();
+    std::map<unsigned int, CounterRecord *> * lastcounters = new std::map<unsigned int, CounterRecord *>();
 
     emit(matchingUpdate(1, "Constructing events..."));
     int progressPortion = std::max(round(rawtrace->num_entities / 1.0
@@ -181,7 +155,7 @@ void OTFConverter::matchEvents()
 
     for (int i = 0; i < rawtrace->events->size(); i++)
     {
-        QVector<EventRecord *> * event_list = rawtrace->events->at(i);
+        std::vector<EventRecord *> * event_list = rawtrace->events->at(i);
         int depth = 0;
         int phase = 0;
         unsigned long long endtime = 0;
@@ -192,18 +166,18 @@ void OTFConverter::matchEvents()
         }
         ++currentIter;
 
-        QVector<CounterRecord *> * counters = rawtrace->counter_records->at(i);
+        std::vector<CounterRecord *> * counters = rawtrace->counter_records->at(i);
         lastcounters->clear();
         int counter_index = 0;
 
-        QVector<RawTrace::CollectiveBit *> * collective_bits = rawtrace->collectiveBits->at(i);
+        std::vector<RawTrace::CollectiveBit *> * collective_bits = rawtrace->collectiveBits->at(i);
         int collective_index = 0;
 
-        QVector<CommRecord *> * sendlist = rawtrace->messages->at(i);
-        QVector<CommRecord *> * recvlist = rawtrace->messages_r->at(i);
+        std::vector<CommRecord *> * sendlist = rawtrace->messages->at(i);
+        std::vector<CommRecord *> * recvlist = rawtrace->messages_r->at(i);
         int sindex = 0, rindex = 0;
         CommEvent * prev = NULL;
-        for (QVector<EventRecord *>::Iterator evt = event_list->begin();
+        for (std::vector<EventRecord *>::iterator evt = event_list->begin();
              evt != event_list->end(); ++evt)
         {
             if (!((*evt)->enter)) // End of a subroutine
@@ -284,7 +258,7 @@ void OTFConverter::matchEvents()
                 }
                 else if (sflag)
                 {
-                    QVector<Message *> * msgs = new QVector<Message *>();
+                    std::vector<Message *> * msgs = new std::vector<Message *>();
                     CommRecord * crec = sendlist->at(sindex);
                     if (!(crec->message))
                     {
@@ -315,7 +289,7 @@ void OTFConverter::matchEvents()
                 }
                 else if (rflag)
                 {
-                    QVector<Message *> * msgs = new QVector<Message *>();
+                    std::vector<Message *> * msgs = new std::vector<Message *>();
                     CommRecord * crec = NULL;
                     while (rindex < recvlist->size() && (*evt)->time >= recvlist->at(rindex)->recv_time
                            && bgn->time <= recvlist->at(rindex)->recv_time)
@@ -383,7 +357,7 @@ void OTFConverter::matchEvents()
                 {
                     stack->top()->children.append(e);
                 }
-                for (QList<Event *>::Iterator child = bgn->children.begin();
+                for (std::vector<Event *>::iterator child = bgn->children.begin();
                      child != bgn->children.end(); ++child)
                 {
                     // If the child already has a caller, it was coalesced.
@@ -440,7 +414,7 @@ void OTFConverter::matchEvents()
             {
                 stack->top()->children.append(e);
             }
-            for (QList<Event *>::Iterator child = bgn->children.begin();
+            for (std::vector<Event *>::iterator child = bgn->children.begin();
                  child != bgn->children.end(); ++child)
             {
                 e->callees->append(*child);
@@ -457,9 +431,9 @@ void OTFConverter::matchEvents()
 }
 
 // We only do this with comm events right now, so we know we won't have nesting
-int OTFConverter::advanceCounters(CommEvent * evt, QStack<CounterRecord *> * counterstack,
-                                   QVector<CounterRecord *> * counters, int index,
-                                   QMap<unsigned int, CounterRecord *> * lastcounters)
+int OTFConverter::advanceCounters(CommEvent * evt, std::stack<CounterRecord *> * counterstack,
+                                   std::vector<CounterRecord *> * counters, int index,
+                                   std::map<unsigned int, CounterRecord *> * lastcounters)
 {
     CounterRecord * begin, * last, * end;
     int tmpIndex;

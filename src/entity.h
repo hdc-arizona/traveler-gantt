@@ -1,17 +1,17 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include <QString>
+#include <string>
 
 class PrimaryEntityGroup;
 
 class Entity
 {
 public:
-    Entity(unsigned long _id, QString _name, PrimaryEntityGroup * _primary);
+    Entity(unsigned long _id, std::string _name, PrimaryEntityGroup * _primary);
 
     unsigned long id;
-    QString name;
+    std::string name;
 
     PrimaryEntityGroup * primary;
 };

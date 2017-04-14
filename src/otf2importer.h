@@ -1,36 +1,12 @@
-//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2014, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory.
-//
-// This file is part of Ravel.
-// Written by Kate Isaacs, kisaacs@acm.org, All rights reserved.
-// LLNL-CODE-663885
-//
-// For details, see https://github.com/scalability-llnl/ravel
-// Please also see the LICENSE file for our notice and the LGPL.
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License (as published by
-// the Free Software Foundation) version 2.1 dated February 1999.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-// conditions of the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//////////////////////////////////////////////////////////////////////////////
 #ifndef OTF2IMPORTER_H
 #define OTF2IMPORTER_H
 
 #include <otf2/otf2.h>
-#include <QLinkedList>
-#include <QString>
-#include <QMap>
-#include <QVector>
-#include <QSet>
+#include <list>
+#include <string>
+#include <map>
+#include <vector>
+#include <set>
 
 class CommRecord;
 class RawTrace;
@@ -192,14 +168,14 @@ public:
                   OTF2_GroupFlag _flags)
             : self(_self), name(_name), type(_type),
               paradigm(_paradigm), flags(_flags),
-              members(new QList<uint64_t>()) {}
+              members(new std::vector<uint64_t>()) {}
 
         OTF2_GroupRef self;
         OTF2_StringRef name;
         OTF2_GroupType type;
         OTF2_Paradigm paradigm;
         OTF2_GroupFlag flags;
-        QList<uint64_t> * members;
+        std::vector<uint64_t> * members;
     };
 
 
@@ -340,7 +316,7 @@ public:
 
     static uint64_t convertTime(void* userData, OTF2_TimeStamp time);
 
-    QString from_saved_version;
+    std::string from_saved_version;
     unsigned long long int ticks_per_second;
     unsigned long long int time_offset;
     double time_conversion_factor;
@@ -364,45 +340,45 @@ private:
     OTF2_GlobalDefReaderCallbacks * global_def_callbacks;
     OTF2_GlobalEvtReaderCallbacks * global_evt_callbacks;
 
-    QMap<OTF2_StringRef, QString> * stringMap;
-    QMap<OTF2_AttributeRef, OTF2Attribute *> * attributeMap;
-    QMap<OTF2_LocationRef, OTF2Location *> * locationMap;
-    QMap<OTF2_LocationGroupRef, OTF2LocationGroup *> * locationGroupMap;
-    QMap<OTF2_RegionRef, OTF2Region *> * regionMap;
-    QMap<OTF2_CommRef, OTF2Comm *> * commMap;
-    QMap<OTF2_GroupRef, OTF2Group *> * groupMap;
+    std::map<OTF2_StringRef, std::string> * stringMap;
+    std::map<OTF2_AttributeRef, OTF2Attribute *> * attributeMap;
+    std::map<OTF2_LocationRef, OTF2Location *> * locationMap;
+    std::map<OTF2_LocationGroupRef, OTF2LocationGroup *> * locationGroupMap;
+    std::map<OTF2_RegionRef, OTF2Region *> * regionMap;
+    std::map<OTF2_CommRef, OTF2Comm *> * commMap;
+    std::map<OTF2_GroupRef, OTF2Group *> * groupMap;
 
-    QMap<OTF2_CommRef, int> * commIndexMap;
-    QMap<OTF2_RegionRef, int> * regionIndexMap;
-    QMap<OTF2_LocationRef, unsigned long> * locationIndexMap;
+    std::map<OTF2_CommRef, int> * commIndexMap;
+    std::map<OTF2_RegionRef, int> * regionIndexMap;
+    std::map<OTF2_LocationRef, unsigned long> * locationIndexMap;
 
-    QList<OTF2Location *> threadList;
-    QSet<OTF2_LocationRef> MPILocations;
+    std::vector<OTF2Location *> threadList;
+    std::set<OTF2_LocationRef> MPILocations;
     PrimaryEntityGroup * processingElements;
 
-    QVector<QLinkedList<CommRecord *> *> * unmatched_recvs;
-    QVector<QLinkedList<CommRecord *> *> * unmatched_sends;
-    QVector<QLinkedList<CommRecord *> *> * unmatched_send_requests;
-    QVector<QLinkedList<OTF2IsendComplete *> *> * unmatched_send_completes;
+    std::vector<std::list<CommRecord *> *> * unmatched_recvs;
+    std::vector<std::list<CommRecord *> *> * unmatched_sends;
+    std::vector<std::list<CommRecord *> *> * unmatched_send_requests;
+    std::vector<std::list<OTF2IsendComplete *> *> * unmatched_send_completes;
 
     RawTrace * rawtrace;
 
-    QMap<int, PrimaryEntityGroup *> * primaries;
-    QMap<int, QString> * functionGroups;
-    QMap<int, Function *> * functions;
-    QMap<int, EntityGroup *> * entitygroups;
-    QMap<int, OTFCollective *> * collective_definitions;
-    QMap<unsigned int, Counter *> * counters;
+    std::map<int, PrimaryEntityGroup *> * primaries;
+    std::map<int, std::string> * functionGroups;
+    std::map<int, Function *> * functions;
+    std::map<int, EntityGroup *> * entitygroups;
+    std::map<int, OTFCollective *> * collective_definitions;
+    std::map<unsigned int, Counter *> * counters;
 
-    QMap<unsigned long long, CollectiveRecord *> * collectives; // matchingId to CR <-- REMOVE ME
-    QVector<QMap<unsigned long long, CollectiveRecord *> *> * collectiveMap; // process/time to CR
+    std::map<unsigned long long, CollectiveRecord *> * collectives; // matchingId to CR <-- REMOVE ME
+    std::vector<std::map<unsigned long long, CollectiveRecord *> *> * collectiveMap; // process/time to CR
 
-    QVector<QLinkedList<uint64_t> *> * collective_begins;
-    QVector<QLinkedList<OTF2CollectiveFragment *> *> * collective_fragments;
+    std::vector<std::list<uint64_t> *> * collective_begins;
+    std::vector<std::list<OTF2CollectiveFragment *> *> * collective_fragments;
 
-    QList<OTF2_AttributeRef> metrics;
-    QList<QString> * metric_names;
-    QMap<QString, QString> * metric_units;
+    std::vector<OTF2_AttributeRef> metrics;
+    std::vector<std::string> * metric_names;
+    std::map<std::string, std::string> * metric_units;
 };
 
 #endif // OTF2IMPORTER_H

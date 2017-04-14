@@ -1,23 +1,16 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Qt5 + Modules
-find_package(Qt5 REQUIRED Core Widgets OpenGL Concurrent)
-
 # Dependencies over Qt5
-find_package(OpenGL)
-find_package(Muster REQUIRED)
 find_package(OTF)
 find_package(OTF2 REQUIRED)
 find_package(ZLIB REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 set(CMAKE_AUTOMOC ON)
 
 # Includes, Definitions, Flags
-include_directories(${Qt5Widgets_INCLUDE_DIRS}
-                    ${Muster_INCLUDE_DIRS}
-                    ${OTF2_INCLUDE_DIRS}
+include_directories(${OTF2_INCLUDE_DIRS}
                     ${ZLIB_INCLUDE_DIRS}
                    )
 
@@ -31,13 +24,6 @@ if (OTF_FOUND)
     list(APPEND ADDED_SOURCES otfimporter.cpp)
 endif()
 
-add_definitions(${Qt5Widgets_DEFINITIONS})
-
-# ui files
-qt5_wrap_ui(ui_mainwindow.h mainwindow.ui)
-qt5_wrap_ui(ui_metricrangedialog.h metricrangedialog.ui)
-qt5_wrap_ui(ui_visoptionsdialog.h visoptionsdialog.ui)
-
 # Sources and UI Files
 set(Ravel_SOURCES
     main.cpp
@@ -45,27 +31,17 @@ set(Ravel_SOURCES
     event.cpp
     message.cpp
     mainwindow.cpp
-    viswidget.cpp
-    overviewvis.cpp
-    colormap.cpp
     commrecord.cpp
     eventrecord.cpp
     rawtrace.cpp
     otfconverter.cpp
     function.cpp
-    timelinevis.cpp
-    traditionalvis.cpp
-    visoptionsdialog.cpp
-    visoptions.cpp
     importfunctor.cpp
     collectiverecord.cpp
-    verticallabel.cpp
-    metricrangedialog.cpp
     otfcollective.cpp
     commevent.cpp
     p2pevent.cpp
     collectiveevent.cpp
-    commdrawinterface.cpp
     counter.cpp
     counterrecord.cpp
     otf2importer.cpp
@@ -81,30 +57,18 @@ set(Ravel_HEADERS
     event.h
     message.h
     mainwindow.h
-    viswidget.h
-    overviewvis.h
-    stepvis.h
-    colormap.h
     commrecord.h
     eventrecord.h
     rawtrace.h
     otfconverter.h
     function.h
     ravelutils.h
-    timelinevis.h
-    traditionalvis.h
-    visoptionsdialog.h
-    visoptions.h
     importfunctor.h
     collectiverecord.h
-    verticallabel.h
-    metricrangedialog.h
     otfcollective.h
     commevent.h
     p2pevent.h
     collectiveevent.h
-    commbundle.h
-    commdrawinterface.h
     counter.h
     counterrecord.h
     otf2importer.h
@@ -116,23 +80,12 @@ set(Ravel_HEADERS
     ${ADDED_HEADERS}
 )
 
-set(Ravel_UIC
-    ui_mainwindow.h
-    ui_visoptionsdialog.h
-    ui_metricrangedialog.h
-)
-
 # Build Target
 add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES} ${Ravel_UIC})
 
-qt5_use_modules(Ravel Widgets OpenGL Concurrent)
+qt5_use_modules(Ravel)
 
 target_link_libraries(Ravel
-                      Qt5::Widgets
-                      Qt5::OpenGL
-                      Qt5::Concurrent
-                      ${OPENGL_LIBRARIES}
-                      ${Muster_LIBRARIES}
                       ${OTF2_LIBRARIES}
                       ${ZLIB_LIBRARIES}
                      )

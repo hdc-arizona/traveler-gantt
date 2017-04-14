@@ -1,9 +1,8 @@
 #ifndef PRIMARYENTITYGROUP_H
 #define PRIMARYENTITYGROUP_H
 
-#include <QList>
-#include <QMap>
-#include <QString>
+#include <vector>
+#include <string>
 
 class Entity;
 
@@ -13,14 +12,14 @@ class Entity;
 class PrimaryEntityGroup
 {
 public:
-    PrimaryEntityGroup(int _id, QString _name);
+    PrimaryEntityGroup(int _id, std::string _name);
     ~PrimaryEntityGroup();
 
     int id;
-    QString name;
+    std::string name;
 
     // This order is important for communicator rank ID
-    QList<Entity *> * entities;
+    std::vector<Entity *> * entities;
 };
 
 #endif // PRIMARYENTITYGROUP_H

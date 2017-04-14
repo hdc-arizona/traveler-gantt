@@ -1,27 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2014, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory.
-//
-// This file is part of Ravel.
-// Written by Kate Isaacs, kisaacs@acm.org, All rights reserved.
-// LLNL-CODE-663885
-//
-// For details, see https://github.com/scalability-llnl/ravel
-// Please also see the LICENSE file for our notice and the LGPL.
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License (as published by
-// the Free Software Foundation) version 2.1 dated February 1999.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-// conditions of the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//////////////////////////////////////////////////////////////////////////////
 #ifndef COLLECTIVEEVENT_H
 #define COLLECTIVEEVENT_H
 
@@ -39,13 +15,12 @@ public:
     // We count the collective as two since it serves as both the beginning
     // and ending of some sort of communication while P2P communication
     // events are either the begin (send) or the end (recv)
-    int comm_count(QMap<Event *, int> *memo = NULL) { Q_UNUSED(memo); return 2; }
+    int comm_count(std::map<Event *, int> *memo = NULL) { return 2; }
 
     bool isP2P() { return false; }
     bool isReceive() { return false; }
     virtual bool isCollective() { return true; }
 
-    void addComms(QSet<CommBundle *> * bundleset) { bundleset->insert(collective); }
     CollectiveRecord * getCollective() { return collective; }
 
     CollectiveRecord * collective;

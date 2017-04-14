@@ -10,7 +10,7 @@ PrimaryEntityGroup::PrimaryEntityGroup(int _id, QString _name)
 
 PrimaryEntityGroup::~PrimaryEntityGroup()
 {
-    for (QList<Entity *>::Iterator entity = entities->begin();
+    for (std::vector<Entity *>::iterator entity = entities->begin();
          entity != entities->end(); ++entity)
     {
         delete *entity;

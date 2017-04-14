@@ -34,26 +34,16 @@ SOURCES  += main.cpp \
     event.cpp \
     message.cpp \
     mainwindow.cpp \
-    viswidget.cpp \
-    overviewvis.cpp \
-    colormap.cpp \
     commrecord.cpp \
     eventrecord.cpp \
     rawtrace.cpp \
     otfconverter.cpp \
     function.cpp \
-    timelinevis.cpp \
-    traditionalvis.cpp \
-    visoptionsdialog.cpp \
-    visoptions.cpp \
     collectiverecord.cpp \
-    verticallabel.cpp \
-    metricrangedialog.cpp \
     otfcollective.cpp \
     commevent.cpp \
     p2pevent.cpp \
     collectiveevent.cpp \
-    commdrawinterface.cpp \
     counter.cpp \
     counterrecord.cpp \
     otf2importer.cpp \
@@ -68,27 +58,16 @@ HEADERS += \
     event.h \
     message.h \
     mainwindow.h \
-    viswidget.h \
-    overviewvis.h \
-    colormap.h \
     commrecord.h \
     eventrecord.h \
     rawtrace.h \
     otfconverter.h \
     function.h \
-    timelinevis.h \
-    traditionalvis.h \
-    visoptionsdialog.h \
-    visoptions.h \
     collectiverecord.h \
-    verticallabel.h \
-    metricrangedialog.h \
     otfcollective.h \
     commevent.h \
     p2pevent.h \
     collectiveevent.h \
-    commbundle.h \
-    commdrawinterface.h \
     counter.h \
     counterrecord.h \
     otf2importer.h \
@@ -100,9 +79,7 @@ HEADERS += \
     importfunctor.h
 
 FORMS += \
-    mainwindow.ui \
-    visoptionsdialog.ui \
-    metricrangedialog.ui
+    mainwindow.ui
 
 HOME = $$system(echo $HOME)
 

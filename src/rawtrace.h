@@ -1,33 +1,9 @@
-//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2014, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory.
-//
-// This file is part of Ravel.
-// Written by Kate Isaacs, kisaacs@acm.org, All rights reserved.
-// LLNL-CODE-663885
-//
-// For details, see https://github.com/scalability-llnl/ravel
-// Please also see the LICENSE file for our notice and the LGPL.
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License (as published by
-// the Free Software Foundation) version 2.1 dated February 1999.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-// conditions of the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//////////////////////////////////////////////////////////////////////////////
 #ifndef RAWTRACE_H
 #define RAWTRACE_H
 
-#include <QString>
-#include <QMap>
-#include <QVector>
+#include <string>
+#include <map>
+#include <vector>
 #include <stdint.h>
 
 class PrimaryEntityGroup;
@@ -56,26 +32,26 @@ public:
         CollectiveRecord * cr;
     };
 
-    QMap<int, PrimaryEntityGroup *> * primaries;
+    std::map<int, PrimaryEntityGroup *> * primaries;
     PrimaryEntityGroup * processingElements;
-    QMap<int, QString> * functionGroups;
-    QMap<int, Function *> * functions;
-    QVector<QVector<EventRecord *> *> * events;
-    QVector<QVector<CommRecord *> *> * messages;
-    QVector<QVector<CommRecord *> *> * messages_r; // by receiver instead of sender
-    QMap<int, EntityGroup *> * entitygroups;
-    QMap<int, OTFCollective *> * collective_definitions;
-    QMap<unsigned int, Counter *> * counters;
-    QVector<QVector<CounterRecord * > *> * counter_records;
+    std::map<int, std::string> * functionGroups;
+    std::map<int, Function *> * functions;
+    std::vector<std::vector<EventRecord *> *> * events;
+    std::vector<std::vector<CommRecord *> *> * messages;
+    std::vector<std::vector<CommRecord *> *> * messages_r; // by receiver instead of sender
+    std::map<int, EntityGroup *> * entitygroups;
+    std::map<int, OTFCollective *> * collective_definitions;
+    std::map<unsigned int, Counter *> * counters;
+    std::vector<std::vector<CounterRecord * > *> * counter_records;
 
-    QMap<unsigned long long, CollectiveRecord *> * collectives;
-    QVector<QMap<unsigned long long, CollectiveRecord *> *> * collectiveMap;
-    QVector<QVector<CollectiveBit *> *> * collectiveBits;
+    std::map<unsigned long long, CollectiveRecord *> * collectives;
+    std::vector<std::map<unsigned long long, CollectiveRecord *> *> * collectiveMap;
+    std::vector<std::vector<CollectiveBit *> *> * collectiveBits;
     int num_entities;
     int num_pes;
     int second_magnitude; // seconds are 10^this over the smallest smaple unit
-    QList<QString> * metric_names;
-    QMap<QString, QString> * metric_units;
+    std::vector<std::string> * metric_names;
+    std::map<std::string, std::string> * metric_units;
 };
 
 #endif // RAWTRACE_H

@@ -1,27 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2014, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory.
-//
-// This file is part of Ravel.
-// Written by Kate Isaacs, kisaacs@acm.org, All rights reserved.
-// LLNL-CODE-663885
-//
-// For details, see https://github.com/scalability-llnl/ravel
-// Please also see the LICENSE file for our notice and the LGPL.
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License (as published by
-// the Free Software Foundation) version 2.1 dated February 1999.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the IMPLIED WARRANTY OF
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the terms and
-// conditions of the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//////////////////////////////////////////////////////////////////////////////
 #include "rawtrace.h"
 
 #include "primaryentitygroup.h"
@@ -65,10 +41,10 @@ RawTrace::RawTrace(int nt, int np)
 // we know that will get passed to the processed trace
 RawTrace::~RawTrace()
 {
-    for (QVector<QVector<EventRecord *> *>::Iterator eitr = events->begin();
+    for (std::vector<std::vector<EventRecord *> *>::iterator eitr = events->begin();
          eitr != events->end(); ++eitr)
     {
-        for (QVector<EventRecord *>::Iterator itr = (*eitr)->begin();
+        for (std::vector<EventRecord *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             delete *itr;
@@ -79,10 +55,10 @@ RawTrace::~RawTrace()
     }
     delete events;
 
-    for (QVector<QVector<CommRecord *> *>::Iterator eitr = messages->begin();
+    for (std::vector<std::vector<CommRecord *> *>::iterator eitr = messages->begin();
          eitr != messages->end(); ++eitr)
     {
-        for (QVector<CommRecord *>::Iterator itr = (*eitr)->begin();
+        for (std::vector<CommRecord *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             delete *itr;
@@ -94,10 +70,10 @@ RawTrace::~RawTrace()
     delete messages;
     delete messages_r;
 
-    for (QVector<QVector<CollectiveBit *> *>::Iterator eitr = collectiveBits->begin();
+    for (std::vector<std::vector<CollectiveBit *> *>::iterator eitr = collectiveBits->begin();
          eitr != collectiveBits->end(); ++eitr)
     {
-        for (QVector<CollectiveBit *>::Iterator itr = (*eitr)->begin();
+        for (std::vector<CollectiveBit *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             delete *itr;

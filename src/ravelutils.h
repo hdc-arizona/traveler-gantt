@@ -1,7 +1,7 @@
 #ifndef RAVEL_UTIL_H
 #define RAVEL_UTIL_H
 
-#include <QString>
+#include <string>
 #include <iostream>
 
 // For qSorting lists of pointers
@@ -14,7 +14,7 @@ class RavelUtils
 {
 public:
     // For units
-    static QString getUnits(int zeros)
+    static std::string getUnits(int zeros)
     {
         if (zeros >= 18)
             return "as";
@@ -33,10 +33,10 @@ public:
     }
 
     // For timing information
-    static void gu_printTime(qint64 nanos, QString label)
+    static void gu_printTime(double nanos, std::string label)
     {
-        std::cout << label.toStdString().c_str();
-        double seconds = (double)nanos * 1e-9;
+        std::cout << label.c_str();
+        double seconds = nanos * 1e-9;
         if (seconds < 300)
         {
             std::cout << seconds << " seconds " << std::endl;
