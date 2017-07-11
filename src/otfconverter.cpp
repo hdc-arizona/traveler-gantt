@@ -52,7 +52,6 @@ Trace * OTFConverter::importOTF(std::string filename)
     // Start with the rawtrace similar to what we got from PARAVER
     OTFImporter * importer = new OTFImporter();
     rawtrace = importer->importOTF(filename.c_str());
-    emit(finishRead());
 
     convert();
 
@@ -68,7 +67,6 @@ Trace * OTFConverter::importOTF2(std::string filename)
     // Start with the rawtrace similar to what we got from PARAVER
     OTF2Importer * importer = new OTF2Importer();
     rawtrace = importer->importOTF2(filename.c_str());
-    emit(finishRead());
 
     convert();
 
@@ -101,8 +99,8 @@ void OTFConverter::convert()
     for (std::map<int, std::string>::iterator fxnGroup = trace->functionGroups->begin();
          fxnGroup != trace->functionGroups->end(); ++fxnGroup)
     {
-        if (fxnGroup.value().contains("MPI")) {
-            trace->mpi_group = fxnGroup.key();
+        if (fxnGroup->second.find("MPI") != std::string::npos) {
+            trace->mpi_group = fxnGroup->first;
             break;
         }
     }
@@ -111,9 +109,9 @@ void OTFConverter::convert()
     for (std::map<unsigned int, Counter *>::iterator counter = rawtrace->counters->begin();
          counter != rawtrace->counters->end(); ++counter)
     {
-        trace->metrics->append((counter.value())->name);
-        trace->metric_units->insert((counter.value())->name,
-                                    (counter.value())->name + " / time");
+        trace->metrics->push_back((counter->second)->name);
+        trace->metric_units->insert(std::pair<std::string, std::string>((counter->second)->name,
+                                    (counter->second)->name + " / time"));
     }
 
     // Convert the events into matching enter and exit
@@ -138,7 +136,7 @@ void OTFConverter::convert()
 // link them into a call tree
 void OTFConverter::matchEvents()
 {
-    trace->metrics->append("Function Count");
+    trace->metrics->push_back("Function Count");
     // We can handle each set of events separately
     std::stack<EventRecord *> * stack = new std::stack<EventRecord *>();
 
@@ -146,11 +144,6 @@ void OTFConverter::matchEvents()
     std::stack<CounterRecord *> * counterstack = new std::stack<CounterRecord *>();
     std::map<unsigned int, CounterRecord *> * lastcounters = new std::map<unsigned int, CounterRecord *>();
 
-    emit(matchingUpdate(1, "Constructing events..."));
-    int progressPortion = std::max(round(rawtrace->num_entities / 1.0
-                                         / event_match_portion), 1.0);
-    int currentPortion = 0;
-    int currentIter = 0;
     bool sflag, rflag, isendflag;
 
     for (int i = 0; i < rawtrace->events->size(); i++)
@@ -159,12 +152,6 @@ void OTFConverter::matchEvents()
         int depth = 0;
         int phase = 0;
         unsigned long long endtime = 0;
-        if (round(currentIter / progressPortion) > currentPortion)
-        {
-            ++currentPortion;
-            emit(matchingUpdate(1 + currentPortion, "Constructing events..."));
-        }
-        ++currentIter;
 
         std::vector<CounterRecord *> * counters = rawtrace->counter_records->at(i);
         lastcounters->clear();
@@ -182,7 +169,8 @@ void OTFConverter::matchEvents()
         {
             if (!((*evt)->enter)) // End of a subroutine
             {
-                EventRecord * bgn = stack->pop();
+                EventRecord * bgn = stack->top();
+                stack->pop();
                 if (bgn->time < trace->min_time)
                     trace->min_time = bgn->time;
                 if((*evt)->time > trace->max_time)
@@ -241,20 +229,20 @@ void OTFConverter::matchEvents()
                 Event * e = NULL;
                 if (cr)
                 {
-                    cr->events->append(new CollectiveEvent(bgn->time, (*evt)->time,
+                    cr->events->push_back(new CollectiveEvent(bgn->time, (*evt)->time,
                                             bgn->value, bgn->entity, bgn->entity,
                                             phase, cr));
-                    cr->events->last()->comm_prev = prev;
+                    cr->events->back()->comm_prev = prev;
                     if (prev)
-                        prev->comm_next = cr->events->last();
-                    prev = cr->events->last();
+                        prev->comm_next = cr->events->back();
+                    prev = cr->events->back();
 
-                    counter_index = advanceCounters(cr->events->last(),
+                    counter_index = advanceCounters(cr->events->back(),
                                                     counterstack,
                                                     counters, counter_index,
                                                     lastcounters);
 
-                    e = cr->events->last();
+                    e = cr->events->back();
                 }
                 else if (sflag)
                 {
@@ -268,7 +256,7 @@ void OTFConverter::matchEvents()
                         crec->message->tag = crec->tag;
                         crec->message->size = crec->size;
                     }
-                    msgs->append(crec->message);
+                    msgs->push_back(crec->message);
                     crec->message->sender = new P2PEvent(bgn->time, (*evt)->time,
                                                          bgn->value,
                                                          bgn->entity, bgn->entity, phase,
@@ -303,7 +291,7 @@ void OTFConverter::matchEvents()
                             crec->message->tag = crec->tag;
                             crec->message->size = crec->size;
                         }
-                        msgs->append(crec->message);
+                        msgs->push_back(crec->message);
                         rindex++;
                     }
                     msgs->at(0)->receiver = new P2PEvent(bgn->time, (*evt)->time,
@@ -335,7 +323,7 @@ void OTFConverter::matchEvents()
 
 
                     // Squelch counter values that we're not keeping track of here (for now)
-                    while (!counterstack->isEmpty() && counterstack->top()->time == bgn->time)
+                    while (!counterstack->empty() && counterstack->top()->time == bgn->time)
                     {
                         counterstack->pop();
                     }
@@ -349,13 +337,13 @@ void OTFConverter::matchEvents()
                 depth--;
                 e->depth = depth;
                 if (depth == 0 && !isendflag)
-                    (*(trace->roots))[(*evt)->entity]->append(e);
+                    (*(trace->roots))[(*evt)->entity]->push_back(e);
 
                 if (e->exit > endtime)
                     endtime = e->exit;
-                if (!stack->isEmpty())
+                if (!stack->empty())
                 {
-                    stack->top()->children.append(e);
+                    stack->top()->children.push_back(e);
                 }
                 for (std::vector<Event *>::iterator child = bgn->children.begin();
                      child != bgn->children.end(); ++child)
@@ -366,19 +354,19 @@ void OTFConverter::matchEvents()
                     // the first one
                     if ((*child)->caller)
                     {
-                        if (e->callees->isEmpty()
-                            || e->callees->last() != (*child)->caller)
-                            e->callees->append((*child)->caller);
+                        if (e->callees->empty()
+                            || e->callees->back() != (*child)->caller)
+                            e->callees->push_back((*child)->caller);
                     }
                     else
                     {
-                        e->callees->append(*child);
+                        e->callees->push_back(*child);
                         (*child)->caller = e;
                     }
                 }
 
                 e->addMetric("Function Count", 1);
-                (*(trace->events))[(*evt)->entity]->append(e);
+                (*(trace->events))[(*evt)->entity]->push_back(e);
             }
             else // Begin a subroutine
             {
@@ -391,10 +379,10 @@ void OTFConverter::matchEvents()
                     counter_index++;
 
                     // Set the first one to the beginning of the trace
-                    if (lastcounters->value(counters->at(counter_index)->counter) == NULL)
+                    if (lastcounters->at(counters->at(counter_index)->counter) == NULL)
                     {
-                        lastcounters->insert(counters->at(counter_index)->counter,
-                                             counters->at(counter_index));
+                        lastcounters->insert(std::pair<unsigned int, CounterRecord *>(counters->at(counter_index)->counter,
+                                             counters->at(counter_index)));
                     }
                 }
 
@@ -403,29 +391,31 @@ void OTFConverter::matchEvents()
 
         // Deal with unclosed trace issues
         // We assume these events are not communication
-        while (!stack->isEmpty())
+        while (!stack->empty())
         {
-            EventRecord * bgn = stack->pop();
+            EventRecord * bgn = stack->top();
+            stack->pop();
             endtime = std::max(endtime, bgn->time);
             Event * e = new Event(bgn->time, endtime, bgn->value,
                           bgn->entity, bgn->entity);
             e->addMetric("Function Count", 1);
-            if (!stack->isEmpty())
+            if (!stack->empty())
             {
-                stack->top()->children.append(e);
+                stack->top()->children.push_back(e);
             }
             for (std::vector<Event *>::iterator child = bgn->children.begin();
                  child != bgn->children.end(); ++child)
             {
-                e->callees->append(*child);
+                e->callees->push_back(*child);
                 (*child)->caller = e;
             }
-            (*(trace->events))[bgn->entity]->append(e);
+            (*(trace->events))[bgn->entity]->push_back(e);
             depth--;
         }
 
         // Prepare for next entity
-        stack->clear();
+        while (!stack->empty())
+            stack->pop();
     }
     delete stack;
 }
@@ -439,10 +429,11 @@ int OTFConverter::advanceCounters(CommEvent * evt, std::stack<CounterRecord *> *
     int tmpIndex;
 
     // We know we can't have too many counters recorded, so we can search in them
-    while (!counterstack->isEmpty() && counterstack->top()->time == evt->enter)
+    while (!counterstack->empty() && counterstack->top()->time == evt->enter)
     {
-        begin = counterstack->pop();
-        last = lastcounters->value(begin->counter);
+        begin = counterstack->top();
+        counterstack->pop();
+        last = lastcounters->at(begin->counter);
         end = NULL;
 
         tmpIndex = index;
@@ -459,11 +450,11 @@ int OTFConverter::advanceCounters(CommEvent * evt, std::stack<CounterRecord *> *
         if (end)
         {
             // Add metric
-            evt->metrics->addMetric(rawtrace->counters->value(begin->counter)->name,
+            evt->metrics->addMetric(rawtrace->counters->at(begin->counter)->name,
                                     end->value - begin->value);
 
             // Update last counters
-            lastcounters->insert(end->counter, end);
+            lastcounters->insert(std::pair<unsigned int, CounterRecord *>(end->counter, end));
 
         }
         else

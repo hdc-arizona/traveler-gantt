@@ -8,6 +8,7 @@
 #include <stack>
 #include <memory>
 #include <ctime>
+#include <stdint.h>
 
 class Event;
 class CommEvent;
@@ -31,7 +32,7 @@ public:
     int num_entities;
     int num_pes;
     int units;
-    qint64 totalTime;
+    uint64_t totalTime;
 
     std::vector<std::string> * metrics;
     std::map<std::string, std::string> * metric_units;
@@ -55,10 +56,6 @@ public:
 
     unsigned long long max_time; // largest time
     unsigned long long min_time; // starting time
-
-signals:
-    // This is for progress bars
-    void updatePreprocess(int, std::string);
 
 private:
     bool isProcessed; // Partitions exist

@@ -12,18 +12,8 @@ public:
     ImportFunctor();
     Trace * getTrace() { return trace; }
 
-public slots:
-    void doImportOTF(std::string dataFileName);
-    void doImportOTF2(std::string dataFileName);
-    void finishInitialRead();
-    void updateMatching(int portion, std::string msg);
-    void updatePreprocess(int portion, std::string msg);
-    void switchProgress();
-
-signals:
-    void switching();
-    void done(Trace *);
-    void reportProgress(int, std::string);
+    Trace * doImportOTF(std::string dataFileName);
+    Trace *doImportOTF2(std::string dataFileName);
 
 private:
     Trace * trace;

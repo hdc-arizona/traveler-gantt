@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <stack>
+#include <vector>
 
 class RawTrace;
 class OTFImporter;
@@ -26,10 +27,6 @@ public:
     Trace * importOTF(std::string filename);
     Trace * importOTF2(std::string filename);
 
-signals:
-    void finishRead();
-    void matchingUpdate(int, std::string);
-
 private:
     void convert();
     void matchEvents();
@@ -39,7 +36,7 @@ private:
     void handleSavedAttributes(CommEvent * evt, EventRecord *er);
     int advanceCounters(CommEvent * evt, std::stack<CounterRecord *> * counterstack,
                         std::vector<CounterRecord *> * counters, int index,
-                        QMstd::map<unsigned int, CounterRecord *> * lastcounters);
+                        std::map<unsigned int, CounterRecord *> * lastcounters);
 
     RawTrace * rawtrace;
     Trace * trace;

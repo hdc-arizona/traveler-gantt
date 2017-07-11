@@ -33,7 +33,6 @@ SOURCES  += main.cpp \
     trace.cpp \
     event.cpp \
     message.cpp \
-    mainwindow.cpp \
     commrecord.cpp \
     eventrecord.cpp \
     rawtrace.cpp \
@@ -57,7 +56,6 @@ HEADERS += \
     trace.h \
     event.h \
     message.h \
-    mainwindow.h \
     commrecord.h \
     eventrecord.h \
     rawtrace.h \
@@ -78,8 +76,6 @@ HEADERS += \
     ravelutils.h \
     importfunctor.h
 
-FORMS += \
-    mainwindow.ui
 
 HOME = $$system(echo $HOME)
 

@@ -59,18 +59,18 @@ Trace::~Trace()
     delete metric_units;
     delete functionGroups;
 
-    for (std::map<int, Function *>::Iterator itr = functions->begin();
+    for (std::map<int, Function *>::iterator itr = functions->begin();
          itr != functions->end(); ++itr)
     {
-        delete (itr.value());
-        itr.value() = NULL;
+        delete (itr->second);
+        itr->second = NULL;
     }
     delete functions;
 
-    for (std::vector<std::vector<Event *> *>::Iterator eitr = events->begin();
+    for (std::vector<std::vector<Event *> *>::iterator eitr = events->begin();
          eitr != events->end(); ++eitr)
     {
-        for (std::vector<Event *>::Iterator itr = (*eitr)->begin();
+        for (std::vector<Event *>::iterator itr = (*eitr)->begin();
              itr != (*eitr)->end(); ++itr)
         {
             delete *itr;
@@ -93,24 +93,24 @@ Trace::~Trace()
     for (std::map<int, EntityGroup *>::iterator comm = entitygroups->begin();
          comm != entitygroups->end(); ++comm)
     {
-        delete *comm;
-        *comm = NULL;
+        delete comm->second;
+        comm->second = NULL;
     }
     delete entitygroups;
 
     for (std::map<int, OTFCollective *>::iterator cdef = collective_definitions->begin();
          cdef != collective_definitions->end(); ++cdef)
     {
-        delete *cdef;
-        *cdef = NULL;
+        delete cdef->second;
+        cdef->second = NULL;
     }
     delete collective_definitions;
 
     for (std::map<unsigned long long, CollectiveRecord *>::iterator coll = collectives->begin();
          coll != collectives->end(); ++coll)
     {
-        delete *coll;
-        *coll = NULL;
+        delete coll->second;
+        coll->second = NULL;
     }
     delete collectives;
 
@@ -119,13 +119,13 @@ Trace::~Trace()
     for (std::map<int, PrimaryEntityGroup *>::iterator primary = primaries->begin();
          primary != primaries->end(); ++primary)
     {
-        for (std::vector<Entity *>::iterator entity = primary.value()->entities->begin();
-             entity != primary.value()->entities->end(); ++entity)
+        for (std::vector<Entity *>::iterator entity = primary->second->entities->begin();
+             entity != primary->second->entities->end(); ++entity)
         {
             delete *entity;
             *entity = NULL;
         }
-        delete primary.value();
+        delete primary->second;
     }
     delete primaries;
 }

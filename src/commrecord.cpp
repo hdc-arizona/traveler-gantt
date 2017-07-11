@@ -1,5 +1,6 @@
 #include "commrecord.h"
 #include "message.h"
+#include <cstdlib>
 
 CommRecord::CommRecord(unsigned long _s, unsigned long long int _st,
                        unsigned long _r, unsigned long long int _rt,
