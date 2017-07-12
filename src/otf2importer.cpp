@@ -792,7 +792,14 @@ OTF2_CallbackCode OTF2Importer::callbackMPISend(OTF2_LocationRef locationID,
     // Otherwise, create a new unmatched send record
     if (cr)
     {
-        (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->begin(),
+                            (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->end(),
+                            cr);
+        if (delit != (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->end())
+            (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->erase(delit);
+
+        //(*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->removeOne(cr);
     }
     else
     {
@@ -838,7 +845,14 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsend(OTF2_LocationRef locationID,
     // Otherwise, create a new unmatched send record
     if (cr)
     {
-        (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->begin(),
+                            (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->end(),
+                            cr);
+        if (delit != (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->end())
+            (*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->erase(delit);
+
+        //(*(((OTF2Importer *) userData)->unmatched_recvs))[sender]->removeOne(cr);
     }
     else
     {
@@ -866,7 +880,13 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsend(OTF2_LocationRef locationID,
 
     if (complete)
     {
-        (*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->removeOne(complete);
+        std::list<OTF2IsendComplete *>::iterator delit
+                = std::find((*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->begin(),
+                            (*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->end(),
+                            complete);
+        if (delit != (*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->end())
+            (*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->erase(delit);
+        //(*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->removeOne(complete);
     }
     else
     {
@@ -904,7 +924,13 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsendComplete(OTF2_LocationRef locati
     // Otherwise, create a new unmatched send record
     if (cr)
     {
-        (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->begin(),
+                            (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->end(),
+                            cr);
+        if (delit != (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->end())
+            (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->erase(delit);
+        //(*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->removeOne(cr);
     }
     else
     {
@@ -959,7 +985,13 @@ OTF2_CallbackCode OTF2Importer::callbackMPIRecv(OTF2_LocationRef locationID,
     // a new unmatched recv record
     if (cr)
     {
-        (*(((OTF2Importer *) userData)->unmatched_sends))[world_sender]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTF2Importer *) userData)->unmatched_sends))[world_sender]->begin(),
+                            (*(((OTF2Importer *) userData)->unmatched_sends))[world_sender]->end(),
+                            cr);
+        if (delit != (*(((OTF2Importer *) userData)->unmatched_sends))[world_sender]->end())
+            (*(((OTF2Importer *) userData)->unmatched_sends))[world_sender]->erase(delit);
+        //(*(((OTF2Importer *) userData)->unmatched_sends))[world_sender]->removeOne(cr);
     }
     else
     {
@@ -1004,7 +1036,13 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIrecv(OTF2_LocationRef locationID,
     // a new unmatched recv record
     if (cr)
     {
-        (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTF2Importer *) userData)->unmatched_sends))[sender]->begin(),
+                            (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->end(),
+                            cr);
+        if (delit != (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->end())
+            (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->erase(delit);
+        //(*(((OTF2Importer *) userData)->unmatched_sends))[sender]->removeOne(cr);
     }
     else
     {
@@ -1107,8 +1145,14 @@ void OTF2Importer::processCollectives()
                     // It's kind of weird that I can't expect the fragments to be in order
                     // but I have to rely on the begin_times being in order... we'll see
                     // if they actually work out.
-                    uint64_t begin_time = collective_begins->at(*process)->takeFirst();
-                    collective_fragments->at(*process)->removeOne(match);
+                    uint64_t begin_time = collective_begins->at(*process)->front();
+                    collective_begins->at(*process)->pop_front();
+                    std::list<OTF2CollectiveFragment *>::iterator delit
+                            = std::find(collective_fragments->at(*process)->begin(),
+                                        collective_fragments->at(*process)->end(),
+                                        match);
+                    if (delit != collective_fragments->at(*process)->end())
+                        collective_fragments->at(*process)->erase(delit);
 
                     collectiveMap->at(*process)->insert(std::pair<unsigned long long, CollectiveRecord *>(begin_time, cr));
                     rawtrace->collectiveBits->at(*process)->push_back(new RawTrace::CollectiveBit(begin_time, cr));
