@@ -1,6 +1,7 @@
 #include "otf2importer.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include "ravelutils.h"
 #include "rawtrace.h"
 #include "commrecord.h"
@@ -58,29 +59,29 @@ OTF2Importer::OTF2Importer()
       metric_names(new std::vector<std::string>()),
       metric_units(new std::map<std::string, std::string>())
 {
-    collective_definitions->insert(0, new OTFCollective(0, 1, "Barrier"));
-    collective_definitions->insert(1, new OTFCollective(1, 2, "Bcast"));
-    collective_definitions->insert(2, new OTFCollective(2, 3, "Gather"));
-    collective_definitions->insert(3, new OTFCollective(3, 3, "Gatherv"));
-    collective_definitions->insert(4, new OTFCollective(4, 2, "Scatter"));
-    collective_definitions->insert(5, new OTFCollective(5, 2, "Scatterv"));
-    collective_definitions->insert(6, new OTFCollective(6, 4, "Allgather"));
-    collective_definitions->insert(7, new OTFCollective(7, 4, "Allgatherv"));
-    collective_definitions->insert(8, new OTFCollective(8, 4, "Alltoall"));
-    collective_definitions->insert(9, new OTFCollective(9, 4, "Alltoallv"));
-    collective_definitions->insert(10, new OTFCollective(10, 4, "Alltoallw"));
-    collective_definitions->insert(11, new OTFCollective(11, 4, "Allreduce"));
-    collective_definitions->insert(12, new OTFCollective(12, 3, "Reduce"));
-    collective_definitions->insert(13, new OTFCollective(13, 4, "ReduceScatter"));
-    collective_definitions->insert(14, new OTFCollective(14, 4, "Scan"));
-    collective_definitions->insert(15, new OTFCollective(15, 4, "Exscan"));
-    collective_definitions->insert(16, new OTFCollective(16, 4, "ReduceScatterBlock"));
-    collective_definitions->insert(17, new OTFCollective(17, 4, "CreateHandle"));
-    collective_definitions->insert(18, new OTFCollective(18, 4, "DestroyHandle"));
-    collective_definitions->insert(19, new OTFCollective(19, 4, "Allocate"));
-    collective_definitions->insert(20, new OTFCollective(20, 4, "Deallocate"));
-    collective_definitions->insert(21, new OTFCollective(21, 4, "CreateAllocate"));
-    collective_definitions->insert(22, new OTFCollective(22, 4, "DestroyDeallocate"));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(0, new OTFCollective(0, 1, "Barrier")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(1, new OTFCollective(1, 2, "Bcast")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(2, new OTFCollective(2, 3, "Gather")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(3, new OTFCollective(3, 3, "Gatherv")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(4, new OTFCollective(4, 2, "Scatter")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(5, new OTFCollective(5, 2, "Scatterv")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(6, new OTFCollective(6, 4, "Allgather")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(7, new OTFCollective(7, 4, "Allgatherv")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(8, new OTFCollective(8, 4, "Alltoall")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(9, new OTFCollective(9, 4, "Alltoallv")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(10, new OTFCollective(10, 4, "Alltoallw")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(11, new OTFCollective(11, 4, "Allreduce")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(12, new OTFCollective(12, 3, "Reduce")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(13, new OTFCollective(13, 4, "ReduceScatter")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(14, new OTFCollective(14, 4, "Scan")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(15, new OTFCollective(15, 4, "Exscan")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(16, new OTFCollective(16, 4, "ReduceScatterBlock")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(17, new OTFCollective(17, 4, "CreateHandle")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(18, new OTFCollective(18, 4, "DestroyHandle")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(19, new OTFCollective(19, 4, "Allocate")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(20, new OTFCollective(20, 4, "Deallocate")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(21, new OTFCollective(21, 4, "CreateAllocate")));
+    collective_definitions->insert(std::pair<int, OTFCollective*>(22, new OTFCollective(22, 4, "DestroyDeallocate")));
 }
 
 OTF2Importer::~OTF2Importer()
@@ -169,7 +170,7 @@ OTF2Importer::~OTF2Importer()
          = attributeMap->begin();
          eitr != attributeMap->end(); ++eitr)
     {
-        delete eitr.value();
+        delete eitr->second;
     }
     delete attributeMap;
 
@@ -177,7 +178,7 @@ OTF2Importer::~OTF2Importer()
          = locationMap->begin();
          eitr != locationMap->end(); ++eitr)
     {
-        delete eitr.value();
+        delete eitr->second;
     }
     delete locationMap;
 
@@ -185,7 +186,7 @@ OTF2Importer::~OTF2Importer()
          = locationGroupMap->begin();
          eitr != locationGroupMap->end(); ++eitr)
     {
-        delete eitr.value();
+        delete eitr->second;
     }
     delete locationGroupMap;
 
@@ -193,7 +194,7 @@ OTF2Importer::~OTF2Importer()
          = regionMap->begin();
          eitr != regionMap->end(); ++eitr)
     {
-        delete eitr.value();
+        delete eitr->second;
     }
     delete regionMap;
 
@@ -203,7 +204,7 @@ OTF2Importer::~OTF2Importer()
          = groupMap->begin();
          eitr != groupMap->end(); ++eitr)
     {
-        delete eitr.value();
+        delete eitr->second;
     }
     delete groupMap;
 
@@ -211,7 +212,7 @@ OTF2Importer::~OTF2Importer()
          = commMap->begin();
          eitr != commMap->end(); ++eitr)
     {
-        delete eitr.value();
+        delete eitr->second;
     }
     delete commMap;
 }
@@ -279,7 +280,7 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     for (std::map<OTF2_LocationRef, unsigned long>::iterator loc = locationIndexMap->begin();
          loc != locationIndexMap->end(); ++loc)
     {
-        OTF2_Reader_SelectLocation(otfReader, loc.key());
+        OTF2_Reader_SelectLocation(otfReader, loc->first);
     }
 
     bool def_files_success = OTF2_Reader_OpenDefFiles(otfReader) == OTF2_SUCCESS;
@@ -289,7 +290,7 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     {
         if (def_files_success)
         {
-            OTF2_DefReader * def_reader = OTF2_Reader_GetDefReader(otfReader, loc.key());
+            OTF2_DefReader * def_reader = OTF2_Reader_GetDefReader(otfReader, loc->first);
             if (def_reader)
             {
                 uint64_t def_reads = 0;
@@ -300,7 +301,7 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
             }
         }
         // Required line, though unused
-        OTF2_EvtReader * unused = OTF2_Reader_GetEvtReader(otfReader, loc.key());
+        OTF2_EvtReader * unused = OTF2_Reader_GetEvtReader(otfReader, loc->first);
     }
     if (def_files_success)
         OTF2_Reader_CloseDefFiles(otfReader);
@@ -444,46 +445,46 @@ void OTF2Importer::setDefCallbacks()
 void OTF2Importer::defineEntities()
 {
     // Grab only the MPI locations
-    primaries->insert(0, new PrimaryEntityGroup(0, "MPI"));
+    primaries->insert(std::pair<int, PrimaryEntityGroup *>(0, new PrimaryEntityGroup(0, "MPI")));
     std::map<OTF2_LocationRef, Entity *> entityMap = std::map<OTF2_LocationRef, Entity *>();
     for (std::map<OTF2_LocationRef, OTF2Location *>::iterator loc = locationMap->begin();
          loc != locationMap->end(); ++loc)
     {
-        OTF2_LocationGroupType group = (locationGroupMap->value((loc.value())->group))->type;
+        OTF2_LocationGroupType group = (locationGroupMap->at((loc->second)->group))->type;
         if (group == OTF2_LOCATION_GROUP_TYPE_PROCESS)
         {
-            OTF2_LocationType type = (loc.value())->type;
+            OTF2_LocationType type = (loc->second)->type;
             if (type == OTF2_LOCATION_TYPE_CPU_THREAD)
             {
-                if (MPILocations.contains(loc.key()))
+                if (MPILocations.find(loc->first) != MPILocations.end())
                 {
-                    unsigned long entity = locationIndexMap->value(loc.key());
+                    unsigned long entity = locationIndexMap->at(loc->first);
                     Entity * locationEntity = new Entity(entity,
-                                                         std::string::number(loc.value()->group),
-                                                         primaries->value(0));
-                    primaries->value(0)->entities->insert(entity, locationEntity);
-                    entityMap.insert(loc.key(), locationEntity);
+                                                         std::to_string(loc->second->group),
+                                                         primaries->at(0));
+                    primaries->at(0)->entities->insert(primaries->at(0)->entities->begin() + entity, locationEntity);
+                    entityMap.insert(std::pair<OTF2_LocationRef, Entity *>(loc->first, locationEntity));
                 }
             }
         }
     }
 
     processingElements = new PrimaryEntityGroup(1, "PEs");
-    qSort(threadList);
+    std::sort(threadList.begin(), threadList.end());
     for (std::vector<OTF2Location *>::iterator loc = threadList.begin();
          loc != threadList.end(); ++loc)
     {
-        if (MPILocations.contains((*loc)->self))
+        if (MPILocations.find((*loc)->self) != MPILocations.end())
         {
-            processingElements->entities->append(entityMap.value((*loc)->self));
+            processingElements->entities->push_back(entityMap.at((*loc)->self));
         }
         else
         {
-            unsigned long entity = locationIndexMap->value((*loc)->self);
+            unsigned long entity = locationIndexMap->at((*loc)->self);
             Entity * locationEntity = new Entity(entity,
-                                                 stringMap->value((*loc)->name),
+                                                 stringMap->at((*loc)->name),
                                                  processingElements);
-            processingElements->entities->append(locationEntity);
+            processingElements->entities->push_back(locationEntity);
         }
     }
 
@@ -495,26 +496,26 @@ void OTF2Importer::processDefinitions()
     for (std::map<OTF2_RegionRef, OTF2Region *>::iterator region = regionMap->begin();
          region != regionMap->end(); ++region)
     {
-        regionIndexMap->insert(region.key(), index);
-        functions->insert(index, new Function(stringMap->value(region.value()->name),
-                                              (region.value())->paradigm));
+        regionIndexMap->insert(std::pair<OTF2_RegionRef, int>(region->first, index));
+        functions->insert(std::pair<int, Function *>(index, new Function(stringMap->at(region->second->name),
+                                              (region->second)->paradigm)));
         index++;
     }
 
-    functionGroups->insert(OTF2_PARADIGM_MPI, "MPI");
+    functionGroups->insert(std::pair<int, std::string>(OTF2_PARADIGM_MPI, "MPI"));
 
     // Grab only the PE locations
     for (std::map<OTF2_LocationRef, OTF2Location *>::iterator loc = locationMap->begin();
          loc != locationMap->end(); ++loc)
     {
-        OTF2_LocationGroupType group = (locationGroupMap->value((loc.value())->group))->type;
+        OTF2_LocationGroupType group = (locationGroupMap->at((loc->second)->group))->type;
         if (group == OTF2_LOCATION_GROUP_TYPE_PROCESS)
         {
-            OTF2_LocationType type = (loc.value())->type;
+            OTF2_LocationType type = (loc->second)->type;
             if (type == OTF2_LOCATION_TYPE_CPU_THREAD)
             {
-                threadList.append(loc.value());
-                locationIndexMap->insert(loc.key(), threadList.size() - 1);
+                threadList.push_back(loc->second);
+                locationIndexMap->insert(std::pair<OTF2_LocationRef, unsigned long>(loc->first, threadList.size() - 1));
             }
         }
     }
@@ -524,16 +525,16 @@ void OTF2Importer::processDefinitions()
     for (std::map<OTF2_CommRef, OTF2Comm *>::iterator comm = commMap->begin();
          comm != commMap->end(); ++comm)
     {
-        commIndexMap->insert(comm.key(), index);
-        EntityGroup * t = new EntityGroup(index, stringMap->value((comm.value())->name));
+        commIndexMap->insert(std::pair<OTF2_CommRef, int>(comm->first, index));
+        EntityGroup * t = new EntityGroup(index, stringMap->at((comm->second)->name));
         //delete t->entities;
         //t->entities = groupMap->value((comm.value())->group)->members;
-        for (int i = 0; i < groupMap->value((comm.value())->group)->members->size(); i++)
+        for (int i = 0; i < groupMap->at((comm->second)->group)->members->size(); i++)
         {
-            t->entityorder->insert(groupMap->value((comm.value())->group)->members->at(i), i);
-            t->entities->append(groupMap->value((comm.value())->group)->members->at(i));
+            t->entityorder->insert(std::pair<unsigned long, int>(groupMap->at((comm->second)->group)->members->at(i), i));
+            t->entities->push_back(groupMap->at((comm->second)->group)->members->at(i));
         }
-        entitygroups->insert(index, t);
+        entitygroups->insert(std::pair<int, EntityGroup *>(index, t));
         index++;
     }
 }
@@ -586,8 +587,6 @@ OTF2_CallbackCode OTF2Importer::callbackDefClockProperties(void * userData,
                                                            uint64_t globalOffset,
                                                            uint64_t traceLength)
 {
-    Q_UNUSED(traceLength);
-
     ((OTF2Importer*) userData)->ticks_per_second = timerResolution;
     ((OTF2Importer*) userData)->time_offset = globalOffset;
     ((OTF2Importer*) userData)->second_magnitude
@@ -609,7 +608,7 @@ OTF2_CallbackCode OTF2Importer::callbackDefString(void * userData,
                                                   OTF2_StringRef self,
                                                   const char * string)
 {
-    ((OTF2Importer*) userData)->stringMap->insert(self, std::string(string));
+    ((OTF2Importer*) userData)->stringMap->insert(std::pair<OTF2_StringRef, std::string>(self, std::string(string)));
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -620,7 +619,7 @@ OTF2_CallbackCode OTF2Importer::callbackDefAttribute(void * userData,
                                                      OTF2_Type type)
 {
     OTF2Attribute * a = new OTF2Attribute(self, name, description, type);
-    ((OTF2Importer *) userData)->attributeMap->insert(self, a);
+    ((OTF2Importer *) userData)->attributeMap->insert(std::pair<OTF2_AttributeRef, OTF2Attribute *>(self, a));
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -677,7 +676,6 @@ OTF2_CallbackCode OTF2Importer::callbackDefRegion(void * userData,
                                                   uint32_t beginLineNumber,
                                                   uint32_t endLineNumber)
 {
-    Q_UNUSED(description);
     OTF2Region * r = new OTF2Region(self, name, canonicalName, regionRole,
                                     paradigm, regionFlag, sourceFile,
                                     beginLineNumber, endLineNumber);
@@ -696,7 +694,7 @@ OTF2_CallbackCode OTF2Importer::callbackDefGroup(void* userData,
 {
     OTF2Group * g = new OTF2Group(self, name, groupType, paradigm, groupFlags);
     for (uint32_t i = 0; i < numberOfMembers; i++)
-        g->members->append(members[i]);
+        g->members->push_back(members[i]);
     (*(((OTF2Importer*) userData)->groupMap))[self] = g;
     return OTF2_CALLBACK_SUCCESS;
 }
@@ -707,10 +705,9 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                                               OTF2_AttributeList * attributeList,
                                               OTF2_RegionRef region)
 {
-    Q_UNUSED(attributeList);
-    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
-    int function = ((OTF2Importer *) userData)->regionIndexMap->value(region);
-    ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->append(new EventRecord(location,
+    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
+    int function = ((OTF2Importer *) userData)->regionIndexMap->at(region);
+    ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->push_back(new EventRecord(location,
                                                                                            convertTime(userData,
                                                                                                        time),
                                                                                            function,
@@ -724,13 +721,13 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                                               OTF2_AttributeList * attributeList,
                                               OTF2_RegionRef region)
 {
-    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
-    int function = ((OTF2Importer *) userData)->regionIndexMap->value(region);
+    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
+    int function = ((OTF2Importer *) userData)->regionIndexMap->at(region);
     EventRecord * er = new EventRecord(location,
                                        convertTime(userData, time),
                                        function,
                                        false);
-    ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->append(er);
+    ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->push_back(er);
 
     return OTF2_CALLBACK_SUCCESS;
 }
@@ -767,15 +764,14 @@ OTF2_CallbackCode OTF2Importer::callbackMPISend(OTF2_LocationRef locationID,
                                                 uint32_t msgTag,
                                                 uint64_t msgLength)
 {
-    Q_UNUSED(attributeList);
     ((OTF2Importer *) userData)->MPILocations.insert(locationID);
 
     // Every time we find a send, check the unmatched recvs
     // to see if it has a match
     unsigned long long converted_time = convertTime(userData, time);
-    unsigned long sender = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
-    OTF2Comm * comm = ((OTF2Importer *) userData)->commMap->value(communicator);
-    OTF2Group * group = ((OTF2Importer *) userData)->groupMap->value(comm->group);
+    unsigned long sender = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
+    OTF2Comm * comm = ((OTF2Importer *) userData)->commMap->at(communicator);
+    OTF2Group * group = ((OTF2Importer *) userData)->groupMap->at(comm->group);
     unsigned long world_receiver = group->members->at(receiver);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTF2Importer *) userData)->unmatched_recvs))[sender];
@@ -786,7 +782,7 @@ OTF2_CallbackCode OTF2Importer::callbackMPISend(OTF2_LocationRef locationID,
         {
             cr = *itr;
             cr->send_time = converted_time;
-            ((*((((OTF2Importer*) userData)->rawtrace)->messages))[sender])->append((cr));
+            ((*((((OTF2Importer*) userData)->rawtrace)->messages))[sender])->push_back((cr));
             break;
         }
     }
@@ -800,10 +796,10 @@ OTF2_CallbackCode OTF2Importer::callbackMPISend(OTF2_LocationRef locationID,
     }
     else
     {
-        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->value(communicator);
+        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->at(communicator);
         cr = new CommRecord(sender, converted_time, world_receiver, 0, msgLength, msgTag, entitygroup);
-        (*((((OTF2Importer*) userData)->rawtrace)->messages))[sender]->append(cr);
-        (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->append(cr);
+        (*((((OTF2Importer*) userData)->rawtrace)->messages))[sender]->push_back(cr);
+        (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->push_back(cr);
     }
     return OTF2_CALLBACK_SUCCESS;
 }
@@ -818,13 +814,12 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsend(OTF2_LocationRef locationID,
                                                  uint64_t msgLength,
                                                  uint64_t requestID)
 {
-    Q_UNUSED(attributeList);
     ((OTF2Importer *) userData)->MPILocations.insert(locationID);
 
     // Every time we find a send, check the unmatched recvs
     // to see if it has a match
     unsigned long long converted_time = convertTime(userData, time);
-    unsigned long sender = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
+    unsigned long sender = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTF2Importer *) userData)->unmatched_recvs))[sender];
     for (std::list<CommRecord *>::iterator itr = unmatched->begin();
@@ -834,7 +829,7 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsend(OTF2_LocationRef locationID,
         {
             cr = *itr;
             cr->send_time = converted_time;
-            ((*((((OTF2Importer*) userData)->rawtrace)->messages))[sender])->append((cr));
+            ((*((((OTF2Importer*) userData)->rawtrace)->messages))[sender])->push_back((cr));
             break;
         }
     }
@@ -847,11 +842,11 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsend(OTF2_LocationRef locationID,
     }
     else
     {
-        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->value(communicator);
+        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->at(communicator);
         cr = new CommRecord(sender, converted_time, receiver, 0, msgLength,
                             msgTag, entitygroup, requestID);
-        (*((((OTF2Importer*) userData)->rawtrace)->messages))[sender]->append(cr);
-        (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->append(cr);
+        (*((((OTF2Importer*) userData)->rawtrace)->messages))[sender]->push_back(cr);
+        (*(((OTF2Importer *) userData)->unmatched_sends))[sender]->push_back(cr);
     }
 
     // Also check the complete time stuff
@@ -875,7 +870,7 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsend(OTF2_LocationRef locationID,
     }
     else
     {
-        (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->append(cr);
+        (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender]->push_back(cr);
     }
 
     return OTF2_CALLBACK_SUCCESS;
@@ -889,11 +884,9 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsendComplete(OTF2_LocationRef locati
                                                          OTF2_AttributeList * attributeList,
                                                          uint64_t requestID)
 {
-    Q_UNUSED(attributeList);
-
     // Check to see if we have a matching send request
     unsigned long long converted_time = convertTime(userData, time);
-    unsigned long sender = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
+    unsigned long sender = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTF2Importer *) userData)->unmatched_send_requests))[sender];
     for (std::list<CommRecord *>::iterator itr = unmatched->begin();
@@ -915,7 +908,7 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIsendComplete(OTF2_LocationRef locati
     }
     else
     {
-        (*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->append(new OTF2IsendComplete(converted_time,
+        (*(((OTF2Importer *) userData)->unmatched_send_completes))[sender]->push_back(new OTF2IsendComplete(converted_time,
                                                                                                          requestID));
     }
 
@@ -929,12 +922,6 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIrecvRequest(OTF2_LocationRef locatio
                                                         OTF2_AttributeList * attributeList,
                                                         uint64_t requestID)
 {
-    Q_UNUSED(locationID);
-    Q_UNUSED(time);
-    Q_UNUSED(userData);
-    Q_UNUSED(attributeList);
-    Q_UNUSED(requestID);
-
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -947,14 +934,13 @@ OTF2_CallbackCode OTF2Importer::callbackMPIRecv(OTF2_LocationRef locationID,
                                                 uint32_t msgTag,
                                                 uint64_t msgLength)
 {
-    Q_UNUSED(attributeList);
     ((OTF2Importer *) userData)->MPILocations.insert(locationID);
 
     // Look for match in unmatched_sends
     unsigned long long converted_time = convertTime(userData, time);
-    unsigned long receiver = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
-    OTF2Comm * comm = ((OTF2Importer *) userData)->commMap->value(communicator);
-    OTF2Group * group = ((OTF2Importer *) userData)->groupMap->value(comm->group);
+    unsigned long receiver = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
+    OTF2Comm * comm = ((OTF2Importer *) userData)->commMap->at(communicator);
+    OTF2Group * group = ((OTF2Importer *) userData)->groupMap->at(comm->group);
     unsigned long world_sender = group->members->at(sender);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTF2Importer*) userData)->unmatched_sends))[world_sender];
@@ -977,11 +963,11 @@ OTF2_CallbackCode OTF2Importer::callbackMPIRecv(OTF2_LocationRef locationID,
     }
     else
     {
-        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->value(communicator);
+        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->at(communicator);
         cr = new CommRecord(world_sender, 0, receiver, converted_time, msgLength, msgTag, entitygroup);
-        ((*(((OTF2Importer*) userData)->unmatched_recvs))[world_sender])->append(cr);
+        ((*(((OTF2Importer*) userData)->unmatched_recvs))[world_sender])->push_back(cr);
     }
-    (*((((OTF2Importer*) userData)->rawtrace)->messages_r))[receiver]->append(cr);
+    (*((((OTF2Importer*) userData)->rawtrace)->messages_r))[receiver]->push_back(cr);
 
     return OTF2_CALLBACK_SUCCESS;
 }
@@ -996,13 +982,11 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIrecv(OTF2_LocationRef locationID,
                                                  uint64_t msgLength,
                                                  uint64_t requestID)
 {
-    Q_UNUSED(attributeList);
-    Q_UNUSED(requestID);
     ((OTF2Importer *) userData)->MPILocations.insert(locationID);
 
     // Look for match in unmatched_sends
     unsigned long long converted_time = convertTime(userData, time);
-    unsigned long receiver = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
+    unsigned long receiver = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTF2Importer*) userData)->unmatched_sends))[sender];
     for (std::list<CommRecord *>::iterator itr = unmatched->begin();
@@ -1024,11 +1008,11 @@ OTF2_CallbackCode OTF2Importer::callbackMPIIrecv(OTF2_LocationRef locationID,
     }
     else
     {
-        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->value(communicator);
+        int entitygroup = ((OTF2Importer *) userData)->commIndexMap->at(communicator);
         cr = new CommRecord(sender, 0, receiver, converted_time, msgLength, msgTag, entitygroup);
-        ((*(((OTF2Importer*) userData)->unmatched_recvs))[sender])->append(cr);
+        ((*(((OTF2Importer*) userData)->unmatched_recvs))[sender])->push_back(cr);
     }
-    (*((((OTF2Importer*) userData)->rawtrace)->messages_r))[receiver]->append(cr);
+    (*((((OTF2Importer*) userData)->rawtrace)->messages_r))[receiver]->push_back(cr);
 
     return OTF2_CALLBACK_SUCCESS;
 }
@@ -1041,13 +1025,11 @@ OTF2_CallbackCode OTF2Importer::callbackMPICollectiveBegin(OTF2_LocationRef loca
                                                            void * userData,
                                                            OTF2_AttributeList * attributeList)
 {
-    Q_UNUSED(locationID);
-    Q_UNUSED(attributeList);
     ((OTF2Importer *) userData)->MPILocations.insert(locationID);
 
-    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
+    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
     uint64_t converted_time = convertTime(userData, time);
-    ((OTF2Importer *) userData)->collective_begins->at(location)->append(converted_time);
+    ((OTF2Importer *) userData)->collective_begins->at(location)->push_back(converted_time);
     return OTF2_CALLBACK_SUCCESS;
 }
 
@@ -1061,14 +1043,11 @@ OTF2_CallbackCode OTF2Importer::callbackMPICollectiveEnd(OTF2_LocationRef locati
                                                          uint64_t sizeSent,
                                                          uint64_t sizeReceived)
 {
-    Q_UNUSED(attributeList);
-    Q_UNUSED(sizeSent);
-    Q_UNUSED(sizeReceived);
     ((OTF2Importer *) userData)->MPILocations.insert(locationID);
 
-    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->value(locationID);
+    unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
 
-    ((OTF2Importer *) userData)->collective_fragments->at(location)->append(new OTF2CollectiveFragment(convertTime(userData, time),
+    ((OTF2Importer *) userData)->collective_fragments->at(location)->push_back(new OTF2CollectiveFragment(convertTime(userData, time),
                                                                                                        collectiveOp,
                                                                                                        communicator,
                                                                                                        root));
@@ -1085,18 +1064,18 @@ void OTF2Importer::processCollectives()
     for (int i = 0; i < num_processes; i++)
     {
         std::list<OTF2CollectiveFragment *> * fragments = collective_fragments->at(i);
-        while (!fragments->isEmpty())
+        while (!fragments->empty())
         {
             // Unmatched as of yet fragment becomes a CollectiveRecord
-            OTF2CollectiveFragment * fragment = fragments->first();
+            OTF2CollectiveFragment * fragment = fragments->front();
             CollectiveRecord * cr = new CollectiveRecord(id, fragment->root,
                                                          fragment->op,
-                                                         commIndexMap->value(fragment->comm));
-            collectives->insert(id, cr);
+                                                         commIndexMap->at(fragment->comm));
+            collectives->insert(std::pair<unsigned long long, CollectiveRecord *>(id, cr));
 
             // Look through fragment list of other members of communicator for
             // matching fragments
-            std::vector<uint64_t> * members = groupMap->value(commMap->value(fragment->comm)->group)->members;
+            std::vector<uint64_t> * members = groupMap->at(commMap->at(fragment->comm)->group)->members;
             for (std::vector<uint64_t>::iterator process = members->begin();
                  process != members->end(); ++process)
             {
@@ -1120,7 +1099,7 @@ void OTF2Importer::processCollectives()
                     std::cout << "Error, no matching collective found for";
                     std::cout << " collective type " << int(fragment->op);
                     std::cout << " on communicator ";
-                    std::cout << stringMap->value(commMap->value(fragment->comm)->name).toStdString().c_str();
+                    std::cout << stringMap->at(commMap->at(fragment->comm)->name).c_str();
                     std::cout << " for process " << *process << std::endl;
                 }
                 else
@@ -1131,8 +1110,8 @@ void OTF2Importer::processCollectives()
                     uint64_t begin_time = collective_begins->at(*process)->takeFirst();
                     collective_fragments->at(*process)->removeOne(match);
 
-                    collectiveMap->at(*process)->insert(begin_time, cr);
-                    rawtrace->collectiveBits->at(*process)->append(new RawTrace::CollectiveBit(begin_time, cr));
+                    collectiveMap->at(*process)->insert(std::pair<unsigned long long, CollectiveRecord *>(begin_time, cr));
+                    rawtrace->collectiveBits->at(*process)->push_back(new RawTrace::CollectiveBit(begin_time, cr));
                 }
             }
 

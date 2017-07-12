@@ -11,7 +11,7 @@ CollectiveRecord::CollectiveRecord(unsigned long long _matching,
       collective(_collective),
       entitygroup(_entitygroup),
       mark(false),
-      events(new QList<CollectiveEvent *>())
+      events(new std::vector<CollectiveEvent *>())
 
 {
 }
@@ -19,5 +19,5 @@ CollectiveRecord::CollectiveRecord(unsigned long long _matching,
 
 CommEvent * CollectiveRecord::getDesignee()
 {
-    return events->first();
+    return events->front();
 }

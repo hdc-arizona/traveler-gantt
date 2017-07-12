@@ -122,7 +122,7 @@ void OTFConverter::convert()
          = trace->collectives->begin();
          cr != trace->collectives->end(); ++cr)
     {
-        qSort((*cr)->events->begin(), (*cr)->events->end(), Event::eventEntityLessThan);
+        std::sort(cr->second->events->begin(), cr->second->events->end(), Event::eventEntityLessThan);
     }
 
     clock_t end = clock();
