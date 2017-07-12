@@ -1,6 +1,7 @@
 #include "otfimporter.h"
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include "ravelutils.h"
 #include "entity.h"
 #include "rawtrace.h"
@@ -92,7 +93,7 @@ RawTrace * OTFImporter::importOTF(const char* otf_file)
     setHandlers();
 
     primaries = new std::map<int, PrimaryEntityGroup *>();
-    primaries->insert(0, new PrimaryEntityGroup(0, "MPI_COMM_WORLD"));
+    primaries->insert(std::pair<int, PrimaryEntityGroup *>(0, new PrimaryEntityGroup(0, "MPI_COMM_WORLD")));
     functionGroups = new std::map<int, std::string>();
     functions = new std::map<int, Function *>();
     entitygroups = new std::map<int, EntityGroup *>();
@@ -328,8 +329,8 @@ int OTFImporter::handleDefProcess(void * userData, uint32_t stream,
                                   uint32_t process, const char* name,
                                   uint32_t parent)
 {
-    PrimaryEntityGroup * MPI = ((OTFImporter *) userData)->primaries->value(0);
-    MPI->entities->insert(process - 1,
+    PrimaryEntityGroup * MPI = ((OTFImporter *) userData)->primaries->at(0);
+    MPI->entities->insert(MPI->entities->begin() + process - 1,
                        new Entity(process - 1, std::string(name),
                        MPI));
     ((OTFImporter *) userData)->num_processes++;
@@ -350,7 +351,7 @@ int OTFImporter::handleDefCounter(void * userData, uint32_t stream,
 int OTFImporter::handleEnter(void * userData, uint64_t time, uint32_t function,
                              uint32_t process, uint32_t source)
 {
-    ((*((((OTFImporter*) userData)->rawtrace)->events))[process - 1])->append(new EventRecord(process - 1,
+    ((*((((OTFImporter*) userData)->rawtrace)->events))[process - 1])->push_back(new EventRecord(process - 1,
                                                                                               convertTime(userData,
                                                                                                           time),
                                                                                               function,
@@ -361,7 +362,7 @@ int OTFImporter::handleEnter(void * userData, uint64_t time, uint32_t function,
 int OTFImporter::handleLeave(void * userData, uint64_t time, uint32_t function,
                              uint32_t process, uint32_t source)
 {
-    ((*((((OTFImporter*) userData)->rawtrace)->events))[process - 1])->append(new EventRecord(process - 1,
+    ((*((((OTFImporter*) userData)->rawtrace)->events))[process - 1])->push_back(new EventRecord(process - 1,
                                                                                               convertTime(userData,
                                                                                                           time),
                                                                                               function,
@@ -401,14 +402,14 @@ int OTFImporter::handleSend(void * userData, uint64_t time, uint32_t sender,
     time = convertTime(userData, time);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1];
-    for (std::list<CommRecord *>::Iterator itr = unmatched->begin();
+    for (std::list<CommRecord *>::iterator itr = unmatched->begin();
          itr != unmatched->end(); ++itr)
     {
         if (OTFImporter::compareComms((*itr), sender, receiver, type))
         {
             cr = *itr;
             cr->send_time = time;
-            ((*((((OTFImporter*) userData)->rawtrace)->messages))[sender - 1])->append((cr));
+            ((*((((OTFImporter*) userData)->rawtrace)->messages))[sender - 1])->push_back((cr));
             break;
         }
     }
@@ -418,13 +419,19 @@ int OTFImporter::handleSend(void * userData, uint64_t time, uint32_t sender,
     // Otherwise, create a new unmatched send record
     if (cr)
     {
-        (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1]->begin(),
+                            (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1]->end(),
+                            cr);
+        if (delit != (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1]->end())
+            (*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1]->erase(delit);
+        //(*(((OTFImporter *) userData)->unmatched_recvs))[sender - 1]->removeOne(cr);
     }
     else
     {
         cr = new CommRecord(sender - 1, time, receiver - 1, 0, length, type, group);
-        (*((((OTFImporter*) userData)->rawtrace)->messages))[sender - 1]->append(cr);
-        (*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->append(cr);
+        (*((((OTFImporter*) userData)->rawtrace)->messages))[sender - 1]->push_back(cr);
+        (*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->push_back(cr);
     }
     return 0;
 }
@@ -438,7 +445,7 @@ int OTFImporter::handleRecv(void * userData, uint64_t time, uint32_t receiver,
     time = convertTime(userData, time);
     CommRecord * cr = NULL;
     std::list<CommRecord *> * unmatched = (*(((OTFImporter*) userData)->unmatched_sends))[sender - 1];
-    for (std::list<CommRecord *>::Iterator itr = unmatched->begin();
+    for (std::list<CommRecord *>::iterator itr = unmatched->begin();
          itr != unmatched->end(); ++itr)
     {
         if (OTFImporter::compareComms((*itr), sender -1, receiver -1, type))
@@ -453,14 +460,20 @@ int OTFImporter::handleRecv(void * userData, uint64_t time, uint32_t receiver,
     // a new unmatched recv record
     if (cr)
     {
-        (*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->removeOne(cr);
+        std::list<CommRecord *>::iterator delit
+                = std::find((*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->begin(),
+                            (*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->end(),
+                            cr);
+        if (delit != (*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->end())
+            (*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->erase(delit);
+        //(*(((OTFImporter *) userData)->unmatched_sends))[sender - 1]->removeOne(cr);
     }
     else
     {
         cr = new CommRecord(sender - 1, 0, receiver - 1, time, length, type, group);
-        ((*(((OTFImporter*) userData)->unmatched_recvs))[sender - 1])->append(cr);
+        ((*(((OTFImporter*) userData)->unmatched_recvs))[sender - 1])->push_back(cr);
     }
-    (*((((OTFImporter*) userData)->rawtrace)->messages_r))[receiver - 1]->append(cr);
+    (*((((OTFImporter*) userData)->rawtrace)->messages_r))[receiver - 1]->push_back(cr);
 
     return 0;
 }
@@ -470,7 +483,7 @@ int OTFImporter::handleCounter(void * userData, uint64_t time,
                                uint64_t value)
 {
     CounterRecord * cr = new CounterRecord(counter, convertTime(userData, time), value);
-    (*((((OTFImporter *) userData)->rawtrace)->counter_records))[process - 1]->append(cr);
+    (*((((OTFImporter *) userData)->rawtrace)->counter_records))[process - 1]->push_back(cr);
     return 0;
 }
 
@@ -481,14 +494,14 @@ int OTFImporter::handleDefProcessGroup(void * userData, uint32_t stream,
                                        const uint32_t * procs)
 {
     std::string qname(name);
-    if (qname.contains("MPI_COMM_SELF")) // Probably won't use this
+    if (qname.find("MPI_COMM_SELF") != std::string::npos) // Probably won't use this
         return 0;
 
     EntityGroup * t = new EntityGroup(procGroup, qname);
-    for (int i = 0; i < numberOfProcs; i++)
+    for (unsigned int i = 0; i < numberOfProcs; i++)
     {
-        t->entities->append(procs[i] - 1);
-        t->entityorder->insert(procs[i] - 1, i);
+        t->entities->push_back(procs[i] - 1);
+        t->entityorder->insert(std::pair<unsigned long, int>(procs[i] - 1, i));
     }
     (*(((OTFImporter*) userData)->entitygroups))[procGroup] = t;
 
@@ -538,7 +551,7 @@ int OTFImporter::handleBeginCollectiveOperation(void * userData, uint64_t time,
         rootProc--;
 
     // Create collective record if it doesn't yet exist
-    if (!(*(((OTFImporter *) userData)->collectives)).contains(matchingId))
+    if (((*(((OTFImporter *) userData)->collectives)).find(matchingId)) == (*(((OTFImporter *) userData)->collectives)).end())
         (*(((OTFImporter *) userData)->collectives))[matchingId]
             = new CollectiveRecord(matchingId, rootProc, collective, procGroup);
 
@@ -548,7 +561,7 @@ int OTFImporter::handleBeginCollectiveOperation(void * userData, uint64_t time,
     // Map process/time to the collective record
     time = convertTime(userData, time);
     (*(*(((OTFImporter *) userData)->collectiveMap))[process - 1])[time] = cr;
-    ((OTFImporter *) userData)->rawtrace->collectiveBits->at(process - 1)->append(new RawTrace::CollectiveBit(time, cr));
+    ((OTFImporter *) userData)->rawtrace->collectiveBits->at(process - 1)->push_back(new RawTrace::CollectiveBit(time, cr));
 
     return 0;
 }

@@ -1,10 +1,10 @@
 #include "primaryentitygroup.h"
 #include "entity.h"
 
-PrimaryEntityGroup::PrimaryEntityGroup(int _id, QString _name)
+PrimaryEntityGroup::PrimaryEntityGroup(int _id, std::string _name)
     : id(_id),
       name(_name),
-      entities(new QList<Entity *>())
+      entities(new std::vector<Entity *>())
 {
 }
 

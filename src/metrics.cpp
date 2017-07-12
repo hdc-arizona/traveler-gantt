@@ -22,7 +22,7 @@ void Metrics::setMetric(std::string name, double event_value)
 
 bool Metrics::hasMetric(std::string name)
 {
-    return metrics->contains(name);
+    return (metrics->find(name) != metrics->end());
 }
 
 double Metrics::getMetric(std::string name)
@@ -36,7 +36,7 @@ std::vector<std::string> Metrics::getMetricList()
     for (std::map<std::string, double>::iterator counter = metrics->begin();
          counter != metrics->end(); ++counter)
     {
-        names.append(counter.key());
+        names.push_back(counter->first);
     }
     return names;
 }

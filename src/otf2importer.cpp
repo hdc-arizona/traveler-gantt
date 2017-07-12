@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <sstream>
 #include "ravelutils.h"
 #include "rawtrace.h"
 #include "commrecord.h"
@@ -459,8 +460,13 @@ void OTF2Importer::defineEntities()
                 if (MPILocations.find(loc->first) != MPILocations.end())
                 {
                     unsigned long entity = locationIndexMap->at(loc->first);
-                    Entity * locationEntity = new Entity(entity,
+                    /* Entity * locationEntity = new Entity(entity,
                                                          std::to_string(loc->second->group),
+                                                         primaries->at(0)); */
+                    std::stringstream ss;
+                    ss << loc->second->group;
+                    Entity * locationEntity = new Entity(entity,
+                                                         ss.str(),
                                                          primaries->at(0));
                     primaries->at(0)->entities->insert(primaries->at(0)->entities->begin() + entity, locationEntity);
                     entityMap.insert(std::pair<OTF2_LocationRef, Entity *>(loc->first, locationEntity));
