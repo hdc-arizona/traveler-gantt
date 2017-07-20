@@ -26,64 +26,59 @@ endif()
 
 # Sources and UI Files
 set(Ravel_SOURCES
-    main.cpp
-    trace.cpp
-    event.cpp
-    message.cpp
-    mainwindow.cpp
-    commrecord.cpp
-    eventrecord.cpp
-    rawtrace.cpp
-    otfconverter.cpp
-    function.cpp
-    importfunctor.cpp
-    collectiverecord.cpp
-    otfcollective.cpp
-    commevent.cpp
-    p2pevent.cpp
     collectiveevent.cpp
+    collectiverecord.cpp
+    commevent.cpp
+    commrecord.cpp
     counter.cpp
     counterrecord.cpp
-    otf2importer.cpp
     entity.cpp
     entitygroup.cpp
-    primaryentitygroup.cpp
+    event.cpp
+    eventrecord.cpp
+    function.cpp
+    importfunctor.cpp
+    main.cpp
+    message.cpp
     metrics.cpp
+    otf2importer.cpp
+    otfcollective.cpp
+    otfconverter.cpp
+    p2pevent.cpp
+    primaryentitygroup.cpp
+    rawtrace.cpp
+    trace.cpp
     ${ADDED_SOURCES}
 )
 
 set(Ravel_HEADERS
-    trace.h
-    event.h
-    message.h
-    mainwindow.h
-    commrecord.h
-    eventrecord.h
-    rawtrace.h
-    otfconverter.h
-    function.h
-    ravelutils.h
-    importfunctor.h
-    collectiverecord.h
-    otfcollective.h
-    commevent.h
-    p2pevent.h
     collectiveevent.h
+    collectiverecord.h
+    commevent.h
+    commrecord.h
     counter.h
     counterrecord.h
-    otf2importer.h
     entity.h
-    clusterentity.h
     entitygroup.h
-    primaryentitygroup.h
+    event.h
+    eventrecord.h
+    function.h
+    importfunctor.h
+    message.h
     metrics.h
+    otf2importer.h
+    otfcollective.h
+    otfconverter.h
+    p2pevent.h
+    primaryentitygroup.h
+    ravelutils.h
+    rawtrace.h
+    trace.h
     ${ADDED_HEADERS}
 )
 
 # Build Target
 add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES} ${Ravel_UIC})
-
-qt5_use_modules(Ravel)
 
 target_link_libraries(Ravel
                       ${OTF2_LIBRARIES}
