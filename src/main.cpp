@@ -7,10 +7,15 @@
 #include <string>
 #include <map>
 #include <utility>
-#include "mongoose.h"
+#include <iostream>
+#include "trace.h"
+#include "importfunctor.h"
+#include "../lib/external/mongoose.h"
 
 static const char *s_http_port = "8000";
 static struct mg_serve_http_opts s_http_server_opts;
+
+Trace * trace = NULL;
 
 static std::map<int, int> * memo = new std::map<int, int>();
 
@@ -70,6 +75,29 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
     default:
       break;
   }
+}
+
+static void setTrace(std::string dataFileName) {
+    trace = NULL;
+    if (dataFileName.length() == 0) {
+        std::cout << "No trace file given." << std::endl;
+    }
+
+    ImportFunctor * importWorker = new ImportFunctor();
+
+    if (dataFileName.compare(dataFileName.length() - 3, 3, "otf"))
+    {
+        trace = importWorker->doImportOTF(dataFileName);
+    }
+    else if (dataFileName.compare(dataFileName.length() - 3, 3, "otf2"))
+    {
+        trace = importWorker->doImportOTF2(dataFileName);
+    }
+    else
+    {
+        std::cout << "Unrecognized trace format!" << std::endl;
+    }
+    delete importWorker;
 }
 
 int main(int argc, char *argv[]) {

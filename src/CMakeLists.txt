@@ -1,11 +1,11 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# Dependencies over Qt5
 find_package(OTF)
 find_package(OTF2 REQUIRED)
 find_package(ZLIB REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMG_ENABLE_THREADS
+    -DMG_ENABLE_HTTP_WEBSOCKET=0 -pthread")
 
 set(CMAKE_AUTOMOC ON)
 
@@ -48,6 +48,7 @@ set(Ravel_SOURCES
     primaryentitygroup.cpp
     rawtrace.cpp
     trace.cpp
+    ../lib/external/mongoose.cpp
     ${ADDED_SOURCES}
 )
 
@@ -74,6 +75,7 @@ set(Ravel_HEADERS
     ravelutils.h
     rawtrace.h
     trace.h
+    ../lib/external/mongoose.h
     ${ADDED_HEADERS}
 )
 
