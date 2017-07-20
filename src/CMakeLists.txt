@@ -4,8 +4,7 @@ find_package(OTF)
 find_package(OTF2 REQUIRED)
 find_package(ZLIB REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMG_ENABLE_THREADS
-    -DMG_ENABLE_HTTP_WEBSOCKET=0 -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMG_ENABLE_THREADS -DMG_ENABLE_HTTP_WEBSOCKET=0 -pthread")
 
 set(CMAKE_AUTOMOC ON)
 
@@ -80,7 +79,7 @@ set(Ravel_HEADERS
 )
 
 # Build Target
-add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES} ${Ravel_UIC})
+add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES})
 
 target_link_libraries(Ravel
                       ${OTF2_LIBRARIES}
