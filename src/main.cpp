@@ -10,7 +10,7 @@
 #include <iostream>
 #include "trace.h"
 #include "importfunctor.h"
-#include "../lib/external/mongoose.h"
+#include "external/mongoose.h"
 
 static const char *s_http_port = "8000";
 static struct mg_serve_http_opts s_http_server_opts;

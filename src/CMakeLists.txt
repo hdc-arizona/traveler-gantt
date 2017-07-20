@@ -48,7 +48,7 @@ set(Ravel_SOURCES
     primaryentitygroup.cpp
     rawtrace.cpp
     trace.cpp
-    ../lib/external/mongoose.cpp
+    external/mongoose.cpp
     ${ADDED_SOURCES}
 )
 
@@ -75,7 +75,7 @@ set(Ravel_HEADERS
     ravelutils.h
     rawtrace.h
     trace.h
-    ../lib/external/mongoose.h
+    external/mongoose.h
     ${ADDED_HEADERS}
 )
 
