@@ -372,6 +372,7 @@ void OTFConverter::matchEvents()
             {
                 depth++;
                 stack->push(*evt);
+
                 while (counters->size() > counter_index
                        && counters->at(counter_index)->time == (*evt)->time)
                 {
@@ -379,7 +380,8 @@ void OTFConverter::matchEvents()
                     counter_index++;
 
                     // Set the first one to the beginning of the trace
-                    if (lastcounters->at(counters->at(counter_index)->counter) == NULL)
+                    //if (lastcounters->at(counters->at(counter_index)->counter) == NULL)
+                    if (lastcounters->find(counters->at(counter_index)->counter) == lastcounters->end())
                     {
                         lastcounters->insert(std::pair<unsigned int, CounterRecord *>(counters->at(counter_index)->counter,
                                              counters->at(counter_index)));

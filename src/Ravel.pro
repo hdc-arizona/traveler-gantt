@@ -50,7 +50,8 @@ SOURCES  += main.cpp \
     entity.cpp \
     primaryentitygroup.cpp \
     entitygroup.cpp \
-    importfunctor.cpp
+    importfunctor.cpp \
+    external/mongoose.cpp
 
 HEADERS += \
     trace.h \
@@ -74,7 +75,8 @@ HEADERS += \
     primaryentitygroup.h \
     entitygroup.h \
     ravelutils.h \
-    importfunctor.h
+    importfunctor.h \
+    external/mongoose.h
 
 
 HOME = $$system(echo $HOME)
