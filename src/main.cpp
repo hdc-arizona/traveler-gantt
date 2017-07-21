@@ -85,11 +85,11 @@ static void setTrace(std::string dataFileName) {
 
     ImportFunctor * importWorker = new ImportFunctor();
 
-    if (dataFileName.compare(dataFileName.length() - 3, 3, "otf"))
+    if (dataFileName.compare(dataFileName.length() - 4, 3, "otf"))
     {
         trace = importWorker->doImportOTF(dataFileName);
     }
-    else if (dataFileName.compare(dataFileName.length() - 3, 3, "otf2"))
+    else if (dataFileName.compare(dataFileName.length() - 5, 4, "otf2"))
     {
         trace = importWorker->doImportOTF2(dataFileName);
     }
