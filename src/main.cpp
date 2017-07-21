@@ -8,6 +8,7 @@
 #include <map>
 #include <utility>
 #include <iostream>
+#include <sstream>
 #include "trace.h"
 #include "importfunctor.h"
 #include "external/mongoose.h"
@@ -50,9 +51,17 @@ static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
   /* Compute the result and send it back as a JSON object */
   was_memo = check_memo(strtod(f, NULL));
   result = fib(strtod(f, NULL));
-  //mg_printf_http_chunk(nc, "{ \"result\": %lf }", result);
-  printf("%s\n", was_memo.c_str());
-  mg_printf_http_chunk(nc, "{ \"result\": %lf, \"memo\": \"%s\" }", result, was_memo.c_str());
+
+  /* Check for trace info */
+  std::string traceinfo = "";
+  if (trace != NULL) {
+      std::stringstream ss;
+      ss << trace->fullpath << ": " << trace->min_time << " - " <<trace->max_time;
+      traceinfo = ss.str();
+  }
+
+  mg_printf_http_chunk(nc, "{ \"result\": %lf, \"memo\": \"%s\", \"traceinfo\": \"%s\" }",
+                       result, was_memo.c_str(), traceinfo.c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 

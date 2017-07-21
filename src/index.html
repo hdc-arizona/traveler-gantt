@@ -37,6 +37,7 @@
         success: function(json) {
           $('#result').html(json.result);
           $('#memo').html(json.memo);
+          $('#traceinfo').html(json.traceinfo);
         }
       });
     });
@@ -60,7 +61,8 @@
     </div><div>
       <label>= </label> <span id="result">&nbsp;</span> <span id="memo">&nbsp;</span>
     </div><div>
-
+      <label>Trace Info:</label> <span id="traceinfo">&nbsp</span>
+    </div><div>
   </div>
 </body>
 </html>
