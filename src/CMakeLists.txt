@@ -78,8 +78,14 @@ set(Ravel_HEADERS
     ${ADDED_HEADERS}
 )
 
+set(Ravel_STATIC_FILES
+    index.html
+)
+
 # Build Target
-add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES})
+add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES} ${Ravel_STATIC_FILES})
+set_source_Files_properties(${Ravel_STATIC_FILES} PROPERTIES
+    MACOSX_PACKAGE_LOCATION MacOS)
 
 target_link_libraries(Ravel
                       ${OTF2_LIBRARIES}
