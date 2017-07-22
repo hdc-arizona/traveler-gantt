@@ -1,4 +1,5 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_STANDARD 11)
 
 find_package(OTF)
 find_package(OTF2 REQUIRED)
