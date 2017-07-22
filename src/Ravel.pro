@@ -114,5 +114,5 @@ macx: INCLUDEPATH += $${HOME}/opt/muster/include
 macx: DEPENDPATH += $${HOME}/opt/muster/include
 
 OTHER_FILES += \
-    CMakeLists.txt
-
+    CMakeLists.txt \
+    index.html
