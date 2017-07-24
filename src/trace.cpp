@@ -191,21 +191,25 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
 
 
     // Should autoconvert from std::vector to json
-    jo["events"] = event_slice;
+    //jo["events"] = event_slice;
 
-    /*
+    std::vector<std::vector<json> > slices = std::vector<std::vector<json> >();
     // Per depth
     for (std::vector<std::vector<std::vector<Event *> *> *>::iterator es = event_slice->begin();
          es != event_slice->end(); ++es)
     {
+        std::vector<json> atdepth = std::vector<json>();
 
         // Per entity 
         for (std::vector<std::vector<Event *> *>::iterator ent = (*es)->begin();
             ent != (*es)->end(); ++ent)
         {
+            atdepth->push_back(*ent);
         }
+        slices->push_back(atdepth);
     }
-    */
+    jo["events"] = slices;
+
 
     for (std::vector<std::vector<std::vector<Event *> *> *>::iterator es = event_slice->begin();
          es != event_slice->end(); ++es)
