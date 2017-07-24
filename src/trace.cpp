@@ -204,9 +204,9 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
         for (std::vector<std::vector<Event *> *>::iterator ent = (*es)->begin();
             ent != (*es)->end(); ++ent)
         {
-            atdepth->push_back(*ent);
+            atdepth.push_back(**ent);
         }
-        slices->push_back(atdepth);
+        slices.push_back(atdepth);
     }
     jo["events"] = slices;
 
