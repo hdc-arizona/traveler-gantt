@@ -4,9 +4,12 @@
 #include <vector>
 #include <string>
 #include <otf2/otf2.h>
+#include "json.hpp"
 
 class Function;
 class Metrics;
+
+using json = nlohmann::json;
 
 class Event
 {
@@ -49,5 +52,24 @@ public:
 
     Metrics * metrics; // Lateness or Counters etc
 };
+
+void to_json(json& j, const Event& e)
+{
+    j = json{
+        {"enter", e.enter},
+        {"exit", e.exit},
+        {"function", e.function},
+        {"entity", e.entity}
+    };
+}
+
+void from_json(const json& j, Event& e)
+{
+    e.enter = j.at("enter").get<unsigned long long>();
+    e.exit = j.at("exit").get<unsigned long long>();
+    e.function = j.at("function").get<int>();
+    e.entity = j.at("entity").get<unsigned long>();
+}
+
 
 #endif // EVENT_H

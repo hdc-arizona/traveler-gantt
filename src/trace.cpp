@@ -152,3 +152,100 @@ Event * Trace::findEvent(int entity, unsigned long long time)
 
     return found;
 }
+
+json Trace::timeToJSON(unsigned long long start, unsigned long long stop, 
+                       unsigned long long entity_start,
+                       unsigned long long entity_stop,
+                       unsigned long long min_span)
+{
+    json jo;
+    if (start > stop || start > max_time || stop < min_time)
+    {
+        return jo;
+    }
+
+    jo["path"] = fullpath;
+    jo["mintime"] = min_time;
+    jo["maxtime"] = max_time;
+    jo["starttime"] = start;
+    jo["stoptime"] = stop;
+
+
+    std::vector<std::vector<std::vector<Event *> *> *> * event_slice
+        = new std::vector<std::vector<std::vector<Event *> *> *>();
+    event_slice->push_back(new std::vector<std::vector<Event *> *>());
+    for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
+    {
+        event_slice->back()->push_back(new std::vector<Event *>());
+    }
+
+    for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
+    {
+        for (std::vector<Event *>::iterator root = roots->at(entity)->begin();
+             root != roots->at(entity)->end(); ++root)
+        {
+            timeEventToJSON(*root, 0, start, stop, entity_start, entity_stop,
+                            min_span, event_slice);
+        }
+    }
+
+
+    // Should autoconvert from std::vector to json
+    jo["events"] = event_slice;
+
+    for (std::vector<std::vector<std::vector<Event *> *> *>::iterator es = event_slice->begin();
+         es != event_slice->end(); ++es)
+    {
+        for (std::vector<std::vector<Event *> *>::iterator ent = (*es)->begin();
+            ent != (*es)->end(); ++ent)
+        {
+            delete *ent;
+        }
+        delete *es;
+    }
+    delete event_slice;
+
+    return jo;
+}
+
+void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
+    unsigned long long stop, unsigned long long entity_start, unsigned long long entity_stop,
+    unsigned long long min_span,
+    std::vector<std::vector<std::vector<Event *> *> *> * slice)
+{
+    // Make sure the event is in range
+    if (!(evt->enter < stop && evt->exit > start))
+    {
+        return;
+    }
+
+    // Make sure we have a vector at this depth
+    if (depth >= slice->size())
+    {
+        slice->push_back(new std::vector<std::vector<Event *> *>());
+        for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
+        {
+            slice->back()->push_back(new std::vector<Event *>());
+        }
+    }
+
+    // Add the event
+    if ((evt->exit - evt->enter) > min_span)
+    {
+        slice->at(evt->entity - entity_start)->at(depth)->push_back(evt);
+
+        // Add children
+        for (std::vector<Event *>::iterator child = evt->callees->begin();
+            child != evt->callees->end(); ++child)
+        {
+            timeEventToJSON(*child, depth + 1, start, stop, entity_start,
+                            entity_stop, min_span, slice);
+        }
+    }
+
+}
+
+json Trace::initJSON()
+{
+    return timeToJSON(0, 90000, 0, roots->size() - 1);
+}

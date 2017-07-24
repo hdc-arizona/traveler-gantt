@@ -14,6 +14,8 @@
 #include "external/mongoose.h"
 #include "json.hpp"
 
+using json = nlohmann::json;
+
 static const char *s_http_port = "8000";
 static struct mg_serve_http_opts s_http_server_opts;
 
@@ -61,8 +63,14 @@ static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
       traceinfo = ss.str();
   }
 
-  mg_printf_http_chunk(nc, "{ \"result\": %lf, \"memo\": \"%s\", \"traceinfo\": \"%s\" }",
-                       result, was_memo.c_str(), traceinfo.c_str());
+  json j;
+  j["result"] = result;
+  j["memo"] = was_memo;
+  j["traceinfo"] = traceinfo;
+
+  mg_printf_http_chunk(nc, j.dump().c_str());
+  //mg_printf_http_chunk(nc, "{ \"result\": %lf, \"memo\": \"%s\", \"traceinfo\": \"%s\" }",
+  //                     result, was_memo.c_str(), traceinfo.c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 
