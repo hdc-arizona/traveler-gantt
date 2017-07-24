@@ -159,17 +159,18 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
                        unsigned long long min_span)
 {
     json jo;
-    if (start > stop || start > max_time || stop < min_time)
-    {
-        return jo;
-    }
 
-    jo["path"] = fullpath;
+    //jo["path"] = fullpath;
     jo["mintime"] = min_time;
     jo["maxtime"] = max_time;
     jo["starttime"] = start;
     jo["stoptime"] = stop;
-
+    if (start > stop || start > max_time || stop < min_time)
+    {
+        jo["error"] = "Incorrect time range.";
+        return jo;
+    }
+    return jo;
 
     std::vector<std::vector<std::vector<Event *> *> *> * event_slice
         = new std::vector<std::vector<std::vector<Event *> *> *>();

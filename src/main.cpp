@@ -56,21 +56,13 @@ static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
   result = fib(strtod(f, NULL));
 
   /* Check for trace info */
-  std::string traceinfo = "";
-  if (trace != NULL) {
-      std::stringstream ss;
-      ss << trace->fullpath << ": " << trace->min_time << " - " <<trace->max_time;
-      traceinfo = ss.str();
-  }
-
   json j;
   j["result"] = result;
   j["memo"] = was_memo;
-  j["traceinfo"] = traceinfo;
+  j["traceinfo"] = trace->initJSON();
+  std::cout << j.dump().c_str() << " is j" << std::endl;
 
   mg_printf_http_chunk(nc, j.dump().c_str());
-  //mg_printf_http_chunk(nc, "{ \"result\": %lf, \"memo\": \"%s\", \"traceinfo\": \"%s\" }",
-  //                     result, was_memo.c_str(), traceinfo.c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 

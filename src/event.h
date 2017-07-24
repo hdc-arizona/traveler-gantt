@@ -53,40 +53,9 @@ public:
     Metrics * metrics; // Lateness or Counters etc
 };
 
-void to_json(json& j, const Event& e)
-{
-    j = json{
-        {"enter", e.enter},
-        {"exit", e.exit},
-        {"function", e.function},
-        {"entity", e.entity}
-    };
-}
-
-void from_json(const json& j, Event& e)
-{
-    e.enter = j.at("enter").get<unsigned long long>();
-    e.exit = j.at("exit").get<unsigned long long>();
-    e.function = j.at("function").get<int>();
-    e.entity = j.at("entity").get<unsigned long>();
-}
-
-void to_json(json& j, const Event * e)
-{
-    j = json{
-        {"enter", e->enter},
-        {"exit", e->exit},
-        {"function", e->function},
-        {"entity", e->entity}
-    };
-}
-
-void from_json(const json& j, Event * e)
-{
-    e->enter = j.at("enter").get<unsigned long long>();
-    e->exit = j.at("exit").get<unsigned long long>();
-    e->function = j.at("function").get<int>();
-    e->entity = j.at("entity").get<unsigned long>();
-}
+void to_json(json& j, const Event& e);
+void from_json(const json& j, Event& e);
+void to_json(json& j, const Event * e);
+void from_json(const json& j, Event * e);
 
 #endif // EVENT_H
