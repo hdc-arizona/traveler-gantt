@@ -38,7 +38,8 @@ public:
                          unsigned long long entity_start,
                          unsigned long long entity_stop,
                          unsigned long long min_span,
-                         std::vector<std::vector<std::vector<Event *> *> *> * slice);
+                         std::vector<std::vector<std::vector<json> > >& slice,
+                         std::map<std::string, std::string>& function_names);
     json initJSON();
 
     std::string name;
