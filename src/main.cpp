@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <map>
 #include <utility>
 #include <iostream>
@@ -21,46 +22,33 @@ static struct mg_serve_http_opts s_http_server_opts;
 
 Trace * trace = NULL;
 
-static std::map<int, int> * memo = new std::map<int, int>();
-
-static int fib(int f) {
-    if (f < 0) {
-        return -1;
-    }
-    if (memo->find(f) != memo->end()) {
-        return memo->find(f)->second;
-    }
-
-    memo->insert(std::pair<int, int>(f, fib(f - 1) + fib(f - 2)));
-    return memo->find(f)->second;
-}
-
-static std::string check_memo(int f) {
-    return (memo->find(f) != memo->end()) ? "Yes" : "No";
-}
-
-
 static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
-  char f[100];
-  double result;
-  std::string was_memo;
+  char command[100];
 
-  /* Get form variables */
-  mg_get_http_var(&hm->body, "f", f, sizeof(f));
+  /* Get command variables */
+  mg_get_http_var(&hm->body, "command", command, sizeof(command));
 
   /* Send headers */
   mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
 
-  /* Compute the result and send it back as a JSON object */
-  was_memo = check_memo(strtod(f, NULL));
-  result = fib(strtod(f, NULL));
-
   /* Check for trace info */
   json j;
-  j["result"] = result;
-  j["memo"] = was_memo;
-  j["traceinfo"] = trace->initJSON();
-  std::cout << j.dump().c_str() << " is j" << std::endl;
+  if (strncmp(command, "time", 4) == 0)
+  {
+    char start[100], stop[100], entity_start[100], entity_stop[100];
+    mg_get_http_var(&hm->body, "start", start, sizeof(start));
+    mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
+    mg_get_http_var(&hm->body, "entity_start", entity_start, sizeof(entity_start));
+    mg_get_http_var(&hm->body, "entity_stop", entity_stop, sizeof(entity_stop));
+    j["traceinfo"] = trace->timeToJSON(std::stoull(start),
+                                       std::stoull(stop), 
+                                       std::stoull(entity_stop),
+                                       std::stoull(entity_start));
+  }
+  else if (strncmp(command, "load", 4) == 0)
+  {
+    j["traceinfo"] = trace->initJSON();
+  }
 
   mg_printf_http_chunk(nc, j.dump().c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
@@ -120,9 +108,6 @@ int main(int argc, char *argv[]) {
 #if MG_ENABLE_SSL
   const char *ssl_cert = NULL;
 #endif
-
-  (*memo)[0] = 0;
-  (*memo)[1] = 1;
 
   mg_mgr_init(&mgr, NULL);
 

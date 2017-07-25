@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>RESTful API demo</title>
+  <title>Wravel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style type="text/css">
     * { outline: none; }
@@ -28,15 +28,13 @@
 <script language="javascript" type="text/javascript">
   jQuery(function() {
 
-    $(document).on('keyup', '#f', function() {
+    $(document).ready(function() {
       $.ajax({
         url: '/api/v1/fib',
         method: 'POST',
         dataType: 'json',
-        data: { f: $('#f').val()  },
+        data: { "command" : 'load' },
         success: function(json) {
-          $('#result').html(json.result);
-          $('#memo').html(json.memo);
           $('#traceinfo').html(JSON.stringify(json.traceinfo));
         }
       });
@@ -47,20 +45,10 @@
 </head>
 <body>
   <div class="content">
-    <h1>RESTful API demo.</h1>
+    <h1>W-Ravel</h1>
 
-    <p>
-      This page demonstrates how Mongoose could be used to implement
-      RESTful APIs. Type a number into the text field below.
-      Browser sends the number to <tt>/api/v1/fib</tt> URI.
-      Web server calclulates the sum and returns the result.
-    </p>
 
     <div>
-      <label>Fibonacci</label>[<input type="text" id="f" />]
-    </div><div>
-      <label>= </label> <span id="result">&nbsp;</span> <span id="memo">&nbsp;</span>
-    </div><div>
       <label>Trace Info:</label><br/><span id="traceinfo">&nbsp</span>
     </div><div>
   </div>
