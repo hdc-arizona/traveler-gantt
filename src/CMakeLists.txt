@@ -81,6 +81,7 @@ set(Ravel_HEADERS
 
 set(Ravel_STATIC_FILES
     index.html
+    ravel.css
 )
 
 # Build Target

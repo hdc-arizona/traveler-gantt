@@ -4,50 +4,326 @@
   <meta charset="utf-8" />
   <title>Wravel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style type="text/css">
-    * { outline: none; }
-    body {
-      background-color: #789; margin: 0;
-      padding: 0; font: 16px/1.4 Helvetica, Arial, sans-serif;
-      font: 16px/1.4 Helvetica, Arial, sans-serif;
-    }
-    div.content {
-      width: 800px; margin: 2em auto; padding: 20px 50px;
-      background-color: #fff; border-radius: 1em;
-    }
-    label { display: inline-block; min-width: 7em; }
-    input { border: 1px solid #ccc; padding: 0.2em; }
-    a:link, a:visited { color: #69c; text-decoration: none; }
-    @media (max-width: 700px) {
-      body { background-color: #fff; }
-      div.content { width: auto; margin: 0 auto; padding: 1em; }
-    }
-</style>
 
-<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-<script language="javascript" type="text/javascript">
-  jQuery(function() {
+  <link rel="stylesheet" type="text/css" href="ravel.css" media="screen" />
+  <script src="//d3js.org/d3.v3.min.js"></script>
+  <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script type="text/javascript">
+  var ravel = {
+    data: null,
+    items: null,
+    lanes: null,
+    first: null,
+    coloring_type: 0,
+    selected_rect: null,
+    ordering: 0,
+    order_change: false,
+    scroll_y: false,
+    all_lanes: false,
+    even_change: false
+  }
 
-    $(document).ready(function() {
-      $.ajax({
-        url: '/api/v1/fib',
-        method: 'POST',
-        dataType: 'json',
-        data: { "command" : 'load' },
-        success: function(json) {
-          $('#traceinfo').html(JSON.stringify(json.traceinfo));
-        }
+  ravel.object_filter = function (obj, func) {
+    var retarray = [];
+    for (key in obj) {
+	if (obj.hasOwnProperty(key)) {
+	    if (func(obj[key])) {
+		retarray.push(obj[key]);
+	    }
+	}
+    }
+    return retarray;
+  }
+
+  ravel.object_min = function (obj, func) {
+      var ret = null;
+      for (key in obj) {
+	  if (obj.hasOwnProperty(key)) {
+	      if (ret) {
+		  if (func(obj[key]) < ret) {
+		      ret = func(obj[key]);
+		  }
+	      } else {
+		  ret = func(obj[key])
+	      }
+	  }
+      }
+      return ret;
+  }
+
+  ravel.object_max = function (obj, func) {
+      var ret = null;
+      for (key in obj) {
+	  if (obj.hasOwnProperty(key)) {
+	      if (ret) {
+		  if (func(obj[key]) > ret) {
+		      ret = func(obj[key]);
+		  }
+	      } else {
+		  ret = func(obj[key])
+	      }
+	  }
+      }
+      return ret;
+  }
+
+  ravel.init = function (json) {
+    console.log("Init");
+    ravel.data = json;
+    ravel.lanes = [];
+    for (var i = 1; i <= ravel.data.entities; i++) {
+      ravel.lanes.push(i);
+    }
+    ravel.display();
+  }
+
+  ravel.display = function () {
+    console.log(ravel.lanes);
+
+    var margin = {top: 20, right: 15, bottom: 35, left: 35}
+      , width = 1200 - margin.left - margin.right
+      , height = 900 - margin.top - margin.bottom
+      , minHeight = 100
+      , mainHeight = (height - miniHeight - 100) / 2
+      , oldHeight = mainHeight
+      , oldWidth = width
+      , oldcolorBarWidth = 600
+      , colorBarHeight = 30
+      , miniWidth = width
+      , mainWidth = width;
+
+    var min_time = ravel.data.mintime;
+    var max_time = ravel.data.maxtime;
+    var max_step = 0;
+    var current_span = ravel.data.stoptime - ravel.data.startime;
+
+    var typecolor = d3.scale.linear()
+      .domain([1,2])
+      .range(["lightblue", "lightblue"]);
+    var bordercolor = d3.scale.linear()
+      .domain([1,2])
+      .range(["blue", "blue"]);
+    var parentcolor = d3.scale.linear()
+      .domain([0, 2])
+      .range(['dimgray', 'lightgray'])
+    if (ravel.data.hasOwnProperty('maxdepth')) {
+      parentcolor.domain([0, ravel.data.maxdepth]);
+    }
+
+    var mini_scale = d3.scale.linear()
+      .domain([min_time, max_time])
+      .range([0, miniWidth]);
+    var main_scale = d3.scale.linear()
+      .domain([min_time, min_time + current_span])
+      .range([0, mainWidth]);
+    var detail_scale = d3.scale.linear()
+      .domain([0, 0])
+      .range([0, oldWidth); // get translated with g
+    
+
+    var ext = d3.extent(lanes);
+    var show_ext = [ext[0], d3.min([ext[1] + 1, 17])];
+    var ymain = d3.scale.linear()
+      .domain([show_ext[0], show_ext[1]])
+      .range([0, mainHeight]);
+    var yold = d3.scale.linear()
+      .domain([ext[0], ext[1] + 1])
+      .range([0, oldHeight]);
+    var saved_xmain = [0, 0];
+    var saved_ymain = ymain.domain();
+    var saved_yold = yold.domain();
+    var saved_step = step_scale.domain();
+    var saved_stepscale = 1;
+    var saved_lanescale = 1;
+
+    var zoom = d3.behavior.zoom();
+    zoom.x(main_scale);
+    zoom.y(ymain);
+    zoom.on('zoom', zoom_function);
+
+    var zoom_function = function () {
+      if (!middledown) {
+	var t = zoom.translate();
+	tx = t[0];
+	ty = t[1];
+
+	var xmain_minus = main_scale.domain()[0];
+	var xmain_plus = main_scale.domain()[1];
+	if (xmain_minus < min_time) {
+	  xmain_minus = min_time;
+	  zoom.translate([min_time, ty]);
+	}
+	if (xmain_plus > max_time) {
+	  xmain_plus = max_time;
+	  zoom.translate([max_time, ty]);
+	}
+	main_scale.domain([xmain_minus, xmain_plus]);
+
+	// If we're not scrolling, force to saved
+	if (scrolly) {
+	  ymain_minus = ymain.domain()[0];
+	  ymain_plus = ymain.domain()[1];
+	  if (ymain_minus < ext[0]) {
+	    ymain_minus = ext[0];
+	  }
+	  if (ymain_minus > ext[1] + 1) {
+	    ymain_minus = ext[1] + 1;
+	  }
+	  if (ymain_plus > ext[1] + 1) {
+	    ymain_plus = ext[1] + 1;
+	  }
+	  if (ymain_plus < ext[0]) {
+	    ymain_plus = ext[0]
+	  }
+	  if (ymain_plus - ymain_minus < 1) {
+	    average = 0.5 * (ymain_plus + ymain_minus);
+	    if (average < ext[0]) {
+	      average = 1;
+	    }
+	    if (average > ext[1] + 1) {
+	      average = ext[1];
+	    }
+	    ymain_minus = average;
+	    ymain_plus = average + 1.0;
+	  }
+	  if (ymain_plus - ymain_minus > 17) {
+	    average = 0.5 * (ymain_plus + ymain_minus);
+	    ymain_plus = average + 8.5;
+	    ymain_minus = average - 8.5;
+	  }
+	  ymain.domain([ymain_minus, ymain_plus]);
+	} else {
+	  ymain.domain([saved_ymain[0], saved_ymain[1]]);
+	  zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
+	}
+	saved_ymain = [ymain.domain()[0], ymain.domain()[1]];
+
+	cursor.x = Math.roun(mini_scale((main_scale.domain()[1] + main_scale.domain()[0])/2.0))
+	update_cursor();
+
+	display();
+
+	if (!steplock) {
+	  // nothing for now
+	}
+
+      } else { // On middle click revert to saved, middle click is used for something else
+	main_scale.domain([saved_xmain);
+	ymain.domain(saved_ymain);
+	zoom.translate([0, 0]);
+	zoom.scale(1);
+	display();
+      }
+    } // End zoom_function();
+
+  var oldzoom = d3.behavior.zoom();
+    oldzoom.x(step_scale);
+    oldzoom.y(yold);
+    oldzoom.on('zoom', oldzoom_function);
+
+  var oldzoom_function () {
+    var t = oldzoom.translate(),
+    tx = t[0],
+    ty = t[1];
+
+    // If we're not scrolling, force to saved
+    if (scrolly) {
+      yold_minus = yold.domain()[0];
+      yold_plus = yold.domain()[1];
+      if (yold_minus < ext[0]) {
+	yold_minus = ext[0];
+      }
+      if (yold_minus > ext[1] + 1) {
+	yold_minus = ext[1] + 1;
+      }
+      if (yold_plus > ext[1] + 1) {
+	yold_plus = ext[1] + 1;
+      }
+      if (yold_plus < ext[0]) {
+	yold_plus = ext[0];
+      }
+      if (yold_plus - yold_minus < 1) {
+	average = 0.5 * (yold_plus + yold_minus);
+	if (average < ext[0]) {
+	  average = 1;
+	} 
+	if (average > ext[1] + 1) {
+	  average = ext[1];
+	}
+	yold_minus = average;
+	yold_plus = average + 1.0;
+      }
+      yold.domain([yold_minus, yold_plus]);
+      step_scale.domain([saved_step[0], saved_step[1]]);
+      oldzoom.translate([0, ty]); // Don't save x zoom in some weird place if we're not using it
+      saved_lanescale = oldzoom.scale();
+      console.log("Lane scale", oldzoom.scale());
+    } else {
+      xmain_minus = step_scale.domain()[0];
+      xmain_plus = step_scale.domain()[1];
+      if (xmain_minus < 0) {
+	xmain_minus = 0;
+	oldzoom.translate([0, ty]);
+      }
+      if (xmain_plus > max_step) {
+	xmain_plus = max_step;
+	oldzoom.translate([max_step, ty]);
+      }
+      step_scale.domain([xmain_minus, xmain_plus]);
+
+      yold.domain([saved_yold[0], saved_yold[1]]);
+      oldzoom.translate([tx, 0]); // Don't save y zoom in some weird place if we're not using it
+      saved_stepscale = oldzoom.scale();
+    }
+    // Save for next time
+    saved_yold = yold.domain();
+    saved_step = step_scale.domain();
+
+    //draw_detail();
+
+    middle_selection = [[0,0]]; // Reset grey overlay box
+    if (!tradlock) {
+      // Nothing for now
+    }
+  }
+
+  var clicked;
+  var cursor = {
+    "x": 0,
+    "y": 0,
+    "width": 1;
+  }
+
+}
+
+
+  </script>
+
+
+  <script language="javascript" type="text/javascript">
+    jQuery(function() {
+
+      $(document).ready(function() {
+	$.ajax({
+	  url: '/api/v1/fib',
+	  method: 'POST',
+	  dataType: 'json',
+	  data: { "command" : 'load' },
+	  success: function(json) {
+	    console.log(json.traceinfo);
+	    ravel.init(json.traceinfo);
+	  }
+	});
       });
-    });
 
-  });
-</script>
+    });
+  </script>
+
 </head>
 <body>
   <div class="content">
-    <h1>W-Ravel</h1>
 
-
+    <div id="main">
     <div>
       <label>Trace Info:</label><br/><span id="traceinfo">&nbsp</span>
     </div><div>

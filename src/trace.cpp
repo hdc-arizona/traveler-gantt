@@ -165,6 +165,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     jo["maxtime"] = max_time;
     jo["starttime"] = start;
     jo["stoptime"] = stop;
+    jo["entities"] = entity_stop - entity_start + 1;
+    jo["entity_start"] = entity_start;
     if (start > stop || start > max_time || stop < min_time)
     {
         jo["error"] = "Incorrect time range.";
