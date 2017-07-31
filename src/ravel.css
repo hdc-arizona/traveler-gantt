@@ -1,0 +1,56 @@
+//rect {
+//	shape-rendering: crispEdges;
+//}
+
+.mini text {
+	font: 9px sans-serif;	
+}
+
+.main text {
+	font: 10px sans-serif;	
+}
+
+.detail text {
+	font: 10px sans-serif;
+}
+
+.old text {
+	font: 10px sans-serif;
+}
+
+
+.month text {
+	text-anchor: start;
+}
+
+.axis line, .axis path {
+	stroke: black;
+}
+
+.miniItem {
+	stroke-width: 6;	
+}
+
+.future {
+	stroke: gray;
+	fill: #ddd;
+}
+
+.rect4 {
+	stroke: green;
+	fill: lightgreen;
+	shape-rendering: crispEdges;
+}
+
+.comm_select {
+    stroke: gray;
+    stroke-opacity: .75;
+    fill: gray;
+    fill-opacity: .25;
+}
+
+.brush .extent {
+	stroke: gray;
+	fill: blue;
+	fill-opacity: .165;
+}
