@@ -97,6 +97,8 @@
   ravel.update = function (json) {
     console.log('update');
     ravel.data = json;
+    draw_traditional();
+    draw_step_vis();
   }
 
   ravel.display = function () {
@@ -233,9 +235,8 @@
 	zoom.translate([0, 0]);
 	zoom.scale(1);
       }
+      console.log('handling ravel update');
       ravel.update(phys_scale.domain()[0], phys_scale.domain()[1]);
-      draw_traditional();
-      draw_step_vis();
     } // End zoom_function();
 
   var oldzoom = d3.behavior.zoom();

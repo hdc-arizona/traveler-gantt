@@ -38,7 +38,8 @@ public:
                          unsigned long long entity_start,
                          unsigned long long entity_stop,
                          unsigned long long min_span,
-                         std::vector<std::vector<std::vector<json> > >& slice,
+                         std::vector<json>& slice,
+                         std::vector<std::vector<json> >& parent_slice,
                          std::map<std::string, std::string>& function_names);
     json initJSON();
 
@@ -47,6 +48,7 @@ public:
     int num_entities;
     int num_pes;
     int units;
+    int max_depth;
     uint64_t totalTime;
 
     std::vector<std::string> * metrics;

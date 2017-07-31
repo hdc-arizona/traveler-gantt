@@ -36,7 +36,7 @@ const std::string OTFConverter::collectives_string
       + std::string("MPI_AllgathervMPI_GathervMPI_Scatterv");
 
 OTFConverter::OTFConverter()
-    : rawtrace(NULL), trace(NULL)
+    : rawtrace(NULL), trace(NULL), max_depth(0)
 {
 }
 
@@ -125,6 +125,7 @@ void OTFConverter::convert()
         std::sort(cr->second->events->begin(), cr->second->events->end(), Event::eventEntityLessThan);
     }
 
+    trace->max_depth = max_depth;
     clock_t end = clock();
     double traceElapsed = (end - start) / CLOCKS_PER_SEC;
     RavelUtils::gu_printTime(traceElapsed, "Event/Message Matching: ");
@@ -371,6 +372,10 @@ void OTFConverter::matchEvents()
             else // Begin a subroutine
             {
                 depth++;
+                if (depth > max_depth)
+                {
+                    max_depth = depth;
+                }
                 stack->push(*evt);
 
                 while (counters->size() > counter_index

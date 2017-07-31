@@ -40,6 +40,7 @@ private:
 
     RawTrace * rawtrace;
     Trace * trace;
+    int max_depth;
 
     static const int event_match_portion = 24;
     static const int message_match_portion = 0;

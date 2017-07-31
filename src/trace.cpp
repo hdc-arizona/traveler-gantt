@@ -25,6 +25,7 @@ Trace::Trace(int nt, int np)
       num_entities(nt),
       num_pes(np),
       units(-9),
+      max_depth(0),
       totalTime(0), // for paper timing
       metrics(new std::vector<std::string>()),
       metric_units(new std::map<std::string, std::string>()),
@@ -165,6 +166,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     jo["maxtime"] = max_time;
     jo["starttime"] = start;
     jo["stoptime"] = stop;
+    jo["max_depth"] = max_depth;
     jo["entities"] = entity_stop - entity_start + 1;
     jo["entity_start"] = entity_start;
     if (start > stop || start > max_time || stop < min_time)
@@ -173,14 +175,12 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
         return jo;
     }
 
-    std::vector<std::vector<std::vector<json> > >  event_slice
-        = std::vector<std::vector<std::vector<json> > >();
+    std::vector<json>  event_slice = std::vector<json>();
     event_slice.push_back(std::vector<std::vector<json> >());
+    std::vector<std::vector<json> >  parent_slice
+        = std::vector<std::vector<json> >();
+    parent_slice.push_back(std::vector<json>());
     std::map<std::string, std::string> function_names = std::map<std::string, std::string>();
-    for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
-    {
-        event_slice.back().push_back(std::vector<json>());
-    }
 
     for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
     {
@@ -188,13 +188,14 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
              root != roots->at(entity)->end(); ++root)
         {
             timeEventToJSON(*root, 0, start, stop, entity_start, entity_stop,
-                            min_span, event_slice, function_names);
+                            min_span, event_slice, parent_slice, function_names);
         }
     }
 
 
     // Should autoconvert from std::vector and std::map to json
     jo["events"] = event_slice;
+    jo["parent_events"] = parent_slice;
     jo["functions"] = function_names;
 
     return jo;
@@ -203,7 +204,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
 void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entity_stop,
     unsigned long long min_span,
-    std::vector<std::vector<std::vector<json> > >& slice,
+    std::vector<json>& slice,
+    std::vector<std::vector<json> >& parent_slice,
     std::map<std::string, std::string>& function_names)
 {
     // Make sure the event is in range
@@ -213,13 +215,9 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     }
 
     // Make sure we have a vector at this depth
-    if (depth >= slice.size())
+    if (depth >= parent_slice.size())
     {
-        slice.push_back(std::vector<std::vector<json> >());
-        for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
-        {
-            slice.back().push_back(std::vector<json>());
-        }
+        parent_slice.push_back(std::vector<json>());
     }
 
     // Add the event
@@ -228,14 +226,19 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
         json jevt(evt);
         function_names.insert(std::pair<std::string, std::string>(std::to_string(evt->function), 
                                                                   functions->at(evt->function)->name));
-        slice.at(depth).at(evt->entity - entity_start).push_back(jevt);
+        if (evt->isCommEvent()) {
+            slice.push_back(jevt);
+        } else {
+            parent_slice.at(depth).push_back(jevt);
+        }
 
         // Add children
         for (std::vector<Event *>::iterator child = evt->callees->begin();
             child != evt->callees->end(); ++child)
         {
             timeEventToJSON(*child, depth + 1, start, stop, entity_start,
-                            entity_stop, min_span, slice, function_names);
+                            entity_stop, min_span, slice, parent_slice, 
+                            function_names);
         }
     }
 
