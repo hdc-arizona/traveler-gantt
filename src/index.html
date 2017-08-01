@@ -34,143 +34,148 @@
       right: 15,
       bottom: 35,
       left: 35
-    },
-    width: 1200 - ravel.margin.left - ravel.margin.right,
-    height: 900 - margin.top - margin.bottom,
-    miniHeight: 100,
-    physHeight: ravel.height - ravel.miniHeight - 100) / 2,
-    oldHeight: ravel.physHeight,
-    oldWidth: ravel.width,
-    oldcolorBarWidth: 600,
-    colorBarHeight: 30,
-    miniWidth: ravel.width,
-    physWidth: ravel.width,
+    }
+  };
 
-    min_time: 0,
-    max_time: 1,
-    max_step: 0,
-    current_span: 0,
+
+  var init_ravel = function() {
+    ravel.width = 1200 - ravel.margin.left - ravel.margin.right;
+    ravel.height = 900 - margin.top - margin.bottom;
+    ravel.miniHeight = 100;
+    ravel.physHeight = (ravel.height - ravel.miniHeight - 100) / 2;
+    ravel.oldHeight = ravel.physHeight;
+    ravel.oldWidth = ravel.width;
+    ravel.oldcolorBarWidth = 600;
+    ravel.colorBarHeight = 30;
+    ravel.miniWidth = ravel.width;
+    ravel.physWidth = ravel.width;
+
+    ravel.min_time = 0;
+    ravel.max_time = 1;
+    ravel.max_step = 0;
+    ravel.current_span = 0;
     
-    typecolor: d3.scale.linear()
+    ravel.typecolor = d3.scale.linear()
       .domain([1,2])
-      .range(["lightblue", "lightblue"]),
-    bordercolor: d3.scale.linear()
+      .range(["lightblue", "lightblue"]);
+    ravel.bordercolor = d3.scale.linear()
       .domain([1,2])
-      .range(["blue", "blue"]),
-    parentcolor: d3.scale.linear()
+      .range(["blue", "blue"]);
+    ravel.parentcolor = d3.scale.linear()
       .domain([0, 2])
-      .range(['dimgray', 'lightgray'])
-    mini_scale: d3.scale.linear()
+      .range(['dimgray', 'lightgray']);
+    ravel.mini_scale = d3.scale.linear()
       .domain([ravel.min_time, ravel.max_time])
-      .range([0, ravel.miniWidth]),
-    phys_scale: d3.scale.linear()
+      .range([0, ravel.miniWidth]);
+    ravel.phys_scale = d3.scale.linear()
       .domain([ravel.min_time, ravel.min_time + ravel.current_span])
-      .range([0, ravel.physWidth]),
-    detail_scale: d3.scale.linear()
+      .range([0, ravel.physWidth]);
+    ravel.detail_scale = d3.scale.linear()
       .domain([0, 0])
-      .range([0, ravel.oldWidth]), // get translated with g
+      .range([0, ravel.oldWidth]);, // get translated with g
 
-    ext: d3.ext(1),
-    show_ext: [0,1],
-    yphys: d3.scale.linear()
+    ravel.ext = d3.ext(1);
+    ravel.show_ext = [0,1];
+    ravel.yphys = d3.scale.linear()
       .domain([ravel.show_ext[0], ravel.show_ext[1]])
-      .range([0, ravel.physHeight]),
-    yold: d3.scale.linear()
+      .range([0, ravel.physHeight]);
+    ravel.yold = d3.scale.linear()
       .domain([ravel.ext[0], ravel.ext[1] + 1])
-      .range([0, ravel.oldHeight]),
+      .range([0, ravel.oldHeight]);
 
-    saved_xmain: [0, 0],
-    saved_yphys: ravel.yphs.domain(),
-    saved_yold: ravel.yold.domain(),
-    saved_stepscale: 1,
-    saved_lanescale: 1,
+    ravel.saved_xmain = [0, 0];
+    ravel.saved_yphys = ravel.yphs.domain();
+    ravel.saved_yold = ravel.yold.domain();
+    ravel.saved_stepscale = 1;
+    sravel.aved_lanescale = 1;
 
-    zoom: d3.behavior.zoom()
+    ravel.zoom = d3.behavior.zoom()
       .x(ravel.phys_scale)
       .y(ravel.yphys)
-      .on(ravel.zoom_function),
+      .on(ravel.zoom_function);
 
     
-    chart: d3.select('#tl')
+    cravel.hart = d3.select('#tl')
       .append('svg:svg')
       .attr('id', 'chart')
       .attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
       .attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
-      .attr('class', 'chart'),
+      .attr('class', 'chart');
 
-    phys: chart.append('g')
+    ravel.phys = chart.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
       .attr('width', ravel.physWidth)
       .attr('height', ravel.physHeight)
       .call(ravel.zoom)
-      .attr('class', 'phys'),
+      .attr('class', 'phys');
 
-    mini: chart.append('g')
+    ravel.mini = chart.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60 + ravel.oldHeight + 60) + ')')
       .attr('width', ravel.miniWidth)
       .attr('height', ravel.miniHeight)
       .attr('class', 'mini')
-      .on('click', handle_click),
+      .on('click', ravel.handle_click);
 
-    olddetail: chart.append('g')
+    ravel.olddetail = chart.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60) + ')')
       .attr('width', ravel.oldWidth)
       .attr('height', ravel.oldHeight)
       //.call(oldzoom)
-      .attr('class', 'old'),
+      .attr('class', 'old');
 
-    oldcolorbar: olddetail.append('g')
+    ravel.oldcolorbar = olddetail.append('g')
       .attr('transform', 'translate(' + (ravel.margin.left + ravel.physWidth / 2 - ravel.oldcolorBarWidth / 2) + ',' + (ravel.oldHeight + 5) + ')')
       .attr('width', ravel.oldcolorBarWidth)
       .attr('height', ravel.colorBarHeight)
-      .attr('class', 'old'),
+      .attr('class', 'old');
 
-    counter_scale: d3.scale.linear()
+    ravel.counter_scale = d3.scale.linear()
       .interpolate(d3.interpolateLab)
       .domain([1, 50, 100])
-      .range(['lightblue', 'khaki', 'firebrick']),
-    oldcolorbardata: d3.range(100),
-    oldcolorbars: oldcolorbar.selectAll('.oldcolorbar')
-      .data(oldcolorbardata),
-    oldlate_scale: d3.scale.linear()
+      .range(['lightblue', 'khaki', 'firebrick']);
+    ravel.oldcolorbardata = d3.range(100);
+    ravel.oldcolorbars = oldcolorbar.selectAll('.oldcolorbar')
+      .data(oldcolorbardata);
+    ravel.oldlate_scale = d3.scale.linear()
       .interpolate(d3.interpolateLab)
       .domain([1, 50, 100])
-      .range(['lightblue', 'khaki', 'firebrick']),
+      .range(['lightblue', 'khaki', 'firebrick']);
 
-    oldcolor_scale: d3.scale.linear()
+    ravel.oldcolor_scale = d3.scale.linear()
       .domain([0, 50, 100])
-      .range([0, ravel.oldcolorBarWidth / 2, ravel.oldcolorBarWidth]),
+      .range([0, ravel.oldcolorBarWidth / 2, ravel.oldcolorBarWidth]);
 
-    oldcolorAxis: d3.svg.axis()
+    ravel.oldcolorAxis = d3.svg.axis()
       .scale(ravel.oldcolor_scale)
       .orient('bottom')
-      .tickSize(2, 0, 0),
+      .tickSize(2, 0, 0);
      
     // draw the x axes on the charts
-    phys_scaleDateAxis: d3.svg.axis()
+    pphys_scaleDateAxis = d3.svg.axis()
       .scale(ravel.phys_scale)
       .orient('bottom')
-      .tickSize(6, 0, 0),
+      .tickSize(6, 0, 0);
 
-    xAxis: d3.svg.axis()
+    ravel.xAxis = d3.svg.axis()
       .scale(ravel.mini_scale)
       .orient('bottom')
-      .tickSize(6, 0, 0),
+      .tickSize(6, 0, 0);
     
-    phys_layers: [],
-    phys_comm_layer = null,
+    ravel.phys_layers = [];
+    ravel.phys_comm_layer = null;
     
     // draw the items for the main view, use a clip-path for the ones that
     // are slightly outside of our drawing area
-    physRects: ravel.phys.append('g')
-      .attr('clip-path', 'url(#clip)'),
-    olddetailRects = ravel.olddetail.append('g')
-      .attr('clip-path', 'url(#olddetailclip)'),
-    olddetailLanes: ravel.olddetail.append('g')
-      .attr('id', 'oldlaneNumg'),
+    ravel.physRects = ravel.phys.append('g')
+      .attr('clip-path', 'url(#clip)');
+    ravel.olddetailRects = ravel.olddetail.append('g')
+      .attr('clip-path', 'url(#olddetailclip)');
+    ravel.olddetailLanes = ravel.olddetail.append('g')
+      .attr('id', 'oldlaneNumg');
 
   };  // Ravel vars
  
+  init_ravel();
 
   ravel.init_display = function () {
     console.log(ravel.lanes);
