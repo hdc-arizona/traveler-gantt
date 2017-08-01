@@ -8,6 +8,14 @@
   <link rel="stylesheet" type="text/css" href="ravel.css" media="screen" />
   <script src="//d3js.org/d3.v3.min.js"></script>
   <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+  <div class="content">
+
+    <div id="tl"></div>
+  </div>
+</body>
+</html>
   <script type="text/javascript">
   var ravel = {
     data: null,
@@ -98,10 +106,6 @@
       ravel.cursor.x = Math.round(ravel.mini_scale((ravel.phys_scale.domain()[1] + ravel.phys_scale.domain()[0])/2.0))
       ravel.update_cursor();
 
-      if (!steplock) {
-	// nothing for now
-      }
-
     } else { // On middle click revert to saved, middle click is used for something else
       ravel.phys_scale.domain([ravel.saved_xphys]);
       ravel.yphys.domain(ravel.saved_yphys);
@@ -109,11 +113,12 @@
       ravel.zoom.scale(1);
     }
     console.log('handling ravel update');
-    ravel.update(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
+    ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
   }; // End zoom_function();
 
 
   var init_ravel = function() {
+    console.log('Initting ravel.');
     ravel.width = 1200 - ravel.margin.left - ravel.margin.right;
     ravel.height = 900 - ravel.margin.top - ravel.margin.bottom;
     ravel.miniHeight = 100;
@@ -169,13 +174,16 @@
       .y(ravel.yphys)
       .on('zoom', ravel.zoom_function);
 
-    
+    console.log('tl is');
+    console.log(d3.select('#tl'));
     ravel.chart = d3.select('#tl')
       .append('svg:svg')
       .attr('id', 'chart')
       .attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
       .attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
       .attr('class', 'chart');
+    console.log(ravel.chart);
+    console.log('is ravel.chart');
 
     ravel.phys = ravel.chart.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
@@ -255,6 +263,7 @@
 
   ravel.init_display = function () {
     console.log(ravel.lanes);
+    console.log('init display');
 
     ravel.min_time = ravel.data.mintime;
     ravel.max_time = ravel.data.maxtime;
@@ -275,8 +284,8 @@
     ravel.yold = d3.scale.linear()
       .domain([ravel.ext[0], ravel.ext[1] + 1]);
     ravel.saved_xmain = [0, 0];
-    ravel.saved_yphys = yphys.domain();
-    ravel.saved_yold = yold.domain();
+    ravel.saved_yphys = ravel.yphys.domain();
+    ravel.saved_yold = ravel.yold.domain();
     //var saved_step = step_scale.domain();
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
@@ -479,6 +488,7 @@
   ravel.update = function (json) {
     console.log('update');
     ravel.data = json;
+    console.log(json);
     ravel.draw_traditional();
     ravel.draw_step_vis();
   };
@@ -487,17 +497,17 @@
 
   ravel.draw_traditional = function () {
     var rects, labels,
-      minExtent = phys_scale.domain()[0],
-      maxExtent = phys_scale.domain()[1],
-      minEntity = yphys.domain()[0] - 1,
-      maxEntity = yphys.domain()[1];
+      minExtent = ravel.phys_scale.domain()[0],
+      maxExtent = ravel.phys_scale.domain()[1],
+      minEntity = ravel.yphys.domain()[0] - 1,
+      maxEntity = ravel.yphys.domain()[1];
 
     
     // Remove old lane numbers
     d3.select('#laneNum').remove(); 
 
     // Add new lanes numbers
-    var physLanes = phys.append('g')
+    var physLanes = ravel.phys.append('g')
       .attr('id', 'laneNum');
 
     var physLanesText = physLanes.selectAll('.laneText')
@@ -513,7 +523,7 @@
       .attr('text-anchor', 'start')
       .attr('class', 'laneText'); // TODO: More CSS
 
-    var laneLines = physRects.selectAll('laneLines')
+    var laneLines = ravel.physRects.selectAll('laneLines')
       .data(ravel.lanes)
       .attr('x1', d => { return ravel.phys_scale(minExtent); })
       .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
@@ -549,7 +559,7 @@
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), physWidth]) -
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.physWidth]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
 	.style('fill', d => { return ravel.parentcolor(layer); })
 	.style('stroke', 'black')
@@ -580,7 +590,7 @@
       .append('svg:title')
 	.text(d => { return ravel.data.functions[d.function]; });
 
-    rects.exit.remove();
+    rects.exit().remove();
       
     // Labels
     
@@ -625,7 +635,8 @@ jQuery(function() {
       dataType: 'json',
       data: { "command" : 'load' },
       success: function(json) {
-	console.log('new trace info' + json.traceinfo);
+	console.log('new trace info ')
+	console.log(json.traceinfo);
 	ravel.init(json.traceinfo);
       }
     });
@@ -634,14 +645,3 @@ jQuery(function() {
 });
 </script>
 
-</head>
-<body>
-  <div class="content">
-
-    <div id="main">
-    <div>
-      <label>Trace Info:</label><br/><span id="traceinfo">&nbsp</span>
-    </div><div>
-  </div>
-</body>
-</html>
