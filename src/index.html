@@ -20,8 +20,384 @@
     order_change: false,
     scroll_y: false,
     all_lanes: false,
-    even_change: false
+    even_change: false,
+
+    clicked: false,
+    cursor: {
+      "x": 0,
+      "y": 0,
+      "width": 1
+    },
+
+    margin: {
+      top: 20,
+      right: 15,
+      bottom: 35,
+      left: 35
+    },
+    width: 1200 - ravel.margin.left - ravel.margin.right,
+    height: 900 - margin.top - margin.bottom,
+    miniHeight: 100,
+    physHeight: ravel.height - ravel.miniHeight - 100) / 2,
+    oldHeight: ravel.physHeight,
+    oldWidth: ravel.width,
+    oldcolorBarWidth: 600,
+    colorBarHeight: 30,
+    miniWidth: ravel.width,
+    physWidth: ravel.width,
+
+    min_time: 0,
+    max_time: 1,
+    max_step: 0,
+    current_span: 0,
+    
+    typecolor: d3.scale.linear()
+      .domain([1,2])
+      .range(["lightblue", "lightblue"]),
+    bordercolor: d3.scale.linear()
+      .domain([1,2])
+      .range(["blue", "blue"]),
+    parentcolor: d3.scale.linear()
+      .domain([0, 2])
+      .range(['dimgray', 'lightgray'])
+    mini_scale: d3.scale.linear()
+      .domain([ravel.min_time, ravel.max_time])
+      .range([0, ravel.miniWidth]),
+    phys_scale: d3.scale.linear()
+      .domain([ravel.min_time, ravel.min_time + ravel.current_span])
+      .range([0, ravel.physWidth]),
+    detail_scale: d3.scale.linear()
+      .domain([0, 0])
+      .range([0, ravel.oldWidth]), // get translated with g
+
+    ext: d3.ext(1),
+    show_ext: [0,1],
+    yphys: d3.scale.linear()
+      .domain([ravel.show_ext[0], ravel.show_ext[1]])
+      .range([0, ravel.physHeight]),
+    yold: d3.scale.linear()
+      .domain([ravel.ext[0], ravel.ext[1] + 1])
+      .range([0, ravel.oldHeight]),
+
+    saved_xmain: [0, 0],
+    saved_yphys: ravel.yphs.domain(),
+    saved_yold: ravel.yold.domain(),
+    saved_stepscale: 1,
+    saved_lanescale: 1,
+
+    zoom: d3.behavior.zoom()
+      .x(ravel.phys_scale)
+      .y(ravel.yphys)
+      .on(ravel.zoom_function),
+
+    
+    chart: d3.select('#tl')
+      .append('svg:svg')
+      .attr('id', 'chart')
+      .attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
+      .attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
+      .attr('class', 'chart'),
+
+    phys: chart.append('g')
+      .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
+      .attr('width', ravel.physWidth)
+      .attr('height', ravel.physHeight)
+      .call(ravel.zoom)
+      .attr('class', 'phys'),
+
+    mini: chart.append('g')
+      .attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60 + ravel.oldHeight + 60) + ')')
+      .attr('width', ravel.miniWidth)
+      .attr('height', ravel.miniHeight)
+      .attr('class', 'mini')
+      .on('click', handle_click),
+
+    olddetail: chart.append('g')
+      .attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60) + ')')
+      .attr('width', ravel.oldWidth)
+      .attr('height', ravel.oldHeight)
+      //.call(oldzoom)
+      .attr('class', 'old'),
+
+    oldcolorbar: olddetail.append('g')
+      .attr('transform', 'translate(' + (ravel.margin.left + ravel.physWidth / 2 - ravel.oldcolorBarWidth / 2) + ',' + (ravel.oldHeight + 5) + ')')
+      .attr('width', ravel.oldcolorBarWidth)
+      .attr('height', ravel.colorBarHeight)
+      .attr('class', 'old'),
+
+    counter_scale: d3.scale.linear()
+      .interpolate(d3.interpolateLab)
+      .domain([1, 50, 100])
+      .range(['lightblue', 'khaki', 'firebrick']),
+    oldcolorbardata: d3.range(100),
+    oldcolorbars: oldcolorbar.selectAll('.oldcolorbar')
+      .data(oldcolorbardata),
+    oldlate_scale: d3.scale.linear()
+      .interpolate(d3.interpolateLab)
+      .domain([1, 50, 100])
+      .range(['lightblue', 'khaki', 'firebrick']),
+
+    oldcolor_scale: d3.scale.linear()
+      .domain([0, 50, 100])
+      .range([0, ravel.oldcolorBarWidth / 2, ravel.oldcolorBarWidth]),
+
+    oldcolorAxis: d3.svg.axis()
+      .scale(ravel.oldcolor_scale)
+      .orient('bottom')
+      .tickSize(2, 0, 0),
+     
+    // draw the x axes on the charts
+    phys_scaleDateAxis: d3.svg.axis()
+      .scale(ravel.phys_scale)
+      .orient('bottom')
+      .tickSize(6, 0, 0),
+
+    xAxis: d3.svg.axis()
+      .scale(ravel.mini_scale)
+      .orient('bottom')
+      .tickSize(6, 0, 0),
+    
+    phys_layers: [],
+    phys_comm_layer = null,
+    
+    // draw the items for the main view, use a clip-path for the ones that
+    // are slightly outside of our drawing area
+    physRects: ravel.phys.append('g')
+      .attr('clip-path', 'url(#clip)'),
+    olddetailRects = ravel.olddetail.append('g')
+      .attr('clip-path', 'url(#olddetailclip)'),
+    olddetailLanes: ravel.olddetail.append('g')
+      .attr('id', 'oldlaneNumg'),
+
+  };  // Ravel vars
+ 
+
+  ravel.init_display = function () {
+    console.log(ravel.lanes);
+
+    ravel.min_time = ravel.data.mintime;
+    ravel.max_time = ravel.data.maxtime;
+    ravel.max_step = 0;
+    ravel.current_span = ravel.data.stoptime - ravel.data.startime;
+
+    if (ravel.data.hasOwnProperty('max_depth')) {
+      ravel.parentcolor.domain([0, ravel.data.max_depth]);
+    }
+    mini_scale.domain([ravel.min_time, ravel.max_time]);
+    phys_scale.domain([ravel.min_time, ravel.min_time + ravel.current_span]);
+
+
+    ravel.ext = d3.extent(ravel.lanes);
+    ravel.show_ext = [ext[0], d3.min([ext[1] + 1, 17])];
+    ravel.yphys = d3.scale.linear()
+      .domain([show_ext[0], show_ext[1]]);
+    ravel.yold = d3.scale.linear()
+      .domain([ext[0], ext[1] + 1]);
+    ravel.saved_xmain = [0, 0];
+    ravel.saved_yphys = yphys.domain();
+    ravel.saved_yold = yold.domain();
+    //var saved_step = step_scale.domain();
+    ravel.saved_stepscale = 1;
+    ravel.saved_lanescale = 1;
+
+    ravel.chart.append('defs').append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+	.attr('width', ravel.physWidth)
+	.attr('height', ravel.physHeight); // TODO: Add scale height
+
+    ravel.chart.append('defs').append('clipPath')
+      .attr('id', 'olddetailclip')
+      .append('rect')
+	.attr('width', ravel.oldWidth)
+	.attr('height', ravel.oldHeight);
+
+    ravel.chart.append('defs').append('clipPath')
+      .attr('id', 'lanesclip')
+      .append('rect')
+	.attr('height', ravel.physHeight);
+
+    ravel.chart.append('defs').append('clipPath')
+      .attr('id', 'lanesclip')
+      .append('rect')
+	.attr('height', ravel.physHeight);
+
+
+    ravel.oldcolorbars.enter().append('rect')
+      .attr('class', 'oldcolorbar')
+      .attr('width', ravel.oldcolorBarWidth / ravel.oldcolorbardata.length)
+      .attr('height', 20)
+      .attr('y', 0)
+      .attr('x', function(d, i) { return i * ravel.oldcolorBarWidth / ravel.oldcolorbardata.length; })
+      .style('fill', function(d, i) { return ravel.counter_scale(i); });
+
+    ravel.oldcolorbar.append('g')
+      .attr('transform', 'translate(0, 20)')
+      .attr('class', 'oldcoloraxis mini axis date')
+      .call(ravel.oldcolorAxis);
+
+    // White backgrounds for the views
+    ravel.phys.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', ravel.physWidth)
+      .attr('height', ravel.physHeight)
+      .attr('stroke', 0)
+      .attr('fill', 'white')
+      .attr('class', 'phys_background');
+
+    ravel.olddetail.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', ravel.oldWidth)
+      .attr('height', ravel.oldHeight)
+      .attr('stroke-width', 2)
+      .attr('stroke', 'white')
+      .attr('fill', 'white')
+      .attr('class', 'old_background');
+
+    // Skipping middle-click drag for now
+    
+    ravel.phys.append('g')
+      .attr('transform', 'translate(0,' + ravel.physHeight + ')')
+      .attr('class', 'phys axis date')
+      .call(ravel.phys_scaleDateAxis);
+
+    ravel.mini.append('g')
+      .attr('transform', 'translate(0, ' + ravel.miniHeight + ')')
+      .attr('class', 'mini axis date')
+      .call(ravel.xAxis);
+
+    // Draw a white background for the overview
+    ravel.mini.append('rect')
+      .attr("x", 0)
+      .attr("y", ravel.miniHeight - 60)
+      .attr("width", ravle.miniWidth)
+      .attr("height", 60)
+      .attr("stroke", 0)
+      .attr("fill", "white")
+      .attr('class', 'mini_background');
+
+    for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
+      ravel.phys_layers[layer] = ravel.phys.append('g');
+    }
+    ravel.phys_comm_layer = ravel.phys.append('g');
+
+    // Skip text for overview as well as rectangles
+    
+    ravel.update_cursor();
+
+    // Constrant crossLane stuff -- I don't really remember what this does
+    crossOffset = 0;
+    ravel.oldcrossDrawing = ravel.olddetailRects.append('g')
+      .attr('id', 'oldcrossDrawing')
+      .attr('transform', 'translate(' + crossOffset + ', 0)');
+
+    ravel.draw_step_vis();
+    ravel.draw_traditional();
   }
+    
+  ravel.update_cursor = function() {
+      // Nothing for now
+  };
+
+  ravel.handle_click = function (d, i) {
+    ravel.clicked = d3.mouse(this);
+    ravel.cursor.x = clicked[0];
+    ravel.cursor.y = clicked[1];
+
+    var minExtent = ravel.phys_scale.domain()[0];
+    var maxExtent = ravel.phys_scale.domain()[1];
+    var current_range = maxExtent - minExtent; // current zoom
+    ravel.phys_scale.domain([ravel.mini_scale.invert(cursor.x) - current_range/2.0,
+      ravel.mini_scale.invert(cursor.x) + current_range/2.0]);
+
+    ravel.zoom.x(ravel.phys_scale);
+
+    // Zero out so these don't get re-applied
+    ravel.zoom.translate([0, 0]);
+    ravel.zoom.scale([1]);
+
+    ravel.update_cursor();
+    ravel.draw_traditional();
+    ravel.draw_step_vis();
+  };
+
+
+  ravel.zoom_function = function () {
+    if (!ravel.middledown) {
+      var t = ravel.zoom.translate();
+      var tx = t[0];
+      var ty = t[1];
+      var average;
+
+      var xphys_minus = ravel.phys_scale.domain()[0];
+      var xphys_plus = ravel.phys_scale.domain()[1];
+      if (xphys_minus < ravel.min_time) {
+	xphys_minus = ravel.min_time;
+	ravel.zoom.translate([ravel.min_time, ty]);
+      }
+      if (xphys_plus > ravel.max_time) {
+	xphys_plus = ravel.max_time;
+	ravel.zoom.translate([ravel.max_time, ty]);
+      }
+      ravel.phys_scale.domain([xphys_minus, xphys_plus]);
+
+      // If we're not scrolling, force to saved
+      if (ravel.scrolly) {
+	ymphys_minus = ravel.yphys.domain()[0];
+	yphys_plus = ravel.yphys.domain()[1];
+	if (yphys_minus < ravel.ext[0]) {
+	  yphys_minus = ravel.ext[0];
+	}
+	if (yphys_minus > ravel.ext[1] + 1) {
+	  yphys_minus = ravel.ext[1] + 1;
+	}
+	if (yphys_plus > ravel.ext[1] + 1) {
+	  yphys_plus = ravel.ext[1] + 1;
+	}
+	if (yphys_plus < ravel.ext[0]) {
+	  yphys_plus = ravel.ext[0]
+	}
+	if (yphys_plus - yphys_minus < 1) {
+	  average = 0.5 * (yphys_plus + yphys_minus);
+	  if (average < ravel.ext[0]) {
+	    average = 1;
+	  }
+	  if (average > ravel.ext[1] + 1) {
+	    average = ravel.ext[1];
+	  }
+	  yphys_minus = average;
+	  yphys_plus = average + 1.0;
+	}
+	if (yphys_plus - yphys_minus > 17) {
+	  average = 0.5 * (yphys_plus + yphys_minus);
+	  yphys_plus = average + 8.5;
+	  yphys_minus = average - 8.5;
+	}
+	ravel.yphys.domain([yphys_minus, yphys_plus]);
+      } else {
+	ravel.yphys.domain([ravel.saved_yphys[0], ravel.saved_yphys[1]]);
+	ravel.zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
+      }
+      ravel.saved_yphys = ravel.yphys.domain()
+
+      ravel.cursor.x = Math.round(ravel.mini_scale((ravel.phys_scale.domain()[1] + ravel.phys_scale.domain()[0])/2.0))
+      ravel.update_cursor();
+
+      if (!steplock) {
+	// nothing for now
+      }
+
+    } else { // On middle click revert to saved, middle click is used for something else
+      ravel.phys_scale.domain([ravel.saved_xphys]);
+      ravel.yphys.domain(ravel.saved_yphys);
+      ravel.zoom.translate([0, 0]);
+      ravel.zoom.scale(1);
+    }
+    console.log('handling ravel update');
+    ravel.update(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
+  }; // End zoom_function();
 
   ravel.get_data = function (start, stop) {
     $.ajax({
@@ -38,7 +414,7 @@
 	ravel.update(json.traceinfo);
       }
     });
-  }
+  };
 
   ravel.object_filter = function (obj, func) {
     var retarray = [];
@@ -50,7 +426,7 @@
 	}
     }
     return retarray;
-  }
+  };
 
   ravel.object_min = function (obj, func) {
       var ret = null;
@@ -66,7 +442,7 @@
 	  }
       }
       return ret;
-  }
+  };
 
   ravel.object_max = function (obj, func) {
       var ret = null;
@@ -82,7 +458,7 @@
 	  }
       }
       return ret;
-  }
+  };
 
   ravel.init = function (json) {
     console.log("Init");
@@ -91,589 +467,166 @@
     for (var i = 1; i <= ravel.data.entities; i++) {
       ravel.lanes.push(i);
     }
-    ravel.display();
-  }
+    ravel.init_display();
+  };
 
   ravel.update = function (json) {
     console.log('update');
     ravel.data = json;
-    draw_traditional();
-    draw_step_vis();
-  }
+    ravel.draw_traditional();
+    ravel.draw_step_vis();
+  };
 
-  ravel.display = function () {
-    console.log(ravel.lanes);
 
-    var margin = {top: 20, right: 15, bottom: 35, left: 35}
-      , width = 1200 - margin.left - margin.right
-      , height = 900 - margin.top - margin.bottom
-      , minHeight = 100
-      , physHeight = (height - miniHeight - 100) / 2
-      , oldHeight = physHeight
-      , oldWidth = width
-      , oldcolorBarWidth = 600
-      , colorBarHeight = 30
-      , miniWidth = width
-      , physWidth = width;
 
-    var min_time = ravel.data.mintime;
-    var max_time = ravel.data.maxtime;
-    var max_step = 0;
-    var current_span = ravel.data.stoptime - ravel.data.startime;
+  ravel.draw_traditional = function () {
+    var rects, labels,
+      minExtent = phys_scale.domain()[0],
+      maxExtent = phys_scale.domain()[1],
+      minEntity = yphys.domain()[0] - 1,
+      maxEntity = yphys.domain()[1];
 
-    var typecolor = d3.scale.linear()
-      .domain([1,2])
-      .range(["lightblue", "lightblue"]);
-    var bordercolor = d3.scale.linear()
-      .domain([1,2])
-      .range(["blue", "blue"]);
-    var parentcolor = d3.scale.linear()
-      .domain([0, 2])
-      .range(['dimgray', 'lightgray'])
-    if (ravel.data.hasOwnProperty('maxdepth')) {
-      parentcolor.domain([0, ravel.data.maxdepth]);
-    }
-
-    var mini_scale = d3.scale.linear()
-      .domain([min_time, max_time])
-      .range([0, miniWidth]);
-    var main_scale = d3.scale.linear()
-      .domain([min_time, min_time + current_span])
-      .range([0, physWidth]);
-    var detail_scale = d3.scale.linear()
-      .domain([0, 0])
-      .range([0, oldWidth); // get translated with g
     
+    // Remove old lane numbers
+    d3.select('#laneNum').remove(); 
 
-    var ext = d3.extent(lanes);
-    var show_ext = [ext[0], d3.min([ext[1] + 1, 17])];
-    var yphys = d3.scale.linear()
-      .domain([show_ext[0], show_ext[1]])
-      .range([0, physHeight]);
-    var yold = d3.scale.linear()
-      .domain([ext[0], ext[1] + 1])
-      .range([0, oldHeight]);
-    var saved_xmain = [0, 0];
-    var saved_yphys = yphys.domain();
-    var saved_yold = yold.domain();
-    var saved_step = step_scale.domain();
-    var saved_stepscale = 1;
-    var saved_lanescale = 1;
+    // Add new lanes numbers
+    var physLanes = phys.append('g')
+      .attr('id', 'laneNum');
 
-    var zoom = d3.behavior.zoom();
-    zoom.x(phys_scale);
-    zoom.y(yphys);
-    zoom.on('zoom', zoom_function);
+    var physLanesText = physLanes.selectAll('.laneText')
+      .data(ravel.lanes)
+      .text(d => { return d; })
+      .attr('y', d => { return ravel.yphys(d + 0.5); });
 
-    var zoom_function = function () {
-      if (!middledown) {
-	var t = zoom.translate();
-	tx = t[0];
-	ty = t[1];
+    physLanesText.enter().append('text')
+      .text(d => { return d;})
+      .attr('x', -20)
+      .attr('y', d => { return ravel.yphys(d + 0.5); })
+      .attr('dy', '0.5ex')
+      .attr('text-anchor', 'start')
+      .attr('class', 'laneText'); // TODO: More CSS
 
-	var xphys_minus = phys_scale.domain()[0];
-	var xphys_plus = phys_scale.domain()[1];
-	if (xphys_minus < min_time) {
-	  xphys_minus = min_time;
-	  zoom.translate([min_time, ty]);
-	}
-	if (xphys_plus > max_time) {
-	  xphys_plus = max_time;
-	  zoom.translate([max_time, ty]);
-	}
-	phys_scale.domain([xphys_minus, xphys_plus]);
+    var laneLines = physRects.selectAll('laneLines')
+      .data(ravel.lanes)
+      .attr('x1', d => { return ravel.phys_scale(minExtent); })
+      .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
+      .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; });
 
-	// If we're not scrolling, force to saved
-	if (scrolly) {
-	  ymphys_minus = yphys.domain()[0];
-	  yphys_plus = yphys.domain()[1];
-	  if (yphys_minus < ext[0]) {
-	    yphys_minus = ext[0];
-	  }
-	  if (yphys_minus > ext[1] + 1) {
-	    yphys_minus = ext[1] + 1;
-	  }
-	  if (yphys_plus > ext[1] + 1) {
-	    yphys_plus = ext[1] + 1;
-	  }
-	  if (yphys_plus < ext[0]) {
-	    yphys_plus = ext[0]
-	  }
-	  if (yphys_plus - yphys_minus < 1) {
-	    average = 0.5 * (yphys_plus + yphys_minus);
-	    if (average < ext[0]) {
-	      average = 1;
-	    }
-	    if (average > ext[1] + 1) {
-	      average = ext[1];
-	    }
-	    yphys_minus = average;
-	    yphys_plus = average + 1.0;
-	  }
-	  if (yphys_plus - yphys_minus > 17) {
-	    average = 0.5 * (yphys_plus + yphys_minus);
-	    yphys_plus = average + 8.5;
-	    yphys_minus = average - 8.5;
-	  }
-	  yphys.domain([yphys_minus, yphys_plus]);
-	} else {
-	  yphys.domain([saved_yphys[0], saved_yphys[1]]);
-	  zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
-	}
-	saved_yphys = [yphys.domain()[0], yphys.domain()[1]];
+    laneLines.enter().append('line')
+      .attr('phys_scale', 0)
+      .attr('x1', d => { return ravel.phys_scale(minExtent); })
+      .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
+      .attr('x2', ravel.physWidth)
+      .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; })
+      .attr('class', 'laneLines')
+      .attr('stroke', 'lightgray');
 
-	cursor.x = Math.roun(mini_scale((phys_scale.domain()[1] + phys_scale.domain()[0])/2.0))
-	update_cursor();
-
-	if (!steplock) {
-	  // nothing for now
-	}
-
-      } else { // On middle click revert to saved, middle click is used for something else
-	phys_scale.domain([saved_xphys]);
-	yphys.domain(saved_yphys);
-	zoom.translate([0, 0]);
-	zoom.scale(1);
-      }
-      console.log('handling ravel update');
-      ravel.update(phys_scale.domain()[0], phys_scale.domain()[1]);
-    } // End zoom_function();
-
-  var oldzoom = d3.behavior.zoom();
-    oldzoom.x(step_scale);
-    oldzoom.y(yold);
-    oldzoom.on('zoom', oldzoom_function);
-
-  var oldzoom_function () {
-    var t = oldzoom.translate(),
-    tx = t[0],
-    ty = t[1];
-
-    // If we're not scrolling, force to saved
-    if (scrolly) {
-      yold_minus = yold.domain()[0];
-      yold_plus = yold.domain()[1];
-      if (yold_minus < ext[0]) {
-	yold_minus = ext[0];
-      }
-      if (yold_minus > ext[1] + 1) {
-	yold_minus = ext[1] + 1;
-      }
-      if (yold_plus > ext[1] + 1) {
-	yold_plus = ext[1] + 1;
-      }
-      if (yold_plus < ext[0]) {
-	yold_plus = ext[0];
-      }
-      if (yold_plus - yold_minus < 1) {
-	average = 0.5 * (yold_plus + yold_minus);
-	if (average < ext[0]) {
-	  average = 1;
-	} 
-	if (average > ext[1] + 1) {
-	  average = ext[1];
-	}
-	yold_minus = average;
-	yold_plus = average + 1.0;
-      }
-      yold.domain([yold_minus, yold_plus]);
-      step_scale.domain([saved_step[0], saved_step[1]]);
-      oldzoom.translate([0, ty]); // Don't save x zoom in some weird place if we're not using it
-      saved_lanescale = oldzoom.scale();
-      console.log("Lane scale", oldzoom.scale());
-    } else {
-      xphys_minus = step_scale.domain()[0];
-      xphys_plus = step_scale.domain()[1];
-      if (xphys_minus < 0) {
-	xphys_minus = 0;
-	oldzoom.translate([0, ty]);
-      }
-      if (xphys_plus > max_step) {
-	xphys_plus = max_step;
-	oldzoom.translate([max_step, ty]);
-      }
-      step_scale.domain([xphys_minus, xphys_plus]);
-
-      yold.domain([saved_yold[0], saved_yold[1]]);
-      oldzoom.translate([tx, 0]); // Don't save y zoom in some weird place if we're not using it
-      saved_stepscale = oldzoom.scale();
-    }
-    // Save for next time
-    saved_yold = yold.domain();
-    saved_step = step_scale.domain();
-
-    //draw_detail();
-
-    middle_selection = [[0,0]]; // Reset grey overlay box
-    if (!tradlock) {
-      // Nothing for now
-    }
-  }
-
-  var clicked;
-  var cursor = {
-    "x": 0,
-    "y": 0,
-    "width": 1;
-  }
-
-  var handle_click = function (d, i) {
-    clicked = d3.mouse(this);
-    cursor.x = clicked[0];
-    cursor.y = clicked[1];
-
-    var minExtent = phys_scale.domain()[0];
-    var maxExtent = phys_scale.domain()[1];
-    var current_range = maxExtent - minExtent; // current zoom
-    phys_scale.domain([mini_scale.invert(cursor.x) - current_range/2.0,
-      mini_scale.invert(cursor.x) + current_range/2.0]);
-
-    zoom.x(phys_scale);
-
-    // Zero out so these don't get re-applied
-    zoom.translate([0, 0]);
-    zoom.scale([1]);
-
-    update_cursor();
-    draw_traditional();
-    draw_step_vis();
-  }
-
-  // var overviews = calc_overview();
-  // Do overview setup here
+    laneLines.exit().remove();
   
-    var chart = d3.select('#tl')
-      .append('svg:svg')
-      .attr('id', 'chart')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .attr('class', 'chart');
+    var barHeight = 0.8 * (yphys(2.0) - yphys(1.0));
 
-    chart.append('defs').append('clipPath')
-      .attr('id', 'clip')
-      .append('rect')
-	.attr('width', physWidth)
-	.attr('height', physHeight); // TODO: Add scale height
+    // Handle the nested parents
+    for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
+      // TODO: Base this on a max depth
+      var current_depth = ravel.phys_layers[layer];
 
-    chart.append('defs').append('clipPath')
-      .attr('id', 'olddetailclip')
-      .append('rect')
-	.attr('width', oldWidth)
-	.attr('height', oldHeight);
-
-    chart.append('defs').append('clipPath')
-      .attr('id', 'lanesclip')
-      .append('rect')
-	.attr('height', physHeight);
-
-    chart.append('defs').append('clipPath')
-      .attr('id', 'lanesclip')
-      .append('rect')
-	.attr('height', physHeight);
-
-    var phys = chart.append('g')
-      .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-      .attr('width', physWidth)
-      .attr('height', physHeight)
-      .call(zoom)
-      .attr('class', 'phys');
-
-    var mini = chart.append('g')
-      .attr('transform', 'translate(' + margin.left + ',' + (physHeight + 60 + oldHeight + 60) + ')')
-      .attr('width', miniWidth)
-      .attr('height', miniHeight)
-      .attr('class', 'mini')
-      .on('click', handle_click)
-
-    var olddetail = chart.append('g')
-      .attr('transform', 'translate(' + margin.left + ',' + (physHeight + 60) + ')')
-      .attr('width', oldWidth)
-      .attr('height', oldHeight)
-      .call(oldzoom)
-      .attr('class', 'old');
-
-    var oldcolorbar = olddetail.append('g')
-      .attr('transform', 'translate(' + (margin.left + physWidth / 2 - oldcolorBarWidth / 2) + ',' + (oldHeight + 5) + ')')
-      .attr('width', oldcolorBarWidth)
-      .attr('height', colorBarHeight)
-      .attr('class', 'old');
-
-    var counter_scale = d3.scale.linear()
-      .interpolate(d3.interpolateLab)
-      .domain([1, 50, 100])
-      .range(['lightblue', 'khaki', 'firebrick']);
-    var oldcolorbardata = d3.range(100);
-    var oldcolorbars = oldcolorbar.selecteAll('.oldcolorbar')
-      .data(oldcolorbardata);
-    var oldlate_scale = d3.scale.linear()
-      .interpolate(d3.interpolateLab)
-      .domain([1, 50, 100])
-      .range(['lightblue', 'khaki', 'firebrick']);
-
-    oldcolorbars.enter().append('rect')
-      .attr('class', 'oldcolorbar')
-      .attr('width', oldcolorBarWidth / oldcolorbardata.length)
-      .attr('height', 20)
-      .attr('y', 0)
-      .attr('x', function(d, i) { return i * oldcolorBarWidth / oldcolorbardata.length; })
-      .style('fill', function(d, i) { return counter_scale(i); });
-
-    var oldcolor_scale = d3.scale.linear()
-      .domain([0, 50, 100])
-      .range([0, oldcolorBarWidth / 2, oldcolorBarWidth]);
-
-    var oldcolorAxis = d3.svg.axis()
-      .scale(oldcolor_scale)
-      .orient('bottom')
-      .tickSize(2, 0, 0);
-
-    oldcolorbar.append('g')
-      .attr('transform', 'translate(0, 20)')
-      .attr('class', 'oldcoloraxis mini axis date')
-      .call(oldcolorAxis);
-
-    // White backgrounds for the views
-    phys.append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', physWidth)
-      .attr('height', physHeight)
-      .attr('stroke', 0)
-      .attr('fill', 'white')
-      .attr('class', 'phys_background');
-
-    olddetail.append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', oldWidth)
-      .attr('height', oldHeight)
-      .attr('stroke-width', 2)
-      .attr('stroke', 'white')
-      .attr('fill', 'white')
-      .attr('class', 'old_background');
-
-    // Skipping middle-click drag for now
-    
-
-     // draw the x axes on the charts
-    var phys_scaleDateAxis = d3.svg.axis()
-      .scale(phys_scale)
-      .orient('bottom')
-      .tickSize(6, 0, 0);
-
-    var xAxis = d3.svg.axis()
-      .scale(mini_scale)
-      .orient('bottom')
-      .tickSize(6, 0, 0);
-
-
-    phys.append('g')
-      .attr('transform', 'translate(0,' + physHeight + ')')
-      .attr('class', 'phys axis date')
-      .call(phys_scaleDateAxis);
-
-    mini.append('g')
-      .attr('transform', 'translate(0, ' + miniHeight + ')')
-      .attr('class', 'mini axis date')
-      .call(xAxis);
-
-
-    // Draw a white background for the overview
-    mini.append('rect')
-      .attr("x", 0)
-      .attr("y", miniHeight - 60)
-      .attr("width", miniWidth)
-      .attr("height", 60)
-      .attr("stroke", 0)
-      .attr("fill", "white")
-      .attr('class', 'mini_background');
-
-    var phys_layers = [];
-    for (var layer = 0; layer < data.parent_events.length; layer++) {
-      phys_layers[layer] = phys.append('g');
-    }
-    var phys_comm_layer = phys.append('g');
-
-    // Skip text for overview as well as rectangles
-    
-
-    var update_cursor = function() {
-      // Nothing for now
-    }
-    update_cursor();
-
-    // draw the items for the main view, use a clip-path for the ones that
-    // are slightly outside of our drawing area
-    var physRects = phys.append('g')
-      .attr('clip-path', 'url(#clip)');
-    var olddetailRects = olddetail.append('g')
-      .attr('clip-path', 'url(#olddetailclip)');
-    var olddetailLanes = olddetail.append('g')
-      .attr('id', 'oldlaneNumg');
-    
-    // Constrant crossLane stuff -- I don't really remember what this does
-    crossOffset = 0;
-    oldcrossDrawing = olddetailRects.append('g')
-      .attr('id', 'oldcrossDrawing')
-      .attr('transform', 'translate(' + crossOffset + ', 0)');
-
-    draw_step_vis();
-    draw_traditional();
-
-    var draw_traditional = function () {
-      var rects, labels,
-	minExtent = phys_scale.domain()[0],
-	maxExtent = phys_scale.domain()[1],
-	minEntity = yphys.domain()[0] - 1,
-	maxEntity = yphys.domain()[1];
-
-      
-      // Remove old lane numbers
-      d3.select('#laneNum').remove(); 
-
-      // Add new lanes numbers
-      var physLanes = phys.append('g')
-	.attr('id', 'laneNum');
-
-      var physLanesText = physLanes.selectAll('.laneText')
-	.data(lanes)
-	.text(d => { return d; })
-	.attr('y', d => { return yphys(d + 0.5); });
-
-      physLanesText.enter().append('text')
-	.text(d => { return d;})
-	.attr('x', -20)
-	.attr('y', d => { return yphys(d + 0.5); });
-	.attr('dy', '0.5ex')
-	.attr('text-anchor', 'start')
-	.attr('class', 'laneText'); // TODO: More CSS
-
-      var laneLines = physRects.selectAll('laneLines')
-	.data(lanes)
-	.attr('x1', d => { return phys_scale(minExtent); })
-	.attr('y1', d => { return d3.round(yphys(d)) + 0.5; })
-	.attr('y2', d => { return d3.round(yphys(d)) + 0.5; });
-
-      laneLines.enter().append('line')
-	.attr('phys_scale', 0)
-	.attr('x1', d => { return phys_scale(minExtent); })
-	.attr('y1', d => { return d3.round(yphys(d)) + 0.5; })
-	.attr('x2', physWidth)
-	.attr('y2', d => { return d3.round(yphys(d)) + 0.5; })
-	.attr('class', 'laneLines')
-	.attr('stroke', 'lightgray');
-
-      laneLines.exit().remove();
-    
-      var barHeight = 0.8 * (yphys(2.0) - yphys(1.0));
-
-      // Handle the nested parents
-      for (var layer = 0; layer < data.parent_events.length; layer++) {
-	// TODO: Base this on a max depth
-	var current_depth = phys_layers[layer];
-
-	rects = current_depth.selectAll('.parent')
-	  .data(data.parent_events[layer], d => { return d.id; })
-	  .attr('x', d => { return d3.max([phys_scale(d.enter), -10]); })
-	  .attr('y', d => { return yphys(d.entity + 0.1); })
-	  .attr('height', barHeight);
-	  .attr('width', d => { return d3.min([phys_scale(d.exit), physWidth]) -
-	    d3.max([phys_scale(d.enter), -10]); });
-
-	rects.enter().append('rect')
-	  .attr('x', d => { return d3.max([phys_scale(d.enter), -10]); })
-	  .attr('y', d => { return yphys(d.entity + 0.1); })
-	  .attr('height', barHeight);
-	  .attr('width', d => { return d3.min([phys_scale(d.exit), physWidth]) -
-	    d3.max([phys_scale(d.enter), -10]); })
-	  .style('fill', d => { return parentcolor(layer); })
-	  .style('stroke', 'black')
-	  .attr('class', 'parent')
-	  .append('svg:title')
-	    .text(d => { return data.functions[d.function]; });
-
-	rects.exit().remove();
-      }
-
-      // Handle the comm items
-      rects = phys_comm_layer.selectAll('.event')
-	.data(data.events, d => { return d.id; })
-	.attr('x', d => { return phys_scale(d.enter); })
-	.attr('y', d => { return yphys(d.entity + 0.1); })
+      rects = current_depth.selectAll('.parent')
+	.data(ravel.data.parent_events[layer], d => { return d.id; })
+	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
+	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return phys_scale(d.exit) - phys_scale(d.enter); })
-	.style('fill', 'lightblue'); // TODO, add lateness stuff
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), physWidth]) -
+	  d3.max([ravel.phys_scale(d.enter), -10]); });
 
       rects.enter().append('rect')
-	.attr('x', d => { return phys_scale(d.enter); })
-	.attr('y', d => { return yphys(d.entity + 0.1); })
+	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
+	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return phys_scale(d.exit) - phys_scale(d.enter); })
-	.attr('class', 'event')
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), physWidth]) -
+	  d3.max([ravel.phys_scale(d.enter), -10]); })
+	.style('fill', d => { return ravel.parentcolor(layer); })
 	.style('stroke', 'black')
-	.style('fill', 'lightblue')
+	.attr('class', 'parent')
 	.append('svg:title')
-	  .text(d => { return data.functions[d.function]; });
+	  .text(d => { return ravel.data.functions[d.function]; });
 
-      rects.exit.remove();
-	
-      // Labels
-      
-
-      // Comms
-
+      rects.exit().remove();
     }
 
-    var draw_step_vis = function () {
-      // Mostly omitted for now (draw_detail and 'old' = step vis, weird)
-      var start_rects, finish_rects, receivers, crosslanes, labels;
+    // Handle the comm items
+    rects = phys_comm_layer.selectAll('.event')
+      .data(ravel.data.events, d => { return d.id; })
+      .attr('x', d => { return ravel.phys_scale(d.enter); })
+      .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+      .attr('height', barHeight)
+      .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); })
+      .style('fill', 'lightblue'); // TODO, add lateness stuff
 
-      // From outer scope
-      //var min_time = ravel.data.mintime;
-      //var max_time = ravel.data.maxtime;
-      //var max_step = 0;
-      //var current_span = ravel.data.stoptime - ravel.data.startime;
+    rects.enter().append('rect')
+      .attr('x', d => { return ravel.phys_scale(d.enter); })
+      .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+      .attr('height', barHeight)
+      .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); })
+      .attr('class', 'event')
+      .style('stroke', 'black')
+      .style('fill', 'lightblue')
+      .append('svg:title')
+	.text(d => { return ravel.data.functions[d.function]; });
+
+    rects.exit.remove();
       
-      // Skip droplines and vertAA for now
+    // Labels
+    
 
-      // Skip lane order stuff for now
+    // Comms
 
-      // Note, so far we are not sending comm items so code for that is not
-      // yet here
+  };
+
+  ravel.draw_step_vis = function () {
+    // Mostly omitted for now (draw_detail and 'old' = step vis, weird)
+    var start_rects, finish_rects, receivers, crosslanes, labels;
+
+    // From outer scope
+    //var min_time = ravel.data.mintime;
+    //var max_time = ravel.data.maxtime;
+    //var max_step = 0;
+    //var current_span = ravel.data.stoptime - ravel.data.startime;
+    
+    // Skip droplines and vertAA for now
+
+    // Skip lane order stuff for now
+
+    // Note, so far we are not sending comm items so code for that is not
+    // yet here
+    
+    // Note as well we have items arranged by depth
+
+    // Draw the boxes
+    for (var i = ext[0]; i <= ext[1]; i++) {
       
-      // Note as well we have items arranged by depth
+    } // End Lane For
 
-      // Draw the boxes
-      for (var i = ext[0]; i <= ext[1]; i++) {
-	
-      } // End Lane For
-
-    }
-
-}
+  };
 
 
-  </script>
+jQuery(function() {
 
-
-  <script language="javascript" type="text/javascript">
-    jQuery(function() {
-
-      $(document).ready(function() {
-	$.ajax({
-	  url: '/api/v1/fib',
-	  method: 'POST',
-	  dataType: 'json',
-	  data: { "command" : 'load' },
-	  success: function(json) {
-	    console.log('new trace info' + json.traceinfo);
-	    ravel.init(json.traceinfo);
-	  }
-	});
-      });
-
+  $(document).ready(function() {
+    $.ajax({
+      url: '/api/v1/fib',
+      method: 'POST',
+      dataType: 'json',
+      data: { "command" : 'load' },
+      success: function(json) {
+	console.log('new trace info' + json.traceinfo);
+	ravel.init(json.traceinfo);
+      }
     });
-  </script>
+  });
+
+});
+</script>
 
 </head>
 <body>
