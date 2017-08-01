@@ -36,7 +36,7 @@ const std::string OTFConverter::collectives_string
       + std::string("MPI_AllgathervMPI_GathervMPI_Scatterv");
 
 OTFConverter::OTFConverter()
-    : rawtrace(NULL), trace(NULL), max_depth(0)
+    : rawtrace(NULL), trace(NULL), max_depth(0), globalID(0)
 {
 }
 
@@ -233,6 +233,7 @@ void OTFConverter::matchEvents()
                     cr->events->push_back(new CollectiveEvent(bgn->time, (*evt)->time,
                                             bgn->value, bgn->entity, bgn->entity,
                                             phase, cr));
+                    cr->events->back()->setID(globalID++);
                     cr->events->back()->comm_prev = prev;
                     if (prev)
                         prev->comm_next = cr->events->back();
@@ -262,6 +263,7 @@ void OTFConverter::matchEvents()
                                                          bgn->value,
                                                          bgn->entity, bgn->entity, phase,
                                                          msgs);
+                    crec->message->sender->setID(globalID++);
 
                     crec->message->sender->comm_prev = prev;
                     if (prev)
@@ -299,6 +301,7 @@ void OTFConverter::matchEvents()
                                                          bgn->value,
                                                          bgn->entity, bgn->entity, phase,
                                                          msgs);
+                    msgs->at(0)->receiver->setID(globalID++);
                     for (int i = 1; i < msgs->size(); i++)
                     {
                         msgs->at(i)->receiver = msgs->at(0)->receiver;
@@ -321,6 +324,7 @@ void OTFConverter::matchEvents()
                 {
                     e = new Event(bgn->time, (*evt)->time, bgn->value,
                                   bgn->entity, bgn->entity);
+                    e->setID(globalID++);
 
 
                     // Squelch counter values that we're not keeping track of here (for now)
@@ -405,6 +409,7 @@ void OTFConverter::matchEvents()
             endtime = std::max(endtime, bgn->time);
             Event * e = new Event(bgn->time, endtime, bgn->value,
                           bgn->entity, bgn->entity);
+            e->setID(globalID++);
             e->addMetric("Function Count", 1);
             if (!stack->empty())
             {

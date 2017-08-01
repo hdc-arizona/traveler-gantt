@@ -5,7 +5,8 @@
 
 Event::Event(unsigned long long _enter, unsigned long long _exit,
              int _function, unsigned long _entity, unsigned long _pe)
-    : caller(NULL),
+    : id(0),
+      caller(NULL),
       callees(new std::vector<Event *>()),
       enter(_enter),
       exit(_exit),
@@ -130,6 +131,7 @@ void Event::addMetric(std::string name, double event_value)
 void to_json(json& j, const Event& e)
 {
     j = json{
+        {"id", e.id},
         {"enter", e.enter},
         {"exit", e.exit},
         {"function", e.function},
@@ -139,6 +141,7 @@ void to_json(json& j, const Event& e)
 
 void from_json(const json& j, Event& e)
 {
+    e.id = j.at("id").get<unsigned long long>();
     e.enter = j.at("enter").get<unsigned long long>();
     e.exit = j.at("exit").get<unsigned long long>();
     e.function = j.at("function").get<int>();
@@ -148,6 +151,7 @@ void from_json(const json& j, Event& e)
 void to_json(json& j, const Event * e)
 {
     j = json{
+        {"id", e->id},
         {"enter", e->enter},
         {"exit", e->exit},
         {"function", e->function},
@@ -157,6 +161,7 @@ void to_json(json& j, const Event * e)
 
 void from_json(const json& j, Event * e)
 {
+    e->id = j.at("id").get<unsigned long long>();
     e->enter = j.at("enter").get<unsigned long long>();
     e->exit = j.at("exit").get<unsigned long long>();
     e->function = j.at("function").get<int>();

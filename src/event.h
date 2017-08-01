@@ -39,6 +39,10 @@ public:
     double getMetric(std::string name);
     void addMetric(std::string name, double event_value);
 
+    void setID(unsigned long long i) { id = i; }
+
+    unsigned long long id;
+
     // Call tree info
     Event * caller;
     std::vector<Event *> * callees;
