@@ -159,6 +159,7 @@
     ravel.yphys = d3.scale.linear()
       .domain([ravel.show_ext[0], ravel.show_ext[1]])
       .range([0, ravel.physHeight]);
+    console.log(ravel.yphys.range(), "is yphys range");
     ravel.yold = d3.scale.linear()
       .domain([ravel.ext[0], ravel.ext[1] + 1])
       .range([0, ravel.oldHeight]);
@@ -264,6 +265,7 @@
   ravel.init_display = function () {
     console.log(ravel.lanes);
     console.log('init display');
+    console.log(ravel.yphys.domain(), ravel.yphys.range(), "yphys");
 
     ravel.min_time = ravel.data.mintime;
     ravel.max_time = ravel.data.maxtime;
@@ -274,15 +276,14 @@
       ravel.parentcolor.domain([0, ravel.data.max_depth]);
     }
     ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
-    ravel.phys_scale.domain([ravel.min_time, ravel.min_time + ravel.current_span]);
+    ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
 
 
     ravel.ext = d3.extent(ravel.lanes);
     ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
-    ravel.yphys = d3.scale.linear()
-      .domain([ravel.show_ext[0], ravel.show_ext[1]]);
-    ravel.yold = d3.scale.linear()
-      .domain([ravel.ext[0], ravel.ext[1] + 1]);
+    console.log(ravel.ext, "is ravel ext", ravel.show_ext, 'show extext');
+    ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
+    ravel.yold.domain([ravel.ext[0], ravel.ext[1] + 1]);
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
     ravel.saved_yold = ravel.yold.domain();
@@ -383,6 +384,10 @@
       .attr('id', 'oldcrossDrawing')
       .attr('transform', 'translate(' + crossOffset + ', 0)');
 
+
+    console.log(ravel.physHeight + " is physHeight");
+    console.log(ravel.yphys.domain(), ravel.yphys.range(), "yphys");
+    console.log(ravel.phys_scale.domain(), ravel.phys_scale.range(), "phys scale");
     ravel.draw_step_vis();
     ravel.draw_traditional();
   }
@@ -479,7 +484,7 @@
     console.log("Init");
     ravel.data = json;
     ravel.lanes = [];
-    for (var i = 1; i <= ravel.data.entities; i++) {
+    for (var i = 0; i < ravel.data.entities; i++) {
       ravel.lanes.push(i);
     }
     ravel.init_display();
@@ -557,7 +562,9 @@
 
       rects.enter().append('rect')
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
-	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+	.attr('y', d => { 
+	  console.log(d.entity, d.enter, d.exit, ravel.yphys(d.entity), ravel.phys_scale(d.enter), ravel.phys_scale(d.exit));
+	  return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
 	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.physWidth]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
