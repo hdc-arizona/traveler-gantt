@@ -21,8 +21,9 @@ static const char *s_http_port = "8000";
 static struct mg_serve_http_opts s_http_server_opts;
 
 Trace * trace = NULL;
+json j;
 
-static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
+static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
   char command[100];
 
   /* Get command variables */
@@ -32,7 +33,6 @@ static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
   mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
 
   /* Check for trace info */
-  json j;
   if (strncmp(command, "time", 4) == 0)
   {
     char start[100], stop[100], entity_start[100], entities[100];
@@ -49,6 +49,10 @@ static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
   {
     j["traceinfo"] = trace->initJSON();
   }
+  else
+  {
+      j["debug"] = 0;
+  }
 
   mg_printf_http_chunk(nc, j.dump().c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
@@ -59,8 +63,8 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 
   switch (ev) {
     case MG_EV_HTTP_REQUEST:
-      if (mg_vcmp(&hm->uri, "/api/v1/fib") == 0) {
-        handle_fib_call(nc, hm); /* Handle RESTful call */
+      if (mg_vcmp(&hm->uri, "/data") == 0) {
+        handle_data_call(nc, hm); /* Handle RESTful call */
       } else if (mg_vcmp(&hm->uri, "/printcontent") == 0) {
         char buf[100] = {0};
         memcpy(buf, hm->body.p,

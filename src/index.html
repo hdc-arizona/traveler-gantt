@@ -48,7 +48,6 @@
 
 
   var init_ravel = function() {
-    console.log('Initting ravel.');
     ravel.width = 1200 - ravel.margin.left - ravel.margin.right;
     ravel.height = 900 - ravel.margin.top - ravel.margin.bottom;
     ravel.miniHeight = 100;
@@ -89,7 +88,6 @@
     ravel.yphys = d3.scale.linear()
       .domain([ravel.show_ext[0], ravel.show_ext[1]])
       .range([0, ravel.physHeight]);
-    console.log(ravel.yphys.range(), "is yphys range");
     ravel.yold = d3.scale.linear()
       .domain([ravel.ext[0], ravel.ext[1] + 1])
       .range([0, ravel.oldHeight]);
@@ -120,7 +118,7 @@
 	ravel.phys_scale.domain([xphys_minus, xphys_plus]);
 
 	// If we're not scrolling, force to saved
-	if (ravel.scrolly) {
+	if (ravel.scroll_y) {
 	  ymphys_minus = ravel.yphys.domain()[0];
 	  yphys_plus = ravel.yphys.domain()[1];
 	  if (yphys_minus < ravel.ext[0]) {
@@ -152,23 +150,22 @@
 	    yphys_minus = average - 8.5;
 	  }
 	  ravel.yphys.domain([yphys_minus, yphys_plus]);
+	  ravel.saved_yphys = ravel.yphys.domain()
 	} else {
-	  ravel.yphys.domain([ravel.saved_yphys[0], ravel.saved_yphys[1]]);
 	  ravel.zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
+	  ravel.yphys.domain(ravel.saved_yphys);
 	}
-	ravel.saved_yphys = ravel.yphys.domain()
 
 	ravel.cursor.x = Math.round(ravel.mini_scale((ravel.phys_scale.domain()[1] + ravel.phys_scale.domain()[0])/2.0))
 	ravel.update_cursor();
 
       } else { // On middle click revert to saved, middle click is used for something else
-	console.log('saved zoom');
-	ravel.phys_scale.domain([ravel.saved_xphys]);
+	ravel.phys_scale.domain([ravel.saved_xmain]);
 	ravel.yphys.domain(ravel.saved_yphys);
 	ravel.zoom.translate([0, 0]);
 	ravel.zoom.scale(1);
       }
-      console.log('handling ravel update', ravel.phys_scale.domain());
+      //ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
       ravel.get_data(d3.max([0, d3.round(ravel.phys_scale.domain()[0])]), 
 	d3.round(ravel.phys_scale.domain()[1]));
     }; // End zoom_function();
@@ -185,8 +182,6 @@
       .attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
       .attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
       .attr('class', 'chart');
-    console.log(ravel.chart);
-    console.log('is ravel.chart');
 
     ravel.phys = ravel.chart.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
@@ -239,7 +234,7 @@
      
     // draw the x axes on the charts
     ravel.phys_scaleDateAxis = d3.svg.axis()
-      .scale(ravel.phys_scale)
+      .scale(function (d) { console.log(ravel.phys_scale.domain(), 'scale'); return ravel.phys_scale(d); })
       .orient('bottom')
       .tickSize(6, 0, 0);
 
@@ -265,9 +260,6 @@
   init_ravel();
 
   ravel.init_display = function () {
-    console.log(ravel.lanes);
-    console.log('init display');
-    console.log(ravel.yphys.domain(), ravel.yphys.range(), "yphys");
 
     ravel.min_time = ravel.data.mintime;
     ravel.max_time = ravel.data.maxtime;
@@ -280,11 +272,10 @@
     ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
     ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
     ravel.zoom.x(ravel.phys_scale);
-    console.log('phys_scale is', ravel.phys_scale.domain());
+    ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
 
     ravel.ext = d3.extent(ravel.lanes);
     ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
-    console.log(ravel.ext, "is ravel ext", ravel.show_ext, 'show extext');
     ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
     ravel.yold.domain([ravel.ext[0], ravel.ext[1] + 1]);
     ravel.zoom.y(ravel.yphys);
@@ -389,9 +380,6 @@
       .attr('transform', 'translate(' + crossOffset + ', 0)');
 
 
-    console.log(ravel.physHeight + " is physHeight");
-    console.log(ravel.yphys.domain(), ravel.yphys.range(), "yphys");
-    console.log(ravel.phys_scale.domain(), ravel.phys_scale.range(), "phys scale");
     ravel.draw_step_vis();
     ravel.draw_traditional();
   }
@@ -401,7 +389,6 @@
   };
   
   ravel.handle_click = function (d, i) {
-    console.log('handle click function');
     ravel.clicked = d3.mouse(this);
     ravel.cursor.x = clicked[0];
     ravel.cursor.y = clicked[1];
@@ -425,9 +412,8 @@
 
 
   ravel.get_data = function (start, stop) {
-    console.log('get data', start, stop);
     $.ajax({
-      url: '/api/v1/fib',
+      url: '/data',
       method: 'POST',
       dataType: 'json',
       data: { 
@@ -438,7 +424,6 @@
 	"entities" : ravel.data.entities
       },
       success: function(json) {
-	console.log('new trace info' + json.traceinfo);
 	ravel.update(json.traceinfo);
       }
     });
@@ -489,7 +474,6 @@
   };
 
   ravel.init = function (json) {
-    console.log("Init");
     ravel.data = json;
     ravel.lanes = [];
     for (var i = 0; i < ravel.data.entities; i++) {
@@ -499,9 +483,8 @@
   };
 
   ravel.update = function (json) {
-    console.log('update');
     ravel.data = json;
-    console.log(json);
+    d3.select('.axis').call(ravel.phys_scaleDateAxis);
     ravel.draw_traditional();
     ravel.draw_step_vis();
   };
@@ -570,9 +553,7 @@
 
       rects.enter().append('rect')
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
-	.attr('y', d => { 
-	  console.log(d.entity, d.enter, d.exit, ravel.yphys(d.entity), ravel.phys_scale(d.enter), ravel.phys_scale(d.exit));
-	  return ravel.yphys(d.entity + 0.1); })
+	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
 	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.physWidth]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
@@ -611,7 +592,6 @@
     
 
     // Comms
-    console.log('finish drawing', ravel.phys_scale.domain());
   };
 
   ravel.draw_step_vis = function () {
@@ -638,7 +618,6 @@
       
     } // End Lane For
 
-    console.log('step vis', ravel.phys_scale.domain());
   };
 
 
@@ -646,13 +625,11 @@ jQuery(function() {
 
   $(document).ready(function() {
     $.ajax({
-      url: '/api/v1/fib',
+      url: '/data',
       method: 'POST',
       dataType: 'json',
       data: { "command" : 'load' },
       success: function(json) {
-	console.log('new trace info ')
-	console.log(json.traceinfo);
 	ravel.init(json.traceinfo);
       }
     });

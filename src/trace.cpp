@@ -247,5 +247,5 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 
 json Trace::initJSON()
 {
-    return timeToJSON(min_time, 1000000 + min_time, 0, roots->size() - 1);
+    return timeToJSON(min_time, 1000000 + min_time, 0, roots->size());
 }
