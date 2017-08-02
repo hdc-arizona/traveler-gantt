@@ -45,76 +45,6 @@
     }
   };
 
-  ravel.zoom_function = function () {
-    if (!ravel.middledown) {
-      var t = ravel.zoom.translate();
-      var tx = t[0];
-      var ty = t[1];
-      var average;
-
-      var xphys_minus = ravel.phys_scale.domain()[0];
-      var xphys_plus = ravel.phys_scale.domain()[1];
-      if (xphys_minus < ravel.min_time) {
-	xphys_minus = ravel.min_time;
-	ravel.zoom.translate([ravel.min_time, ty]);
-      }
-      if (xphys_plus > ravel.max_time) {
-	xphys_plus = ravel.max_time;
-	ravel.zoom.translate([ravel.max_time, ty]);
-      }
-      ravel.phys_scale.domain([xphys_minus, xphys_plus]);
-
-      // If we're not scrolling, force to saved
-      if (ravel.scrolly) {
-	ymphys_minus = ravel.yphys.domain()[0];
-	yphys_plus = ravel.yphys.domain()[1];
-	if (yphys_minus < ravel.ext[0]) {
-	  yphys_minus = ravel.ext[0];
-	}
-	if (yphys_minus > ravel.ext[1] + 1) {
-	  yphys_minus = ravel.ext[1] + 1;
-	}
-	if (yphys_plus > ravel.ext[1] + 1) {
-	  yphys_plus = ravel.ext[1] + 1;
-	}
-	if (yphys_plus < ravel.ext[0]) {
-	  yphys_plus = ravel.ext[0]
-	}
-	if (yphys_plus - yphys_minus < 1) {
-	  average = 0.5 * (yphys_plus + yphys_minus);
-	  if (average < ravel.ext[0]) {
-	    average = 1;
-	  }
-	  if (average > ravel.ext[1] + 1) {
-	    average = ravel.ext[1];
-	  }
-	  yphys_minus = average;
-	  yphys_plus = average + 1.0;
-	}
-	if (yphys_plus - yphys_minus > 17) {
-	  average = 0.5 * (yphys_plus + yphys_minus);
-	  yphys_plus = average + 8.5;
-	  yphys_minus = average - 8.5;
-	}
-	ravel.yphys.domain([yphys_minus, yphys_plus]);
-      } else {
-	ravel.yphys.domain([ravel.saved_yphys[0], ravel.saved_yphys[1]]);
-	ravel.zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
-      }
-      ravel.saved_yphys = ravel.yphys.domain()
-
-      ravel.cursor.x = Math.round(ravel.mini_scale((ravel.phys_scale.domain()[1] + ravel.phys_scale.domain()[0])/2.0))
-      ravel.update_cursor();
-
-    } else { // On middle click revert to saved, middle click is used for something else
-      ravel.phys_scale.domain([ravel.saved_xphys]);
-      ravel.yphys.domain(ravel.saved_yphys);
-      ravel.zoom.translate([0, 0]);
-      ravel.zoom.scale(1);
-    }
-    console.log('handling ravel update');
-    ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
-  }; // End zoom_function();
 
 
   var init_ravel = function() {
@@ -170,13 +100,85 @@
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
+    ravel.zoom_function = function () {
+      if (!ravel.middledown) {
+	var t = ravel.zoom.translate();
+	var tx = t[0];
+	var ty = t[1];
+	var average;
+
+	var xphys_minus = ravel.phys_scale.domain()[0];
+	var xphys_plus = ravel.phys_scale.domain()[1];
+	if (xphys_minus < ravel.min_time) {
+	  xphys_minus = ravel.min_time;
+	  ravel.zoom.translate([ravel.min_time, ty]);
+	}
+	if (xphys_plus > ravel.max_time) {
+	  xphys_plus = ravel.max_time;
+	  ravel.zoom.translate([ravel.max_time, ty]);
+	}
+	ravel.phys_scale.domain([xphys_minus, xphys_plus]);
+
+	// If we're not scrolling, force to saved
+	if (ravel.scrolly) {
+	  ymphys_minus = ravel.yphys.domain()[0];
+	  yphys_plus = ravel.yphys.domain()[1];
+	  if (yphys_minus < ravel.ext[0]) {
+	    yphys_minus = ravel.ext[0];
+	  }
+	  if (yphys_minus > ravel.ext[1] + 1) {
+	    yphys_minus = ravel.ext[1] + 1;
+	  }
+	  if (yphys_plus > ravel.ext[1] + 1) {
+	    yphys_plus = ravel.ext[1] + 1;
+	  }
+	  if (yphys_plus < ravel.ext[0]) {
+	    yphys_plus = ravel.ext[0]
+	  }
+	  if (yphys_plus - yphys_minus < 1) {
+	    average = 0.5 * (yphys_plus + yphys_minus);
+	    if (average < ravel.ext[0]) {
+	      average = 1;
+	    }
+	    if (average > ravel.ext[1] + 1) {
+	      average = ravel.ext[1];
+	    }
+	    yphys_minus = average;
+	    yphys_plus = average + 1.0;
+	  }
+	  if (yphys_plus - yphys_minus > 17) {
+	    average = 0.5 * (yphys_plus + yphys_minus);
+	    yphys_plus = average + 8.5;
+	    yphys_minus = average - 8.5;
+	  }
+	  ravel.yphys.domain([yphys_minus, yphys_plus]);
+	} else {
+	  ravel.yphys.domain([ravel.saved_yphys[0], ravel.saved_yphys[1]]);
+	  ravel.zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
+	}
+	ravel.saved_yphys = ravel.yphys.domain()
+
+	ravel.cursor.x = Math.round(ravel.mini_scale((ravel.phys_scale.domain()[1] + ravel.phys_scale.domain()[0])/2.0))
+	ravel.update_cursor();
+
+      } else { // On middle click revert to saved, middle click is used for something else
+	console.log('saved zoom');
+	ravel.phys_scale.domain([ravel.saved_xphys]);
+	ravel.yphys.domain(ravel.saved_yphys);
+	ravel.zoom.translate([0, 0]);
+	ravel.zoom.scale(1);
+      }
+      console.log('handling ravel update', ravel.phys_scale.domain());
+      ravel.get_data(d3.max([0, d3.round(ravel.phys_scale.domain()[0])]), 
+	d3.round(ravel.phys_scale.domain()[1]));
+    }; // End zoom_function();
+
+
     ravel.zoom = d3.behavior.zoom()
       .x(ravel.phys_scale)
       .y(ravel.yphys)
       .on('zoom', ravel.zoom_function);
 
-    console.log('tl is');
-    console.log(d3.select('#tl'));
     ravel.chart = d3.select('#tl')
       .append('svg:svg')
       .attr('id', 'chart')
@@ -277,13 +279,15 @@
     }
     ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
     ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
-
+    ravel.zoom.x(ravel.phys_scale);
+    console.log('phys_scale is', ravel.phys_scale.domain());
 
     ravel.ext = d3.extent(ravel.lanes);
     ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
     console.log(ravel.ext, "is ravel ext", ravel.show_ext, 'show extext');
     ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
     ravel.yold.domain([ravel.ext[0], ravel.ext[1] + 1]);
+    ravel.zoom.y(ravel.yphys);
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
     ravel.saved_yold = ravel.yold.domain();
@@ -395,8 +399,9 @@
   ravel.update_cursor = function() {
       // Nothing for now
   };
-
+  
   ravel.handle_click = function (d, i) {
+    console.log('handle click function');
     ravel.clicked = d3.mouse(this);
     ravel.cursor.x = clicked[0];
     ravel.cursor.y = clicked[1];
@@ -420,6 +425,7 @@
 
 
   ravel.get_data = function (start, stop) {
+    console.log('get data', start, stop);
     $.ajax({
       url: '/api/v1/fib',
       method: 'POST',
@@ -603,7 +609,7 @@
     
 
     // Comms
-
+    console.log('finish drawing', ravel.phys_scale.domain());
   };
 
   ravel.draw_step_vis = function () {
@@ -630,6 +636,7 @@
       
     } // End Lane For
 
+    console.log('step vis', ravel.phys_scale.domain());
   };
 
 
