@@ -35,15 +35,15 @@ static void handle_fib_call(struct mg_connection *nc, struct http_message *hm) {
   json j;
   if (strncmp(command, "time", 4) == 0)
   {
-    char start[100], stop[100], entity_start[100], entity_stop[100];
+    char start[100], stop[100], entity_start[100], entities[100];
     mg_get_http_var(&hm->body, "start", start, sizeof(start));
     mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
     mg_get_http_var(&hm->body, "entity_start", entity_start, sizeof(entity_start));
-    mg_get_http_var(&hm->body, "entity_stop", entity_stop, sizeof(entity_stop));
+    mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
                                        std::stoull(stop), 
-                                       std::stoull(entity_stop),
-                                       std::stoull(entity_start));
+                                       std::stoull(entity_start),
+                                       std::stoull(entities));
   }
   else if (strncmp(command, "load", 4) == 0)
   {

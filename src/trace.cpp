@@ -156,7 +156,7 @@ Event * Trace::findEvent(int entity, unsigned long long time)
 
 json Trace::timeToJSON(unsigned long long start, unsigned long long stop, 
                        unsigned long long entity_start,
-                       unsigned long long entity_stop,
+                       unsigned long long entities,
                        unsigned long long min_span)
 {
     json jo;
@@ -167,7 +167,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     jo["starttime"] = start;
     jo["stoptime"] = stop;
     jo["max_depth"] = max_depth;
-    jo["entities"] = entity_stop - entity_start + 1;
+    jo["entities"] = entities;
     jo["entity_start"] = entity_start;
     if (start > stop || start > max_time || stop < min_time)
     {
@@ -182,12 +182,13 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     parent_slice.push_back(std::vector<json>());
     std::map<std::string, std::string> function_names = std::map<std::string, std::string>();
 
+    unsigned long long entity_stop = entity_start + entities;
     for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
     {
         for (std::vector<Event *>::iterator root = roots->at(entity)->begin();
              root != roots->at(entity)->end(); ++root)
         {
-            timeEventToJSON(*root, 0, start, stop, entity_start, entity_stop,
+            timeEventToJSON(*root, 0, start, stop, entity_start, entities,
                             min_span, event_slice, parent_slice, function_names);
         }
     }
@@ -202,7 +203,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
 }
 
 void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
-    unsigned long long stop, unsigned long long entity_start, unsigned long long entity_stop,
+    unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span,
     std::vector<json>& slice,
     std::vector<std::vector<json> >& parent_slice,
@@ -237,7 +238,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
             child != evt->callees->end(); ++child)
         {
             timeEventToJSON(*child, depth + 1, start, stop, entity_start,
-                            entity_stop, min_span, slice, parent_slice, 
+                            entities, min_span, slice, parent_slice, 
                             function_names);
         }
     }

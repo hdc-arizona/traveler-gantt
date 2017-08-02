@@ -433,7 +433,9 @@
       data: { 
 	"command" : 'time',
 	"start" : start,
-	"stop" : stop
+	"stop" : stop,
+	"entity_start" : ravel.data.entity_start,
+	"entities" : ravel.data.entities
       },
       success: function(json) {
 	console.log('new trace info' + json.traceinfo);
