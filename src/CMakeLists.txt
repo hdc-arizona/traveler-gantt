@@ -82,6 +82,9 @@ set(Ravel_HEADERS
 set(Ravel_STATIC_FILES
     index.html
     ravel.css
+    jslib/split.js
+    jslib/horizontal.png
+    jslib/vertical.png
 )
 
 # Build Target

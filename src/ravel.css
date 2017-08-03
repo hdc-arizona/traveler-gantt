@@ -1,6 +1,79 @@
-//rect {
-//	shape-rendering: crispEdges;
-//}
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    position: relative;
+    min-height: 100%;
+}
+
+.rect {
+    shape-rendering: crispEdges;
+}
+
+.traditional {
+    position: absolute;
+    width: 100%;
+    height: calc(100% - 120px);
+    background: blue;
+}
+
+.overview {
+    clear: both;
+    bottom: 0;
+    width: 100%;
+    height: 120px;
+    background: red;
+}
+
+.traditionalf {
+    position: absolute;
+    width: 100%;
+    height: calc(100% - 120px);
+    overflow: auto;
+    background: blue;
+    bottom: 120px;
+}
+
+.overviewf {
+    width: 100%;
+    height: 120px;
+    background: red;
+    clear: both;
+    bottom: 0;
+}
+
+.split {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+
+    overflow: auto;
+    
+}
+
+.gutter {
+background-color: #eee;
+background-repeat: no-repeat;
+background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+background-image: url('vertical.png');
+cursor: ew-resize;
+}
+
+.gutter.gutter-vertical {
+background-image: url('horizontal.png');
+cursor: ns-resize;
+}
+
+.split.split-horizontal, .gutter.gutter-horizontal {
+height: 100%;
+float: left;
+}
 
 .mini text {
 	font: 9px sans-serif;	

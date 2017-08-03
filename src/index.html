@@ -8,12 +8,11 @@
   <link rel="stylesheet" type="text/css" href="ravel.css" media="screen" />
   <script src="//d3js.org/d3.v3.min.js"></script>
   <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="split.js"></script>
 </head>
 <body>
-  <div class="content">
-
-    <div id="tl"></div>
-  </div>
+  <div id="traditional-div" class="traditional split split-vertical"></div>
+  <div id="overview-div" class="overview split split-vertical"></div>
 </body>
 </html>
   <script type="text/javascript">
@@ -42,28 +41,34 @@
       right: 15,
       bottom: 35,
       left: 35
-    }
+    },
+    miniHeight: 100,
+    scaleHeight: 20,
+    colorBarHeight: 30,
+
+    min_time: 0,
+    max_time: 1,
+    max_step: 0,
+    current_span: 1
   };
 
 
+  Split(['#traditional-div', '#overview-div'], {
+    direction: 'vertical',
+    sizes: [90, 10],
+    minSize: [0, 0]
+  });
+
 
   var init_ravel = function() {
-    ravel.width = 1200 - ravel.margin.left - ravel.margin.right;
-    ravel.height = 900 - ravel.margin.top - ravel.margin.bottom;
-    ravel.miniHeight = 100;
-    ravel.physHeight = (ravel.height - ravel.miniHeight - 100) / 2;
-    ravel.oldHeight = ravel.physHeight;
-    ravel.oldWidth = ravel.width;
-    ravel.oldcolorBarWidth = 600;
-    ravel.colorBarHeight = 30;
-    ravel.miniWidth = ravel.width;
-    ravel.physWidth = ravel.width;
-
-    ravel.min_time = 0;
-    ravel.max_time = 1;
-    ravel.max_step = 0;
-    ravel.current_span = 1;
-    
+    ravel.width = d3.select('#traditional-div').node().offsetWidth;
+    ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
+    ravel.traditional_height = $(document).height() - $('body').offset().top;
+    ravel.traditional_gantt_height = ravel.traditional_height -
+      ravel.margin.top - ravel.margin.bottom -
+      ravel.colorBarHeight - ravel.scaleHeight;
+    console.log(ravel.width, ravel.gantt_width, ravel.traditional_height, ravel.traditional_gantt_height);
+  
     ravel.typecolor = d3.scale.linear()
       .domain([1,2])
       .range(["lightblue", "lightblue"]);
@@ -75,26 +80,19 @@
       .range(['dimgray', 'lightgray']);
     ravel.mini_scale = d3.scale.linear()
       .domain([ravel.min_time, ravel.max_time])
-      .range([0, ravel.miniWidth]);
+      .range([0, ravel.gantt_width]);
     ravel.phys_scale = d3.scale.linear()
       .domain([ravel.min_time, ravel.min_time + ravel.current_span])
-      .range([0, ravel.physWidth]);
-    ravel.detail_scale = d3.scale.linear()
-      .domain([0, 0])
-      .range([0, ravel.oldWidth]); // get translated with g
+      .range([0, ravel.gantt_width]);
 
     ravel.ext = d3.extent(1);
     ravel.show_ext = [0,1];
     ravel.yphys = d3.scale.linear()
       .domain([ravel.show_ext[0], ravel.show_ext[1]])
-      .range([0, ravel.physHeight]);
-    ravel.yold = d3.scale.linear()
-      .domain([ravel.ext[0], ravel.ext[1] + 1])
-      .range([0, ravel.oldHeight]);
+      .range([0, ravel.traditional_gantt_height]);
 
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
-    ravel.saved_yold = ravel.yold.domain();
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
@@ -165,7 +163,6 @@
 	ravel.zoom.translate([0, 0]);
 	ravel.zoom.scale(1);
       }
-      //ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
       ravel.get_data(d3.max([0, d3.round(ravel.phys_scale.domain()[0])]), 
 	d3.round(ravel.phys_scale.domain()[1]));
     }; // End zoom_function();
@@ -176,65 +173,44 @@
       .y(ravel.yphys)
       .on('zoom', ravel.zoom_function);
 
-    ravel.chart = d3.select('#tl')
+    ravel.traditional = d3.select('#traditional-div')
       .append('svg:svg')
-      .attr('id', 'chart')
-      .attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
-      .attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
-      .attr('class', 'chart');
+      .attr('id', 'traditional')
+      .attr('width', '100%')
+      .attr('height', '100%')
+      //.attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
+      //.attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
+      .attr('class', 'traditional');
 
-    ravel.phys = ravel.chart.append('g')
+    ravel.phys = ravel.traditional.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
-      .attr('width', ravel.physWidth)
-      .attr('height', ravel.physHeight)
+      .attr('width', ravel.gantt_width)
+      .attr('height', ravel.traditional_gantt_height)
       .call(ravel.zoom)
       .attr('class', 'phys');
 
-    ravel.mini = ravel.chart.append('g')
-      .attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60 + ravel.oldHeight + 60) + ')')
-      .attr('width', ravel.miniWidth)
+    ravel.overview = d3.select('#overview-div')
+      .append('svg:svg')
+      .attr('id', 'overview')
+      .attr('height', ravel.miniHeight + ravel.scaleHeight)
+      .attr('width', '100%')
+      .attr('class', 'overview')
+
+    ravel.mini = ravel.overview.append('g')
+      //.attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60 + ravel.oldHeight + 60) + ')')
+      .attr('width', ravel.gantt_width) //ravel.miniWidth)
       .attr('height', ravel.miniHeight)
       .attr('class', 'mini')
       .on('click', ravel.handle_click);
-
-    ravel.olddetail = ravel.chart.append('g')
-      .attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60) + ')')
-      .attr('width', ravel.oldWidth)
-      .attr('height', ravel.oldHeight)
-      //.call(oldzoom)
-      .attr('class', 'old');
-
-    ravel.oldcolorbar = ravel.olddetail.append('g')
-      .attr('transform', 'translate(' + (ravel.margin.left + ravel.physWidth / 2 - ravel.oldcolorBarWidth / 2) + 
-	',' + (ravel.oldHeight + 5) + ')')
-      .attr('width', ravel.oldcolorBarWidth)
-      .attr('height', ravel.colorBarHeight)
-      .attr('class', 'old');
 
     ravel.counter_scale = d3.scale.linear()
       .interpolate(d3.interpolateLab)
       .domain([1, 50, 100])
       .range(['lightblue', 'khaki', 'firebrick']);
-    ravel.oldcolorbardata = d3.range(100);
-    ravel.oldcolorbars = ravel.oldcolorbar.selectAll('.oldcolorbar')
-      .data(ravel.oldcolorbardata);
-    ravel.oldlate_scale = d3.scale.linear()
-      .interpolate(d3.interpolateLab)
-      .domain([1, 50, 100])
-      .range(['lightblue', 'khaki', 'firebrick']);
-
-    ravel.oldcolor_scale = d3.scale.linear()
-      .domain([0, 50, 100])
-      .range([0, ravel.oldcolorBarWidth / 2, ravel.oldcolorBarWidth]);
-
-    ravel.oldcolorAxis = d3.svg.axis()
-      .scale(ravel.oldcolor_scale)
-      .orient('bottom')
-      .tickSize(2, 0, 0);
      
     // draw the x axes on the charts
     ravel.phys_scaleDateAxis = d3.svg.axis()
-      .scale(function (d) { console.log(ravel.phys_scale.domain(), 'scale'); return ravel.phys_scale(d); })
+      .scale(ravel.phys_scale)
       .orient('bottom')
       .tickSize(6, 0, 0);
 
@@ -250,15 +226,8 @@
     // are slightly outside of our drawing area
     ravel.physRects = ravel.phys.append('g')
       .attr('clip-path', 'url(#clip)');
-    ravel.olddetailRects = ravel.olddetail.append('g')
-      .attr('clip-path', 'url(#olddetailclip)');
-    ravel.olddetailLanes = ravel.olddetail.append('g')
-      .attr('id', 'oldlaneNumg');
-
   };  // Ravel vars
  
-  init_ravel();
-
   ravel.init_display = function () {
 
     ravel.min_time = ravel.data.mintime;
@@ -277,75 +246,37 @@
     ravel.ext = d3.extent(ravel.lanes);
     ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
     ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
-    ravel.yold.domain([ravel.ext[0], ravel.ext[1] + 1]);
     ravel.zoom.y(ravel.yphys);
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
-    ravel.saved_yold = ravel.yold.domain();
     //var saved_step = step_scale.domain();
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
-    ravel.chart.append('defs').append('clipPath')
+    ravel.traditional.append('defs').append('clipPath')
       .attr('id', 'clip')
       .append('rect')
-	.attr('width', ravel.physWidth)
-	.attr('height', ravel.physHeight); // TODO: Add scale height
+	.attr('width', ravel.gantt_width)
+	.attr('height', ravel.traditional_gantt_height); 
 
-    ravel.chart.append('defs').append('clipPath')
-      .attr('id', 'olddetailclip')
-      .append('rect')
-	.attr('width', ravel.oldWidth)
-	.attr('height', ravel.oldHeight);
-
-    ravel.chart.append('defs').append('clipPath')
+    ravel.traditional.append('defs').append('clipPath')
       .attr('id', 'lanesclip')
       .append('rect')
-	.attr('height', ravel.physHeight);
-
-    ravel.chart.append('defs').append('clipPath')
-      .attr('id', 'lanesclip')
-      .append('rect')
-	.attr('height', ravel.physHeight);
-
-
-    ravel.oldcolorbars.enter().append('rect')
-      .attr('class', 'oldcolorbar')
-      .attr('width', ravel.oldcolorBarWidth / ravel.oldcolorbardata.length)
-      .attr('height', 20)
-      .attr('y', 0)
-      .attr('x', function(d, i) { return i * ravel.oldcolorBarWidth / ravel.oldcolorbardata.length; })
-      .style('fill', function(d, i) { return ravel.counter_scale(i); });
-
-    ravel.oldcolorbar.append('g')
-      .attr('transform', 'translate(0, 20)')
-      .attr('class', 'oldcoloraxis mini axis date')
-      .call(ravel.oldcolorAxis);
+	.attr('height', ravel.traditional_gantt_height);
 
     // White backgrounds for the views
     ravel.phys.append('rect')
       .attr('x', 0)
       .attr('y', 0)
-      .attr('width', ravel.physWidth)
-      .attr('height', ravel.physHeight)
+      .attr('width', ravel.gantt_width)
+      .attr('height', ravel.traditional_gantt_height)
       .attr('stroke', 0)
       .attr('fill', 'white')
       .attr('class', 'phys_background');
 
-    ravel.olddetail.append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', ravel.oldWidth)
-      .attr('height', ravel.oldHeight)
-      .attr('stroke-width', 2)
-      .attr('stroke', 'white')
-      .attr('fill', 'white')
-      .attr('class', 'old_background');
-
-    // Skipping middle-click drag for now
-    
+    // Skipping middle-click drag for now 
     ravel.phys.append('g')
-      .attr('transform', 'translate(0,' + ravel.physHeight + ')')
+      .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
       .call(ravel.phys_scaleDateAxis);
 
@@ -373,14 +304,6 @@
     
     ravel.update_cursor();
 
-    // Constrant crossLane stuff -- I don't really remember what this does
-    var crossOffset = 0;
-    ravel.oldcrossDrawing = ravel.olddetailRects.append('g')
-      .attr('id', 'oldcrossDrawing')
-      .attr('transform', 'translate(' + crossOffset + ', 0)');
-
-
-    ravel.draw_step_vis();
     ravel.draw_traditional();
   }
     
@@ -407,7 +330,6 @@
 
     ravel.update_cursor();
     ravel.draw_traditional();
-    ravel.draw_step_vis();
   };
 
 
@@ -486,7 +408,6 @@
     ravel.data = json;
     d3.select('.axis').call(ravel.phys_scaleDateAxis);
     ravel.draw_traditional();
-    ravel.draw_step_vis();
   };
 
 
@@ -529,7 +450,7 @@
       .attr('phys_scale', 0)
       .attr('x1', d => { return ravel.phys_scale(minExtent); })
       .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
-      .attr('x2', ravel.physWidth)
+      .attr('x2', ravel.gantt_width)
       .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; })
       .attr('class', 'laneLines')
       .attr('stroke', 'lightgray');
@@ -548,14 +469,14 @@
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.physWidth]) -
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); });
 
       rects.enter().append('rect')
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.physWidth]) -
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
 	.style('fill', d => { return ravel.parentcolor(layer); })
 	.style('stroke', 'black')
@@ -594,36 +515,11 @@
     // Comms
   };
 
-  ravel.draw_step_vis = function () {
-    // Mostly omitted for now (draw_detail and 'old' = step vis, weird)
-    var start_rects, finish_rects, receivers, crosslanes, labels;
-
-    // From outer scope
-    //var min_time = ravel.data.mintime;
-    //var max_time = ravel.data.maxtime;
-    //var max_step = 0;
-    //var current_span = ravel.data.stoptime - ravel.data.startime;
-    
-    // Skip droplines and vertAA for now
-
-    // Skip lane order stuff for now
-
-    // Note, so far we are not sending comm items so code for that is not
-    // yet here
-    
-    // Note as well we have items arranged by depth
-
-    // Draw the boxes
-    for (var i = ravel.ext[0]; i <= ravel.ext[1]; i++) {
-      
-    } // End Lane For
-
-  };
-
 
 jQuery(function() {
 
   $(document).ready(function() {
+    init_ravel();
     $.ajax({
       url: '/data',
       method: 'POST',
