@@ -38,11 +38,11 @@
 
     margin: {
       top: 20,
-      right: 15,
-      bottom: 35,
-      left: 35
+      right: 20,
+      bottom: 10,
+      left: 20
     },
-    miniHeight: 100,
+    miniHeight: 60,
     scaleHeight: 20,
     colorBarHeight: 30,
 
@@ -52,16 +52,28 @@
     current_span: 1
   };
 
+  ravel.resize = function () {
+    ravel.full_mini_height = ravel.miniHeight + ravel.scaleHeight + ravel.margin.top + ravel.margin.bottom;
+    ravel.width = d3.select('#traditional-div').node().offsetWidth - 5;
+    ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
+    ravel.full_height = $(document).height() - $('body').offset().top;
+    ravel.traditional_height = d3.select('#traditional-div').node().offsetHeight;
+    if (ravel.traditional_height <= 0) {
+    ravel.traditional_gantt_height = ravel.full_height - ravel.full_mini_height -
+      2 * ravel.margin.top - ravel.margin.bottom -
+      ravel.colorBarHeight - ravel.scaleHeight;
+    } else {
+      ravel.tradtional_gantt_height = ravel.traditional_height - 
+	2 * ravel.margin.top - ravel.margin.bottom -
+	ravel.colorBarHeight - ravel.scaleHeight;
+    }
+    console.log(ravel.width, ravel.gantt_width, ravel.traditional_height, ravel.traditional_gantt_height);
+
+  }; // end ravel.resize
 
   var init_ravel = function() {
-    ravel.width = d3.select('#traditional-div').node().offsetWidth;
-    ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
-    ravel.traditional_height = $(document).height() - $('body').offset().top;
-    ravel.traditional_gantt_height = ravel.traditional_height -
-      ravel.margin.top - ravel.margin.bottom -
-      ravel.colorBarHeight - ravel.scaleHeight;
-    console.log(ravel.width, ravel.gantt_width, ravel.traditional_height, ravel.traditional_gantt_height);
-    var overview_per = (ravel.miniHeight / ravel.traditional_height) * 100;
+    ravel.resize();
+    var overview_per = ( (ravel.full_mini_height + 5) / ravel.full_height) * 100;
     var trad_per = 100 - overview_per;
     console.log(trad_per, overview_per);
     Split(['#traditional-div', '#overview-div'], {
@@ -69,6 +81,7 @@
       sizes: [trad_per, overview_per],
       minSize: [0, 0]
     });
+    ravel.resize();
   
     ravel.typecolor = d3.scale.linear()
       .domain([1,2])
@@ -178,9 +191,7 @@
       .append('svg:svg')
       .attr('id', 'traditional')
       .attr('width', '100%')
-      .attr('height', '100%')
-      //.attr('width', ravel.width + ravel.margin.left + ravel.margin.right)
-      //.attr('height', ravel.height + ravel.margin.top + ravel.margin.bottom)
+      .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
       .attr('class', 'traditional');
 
     ravel.phys = ravel.traditional.append('g')
@@ -193,12 +204,12 @@
     ravel.overview = d3.select('#overview-div')
       .append('svg:svg')
       .attr('id', 'overview')
-      .attr('height', ravel.miniHeight + ravel.scaleHeight)
+      .attr('height', ravel.full_mini_height)
       .attr('width', '100%')
       .attr('class', 'overview')
 
     ravel.mini = ravel.overview.append('g')
-      //.attr('transform', 'translate(' + ravel.margin.left + ',' + (ravel.physHeight + 60 + ravel.oldHeight + 60) + ')')
+      .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
       .attr('width', ravel.gantt_width) //ravel.miniWidth)
       .attr('height', ravel.miniHeight)
       .attr('class', 'mini')
@@ -243,6 +254,7 @@
     ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
     ravel.zoom.x(ravel.phys_scale);
     ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
+    ravel.xAxis.scale(ravel.mini_scale);
 
     ravel.ext = d3.extent(ravel.lanes);
     ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
@@ -263,6 +275,7 @@
     ravel.traditional.append('defs').append('clipPath')
       .attr('id', 'lanesclip')
       .append('rect')
+	.attr('width', ravel.gantt_width)
 	.attr('height', ravel.traditional_gantt_height);
 
     // White backgrounds for the views
@@ -289,9 +302,9 @@
     // Draw a white background for the overview
     ravel.mini.append('rect')
       .attr("x", 0)
-      .attr("y", ravel.miniHeight - 60)
-      .attr("width", ravel.miniWidth)
-      .attr("height", 60)
+      .attr("y", 0)
+      .attr("width", ravel.gantt_width)
+      .attr("height", ravel.miniHeight)
       .attr("stroke", 0)
       .attr("fill", "white")
       .attr('class', 'mini_background');
@@ -443,13 +456,13 @@
 
     var laneLines = ravel.physRects.selectAll('laneLines')
       .data(ravel.lanes)
-      .attr('x1', d => { return ravel.phys_scale(minExtent); })
+      //.attr('x1', d => { return ravel.phys_scale(minExtent); })
       .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
       .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; });
 
     laneLines.enter().append('line')
       .attr('phys_scale', 0)
-      .attr('x1', d => { return ravel.phys_scale(minExtent); })
+      .attr('x1', 0) // d => { return ravel.phys_scale(minExtent); })
       .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
       .attr('x2', ravel.gantt_width)
       .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; })
