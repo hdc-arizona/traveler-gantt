@@ -52,18 +52,18 @@
     current_span: 1
   };
 
-  ravel.resize = function () {
+  ravel.calc_window_sizes = function () {
     ravel.full_mini_height = ravel.miniHeight + ravel.scaleHeight + ravel.margin.top + ravel.margin.bottom;
     ravel.width = d3.select('#traditional-div').node().offsetWidth - 5;
     ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
     ravel.full_height = $(document).height() - $('body').offset().top;
     ravel.traditional_height = d3.select('#traditional-div').node().offsetHeight;
     if (ravel.traditional_height <= 0) {
-    ravel.traditional_gantt_height = ravel.full_height - ravel.full_mini_height -
-      2 * ravel.margin.top - ravel.margin.bottom -
-      ravel.colorBarHeight - ravel.scaleHeight;
+      ravel.traditional_gantt_height = ravel.full_height - ravel.full_mini_height -
+	2 * ravel.margin.top - ravel.margin.bottom -
+	ravel.colorBarHeight - ravel.scaleHeight;
     } else {
-      ravel.tradtional_gantt_height = ravel.traditional_height - 
+      ravel.traditional_gantt_height = ravel.traditional_height - 
 	2 * ravel.margin.top - ravel.margin.bottom -
 	ravel.colorBarHeight - ravel.scaleHeight;
     }
@@ -71,17 +71,75 @@
 
   }; // end ravel.resize
 
-  var init_ravel = function() {
+  ravel.resize = function () {
+    ravel.mini_scale
+      .range([0, ravel.gantt_width]);
+    ravel.phys_scale
+      .range([0, ravel.gantt_width]);
+
+    ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
+    ravel.xAxis.scale(ravel.mini_scale);
+    
+    ravel.yphys
+      .range([0, ravel.traditional_gantt_height]);
+    ravel.phys
+      .attr('width', ravel.gantt_width)
+      .attr('height', ravel.traditional_gantt_height);
+
+    ravel.mini 
+      .attr('width', ravel.gantt_width) 
+      .attr('height', ravel.miniHeight);
+
+    ravel.traditional_clip
+	.attr('width', ravel.gantt_width)
+	.attr('height', ravel.traditional_gantt_height); 
+
+    ravel.traditional_lanes_clip
+	.attr('width', ravel.gantt_width)
+	.attr('height', ravel.traditional_gantt_height);
+
+    // White backgrounds for the views
+    ravel.phys_background
+      .attr('width', ravel.gantt_width)
+      .attr('height', ravel.traditional_gantt_height);
+
+    // Skipping middle-click drag for now 
+    ravel.phys_axis
+      .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
+      .call(ravel.phys_scaleDateAxis);
+
+    ravel.mini_axis
+      .call(ravel.xAxis);
+
+    // Draw a white background for the overview
+    ravel.mini_background
+      .attr("width", ravel.gantt_width);
+
+    ravel.draw_traditional();
+  }
+
+  ravel.splitter_change = function () {
+    ravel.calc_window_sizes();
     ravel.resize();
+  };
+
+  window.onresize = function(event) {
+    ravel.calc_window_sizes();
+    ravel.resize();
+  }
+
+  var init_ravel = function() {
+    ravel.calc_window_sizes();
     var overview_per = ( (ravel.full_mini_height + 5) / ravel.full_height) * 100;
     var trad_per = 100 - overview_per;
     console.log(trad_per, overview_per);
     Split(['#traditional-div', '#overview-div'], {
       direction: 'vertical',
       sizes: [trad_per, overview_per],
-      minSize: [0, 0]
+      minSize: [0, 0],
+      onDrag: ravel.splitter_change
     });
-    ravel.resize();
+    ravel.calc_window_sizes();
   
     ravel.typecolor = d3.scale.linear()
       .domain([1,2])
@@ -266,20 +324,20 @@
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
-    ravel.traditional.append('defs').append('clipPath')
+    ravel.traditional_clip = ravel.traditional.append('defs').append('clipPath')
       .attr('id', 'clip')
       .append('rect')
 	.attr('width', ravel.gantt_width)
 	.attr('height', ravel.traditional_gantt_height); 
 
-    ravel.traditional.append('defs').append('clipPath')
+    ravel.traditional_lanes_clip = ravel.traditional.append('defs').append('clipPath')
       .attr('id', 'lanesclip')
       .append('rect')
 	.attr('width', ravel.gantt_width)
 	.attr('height', ravel.traditional_gantt_height);
 
     // White backgrounds for the views
-    ravel.phys.append('rect')
+    ravel.phys_background = ravel.phys.append('rect')
       .attr('x', 0)
       .attr('y', 0)
       .attr('width', ravel.gantt_width)
@@ -289,18 +347,18 @@
       .attr('class', 'phys_background');
 
     // Skipping middle-click drag for now 
-    ravel.phys.append('g')
+    ravel.phys_axis = ravel.phys.append('g')
       .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
       .call(ravel.phys_scaleDateAxis);
 
-    ravel.mini.append('g')
+    ravel.mini_axis = ravel.mini.append('g')
       .attr('transform', 'translate(0, ' + ravel.miniHeight + ')')
       .attr('class', 'mini axis date')
       .call(ravel.xAxis);
 
     // Draw a white background for the overview
-    ravel.mini.append('rect')
+    ravel.mini_background = ravel.mini.append('rect')
       .attr("x", 0)
       .attr("y", 0)
       .attr("width", ravel.gantt_width)
