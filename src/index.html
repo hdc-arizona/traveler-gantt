@@ -258,6 +258,33 @@
       .attr('height', ravel.traditional_gantt_height)
       .call(ravel.zoom)
       .attr('class', 'phys');
+    
+    ravel.traditional_clip = ravel.phys.append('defs').append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+	.attr('width', ravel.gantt_width)
+	.attr('height', ravel.traditional_gantt_height); 
+
+    ravel.traditional_lanes_clip = ravel.phys.append('defs').append('clipPath')
+      .attr('id', 'lanesclip')
+      .append('rect')
+	.attr('width', ravel.gantt_width)
+	.attr('height', ravel.traditional_gantt_height);
+    
+    // White backgrounds for the views
+    ravel.phys_background = ravel.phys.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', ravel.gantt_width)
+      .attr('height', ravel.traditional_gantt_height)
+      .attr('stroke', 0)
+      .attr('fill', 'white')
+      .attr('class', 'phys_background');
+
+    // draw the items for the main view, use a clip-path for the ones that
+    // are slightly outside of our drawing area
+    ravel.physRects = ravel.phys.append('g')
+      .attr('clip-path', 'url(#clip)');
 
     ravel.overview = d3.select('#overview-div')
       .append('svg:svg')
@@ -292,10 +319,6 @@
     ravel.phys_layers = [];
     ravel.phys_comm_layer = null;
     
-    // draw the items for the main view, use a clip-path for the ones that
-    // are slightly outside of our drawing area
-    ravel.physRects = ravel.phys.append('g')
-      .attr('clip-path', 'url(#clip)');
   };  // Ravel vars
  
   ravel.init_display = function () {
@@ -324,28 +347,6 @@
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
-    ravel.traditional_clip = ravel.traditional.append('defs').append('clipPath')
-      .attr('id', 'clip')
-      .append('rect')
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height); 
-
-    ravel.traditional_lanes_clip = ravel.traditional.append('defs').append('clipPath')
-      .attr('id', 'lanesclip')
-      .append('rect')
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height);
-
-    // White backgrounds for the views
-    ravel.phys_background = ravel.phys.append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height)
-      .attr('stroke', 0)
-      .attr('fill', 'white')
-      .attr('class', 'phys_background');
-
     // Skipping middle-click drag for now 
     ravel.phys_axis = ravel.phys.append('g')
       .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
@@ -368,9 +369,9 @@
       .attr('class', 'mini_background');
 
     for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
-      ravel.phys_layers[layer] = ravel.phys.append('g');
+      ravel.phys_layers[layer] = ravel.physRects.append('g');
     }
-    ravel.phys_comm_layer = ravel.phys.append('g');
+    ravel.phys_comm_layer = ravel.physRects.append('g');
 
     // Skip text for overview as well as rectangles
     
@@ -496,7 +497,7 @@
     d3.select('#laneNum').remove(); 
 
     // Add new lanes numbers
-    var physLanes = ravel.phys.append('g')
+    var physLanes = ravel.physRects.append('g')
       .attr('id', 'laneNum');
 
     var physLanesText = physLanes.selectAll('.laneText')
@@ -541,14 +542,14 @@
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width]) -
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); });
 
       rects.enter().append('rect')
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width]) -
+	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
 	.style('fill', d => { return ravel.parentcolor(layer); })
 	.style('stroke', 'black')
