@@ -53,13 +53,6 @@
   };
 
 
-  Split(['#traditional-div', '#overview-div'], {
-    direction: 'vertical',
-    sizes: [90, 10],
-    minSize: [0, 0]
-  });
-
-
   var init_ravel = function() {
     ravel.width = d3.select('#traditional-div').node().offsetWidth;
     ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
@@ -68,6 +61,14 @@
       ravel.margin.top - ravel.margin.bottom -
       ravel.colorBarHeight - ravel.scaleHeight;
     console.log(ravel.width, ravel.gantt_width, ravel.traditional_height, ravel.traditional_gantt_height);
+    var overview_per = (ravel.miniHeight / ravel.traditional_height) * 100;
+    var trad_per = 100 - overview_per;
+    console.log(trad_per, overview_per);
+    Split(['#traditional-div', '#overview-div'], {
+      direction: 'vertical',
+      sizes: [trad_per, overview_per],
+      minSize: [0, 0]
+    });
   
     ravel.typecolor = d3.scale.linear()
       .domain([1,2])
