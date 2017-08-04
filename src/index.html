@@ -390,7 +390,7 @@
   };
   
   ravel.handle_click = function (d, i) {
-    ravel.clicked = d3.mouse(this);
+    var clicked = d3.mouse(this);
     ravel.cursor.x = clicked[0];
     ravel.cursor.y = clicked[1];
 
@@ -398,16 +398,16 @@
     var maxExtent = ravel.phys_scale.domain()[1];
     var current_range = maxExtent - minExtent; // current zoom
     ravel.phys_scale.domain([ravel.mini_scale.invert(ravel.cursor.x) - current_range/2.0,
-      ravel.mini_scale.invert(cursor.x) + current_range/2.0]);
+      ravel.mini_scale.invert(ravel.cursor.x) + current_range/2.0]);
 
     ravel.zoom.x(ravel.phys_scale);
-
     // Zero out so these don't get re-applied
     ravel.zoom.translate([0, 0]);
     ravel.zoom.scale([1]);
-
+    
     ravel.update_cursor();
-    ravel.draw_traditional();
+    
+    ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
   };
 
 
