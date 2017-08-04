@@ -10,12 +10,10 @@ html, body {
 
 .traditional {
     width: 100%;
-    background: blue;
 }
 
 .overview {
     width: 100%;
-    background: red;
 }
 
 .traditionalf {
@@ -116,8 +114,9 @@ html, body {
 
 .overviewWindow {
     stroke: blue 1px;
+    stroke-opacity: 0.8;
     fill: lightblue;
-    opacity: 0.4;
+    fill-opacity: 0.6;
 }
 
 .comm_select {
@@ -128,7 +127,8 @@ html, body {
 }
 
 .brush .extent {
-	stroke: gray;
+	stroke: blue;
+	stroke-opacity: 0.8;
 	fill: blue;
 	fill-opacity: .165;
 }

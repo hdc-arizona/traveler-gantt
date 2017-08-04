@@ -288,7 +288,13 @@ json Trace::timeOverview(unsigned long width)
 
 json Trace::initJSON(unsigned long width)
 {
-    json jo = timeToJSON(last_init, 1000000 + last_init, 0, roots->size(), width);
+    unsigned long long a_pixel = (last_finalize - last_init) / width;
+    unsigned long long span = 1000000;
+    if (a_pixel * 5 > span)
+    {
+        span = a_pixel * 5;
+    }
+    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width);
     jo["overview"] = timeOverview(width);
 
     return jo;
