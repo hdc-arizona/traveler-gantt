@@ -36,7 +36,14 @@ const std::string OTFConverter::collectives_string
       + std::string("MPI_AllgathervMPI_GathervMPI_Scatterv");
 
 OTFConverter::OTFConverter()
-    : rawtrace(NULL), trace(NULL), max_depth(0), globalID(0)
+    : rawtrace(NULL), 
+      trace(NULL), 
+      max_depth(0), 
+      globalID(0),
+      last_init(0),
+      last_finalize(0),
+      initFunction(-1),
+      finalizeFunction(-1)
 {
 }
 
@@ -105,6 +112,20 @@ void OTFConverter::convert()
         }
     }
 
+    // Find init and finalize
+    for (std::map<int, Function *>::iterator fxn = trace->functions->begin();
+            fxn != trace->functions->end(); ++fxn)
+    {
+        if (fxn->second->name.compare("MPI_Init") == 0)
+        {
+            initFunction = fxn->first;
+        } 
+        else if (fxn->second->name.compare("MPI_Finalize") == 0)
+        {
+            finalizeFunction = fxn->first;
+        }
+    }
+
     // Set up collective metrics
     for (std::map<unsigned int, Counter *>::iterator counter = rawtrace->counters->begin();
          counter != rawtrace->counters->end(); ++counter)
@@ -124,6 +145,9 @@ void OTFConverter::convert()
     {
         std::sort(cr->second->events->begin(), cr->second->events->end(), Event::eventEntityLessThan);
     }
+
+    trace->last_init = (last_init != 0) ? last_init : trace->min_time;
+    trace->last_finalize = (last_finalize != 0) ? last_finalize : trace->max_time;
 
     trace->max_depth = max_depth;
     clock_t end = clock();
@@ -176,6 +200,16 @@ void OTFConverter::matchEvents()
                     trace->min_time = bgn->time;
                 if((*evt)->time > trace->max_time)
                     trace->max_time = (*evt)->time;
+
+                // Find init and finalize
+                if (bgn->value == initFunction && (*evt)->time > last_init)
+                {
+                    last_init = (*evt)->time;
+                }
+                else if (bgn->value == finalizeFunction && bgn->time > last_finalize)
+                {
+                    last_finalize = bgn->time;
+                }
 
                 // Partition/handle comm events
                 CollectiveRecord * cr = NULL;

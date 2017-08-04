@@ -162,8 +162,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     json jo;
 
     jo["path"] = fullpath;
-    jo["mintime"] = min_time;
-    jo["maxtime"] = max_time;
+    jo["mintime"] = last_init;
+    jo["maxtime"] = last_finalize + 10; // So the finalize has some length
     jo["starttime"] = start;
     jo["stoptime"] = stop;
     jo["max_depth"] = max_depth;
@@ -248,7 +248,48 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 
 }
 
+json Trace::timeOverview(unsigned long width)
+{
+    unsigned long long a_pixel = (last_finalize - last_init) / width;
+    std::vector<unsigned long long> pixels = std::vector<unsigned long long>();
+    std::cout << "width is " << width << " and start " << last_init << " and stop " << last_finalize << std::endl;
+    for (unsigned long i = 0; i <= width; i++)
+    {
+        pixels.push_back(0);
+    }
+    for (unsigned long long entity = 0; entity < events->size(); entity++)
+    {
+        for (std::vector<Event *>::iterator evt = events->at(entity)->begin();
+             evt != events->at(entity)->end(); ++evt)
+        {
+            if (!(*evt)->isCommEvent())
+            {
+                continue;
+            }
+            unsigned long pixel_start = 0;
+            unsigned long pixel_end = width;
+            if ((*evt)->enter > last_init)
+            {
+                pixel_start = ((*evt)->enter - last_init) / a_pixel;
+            }
+            if ((*evt)->exit < last_finalize)
+            {
+                pixel_end = ((*evt)->exit - last_init) / a_pixel + 1;
+            }
+            for (unsigned long i = pixel_start; i < pixel_end; i++)
+            {
+                pixels[i] += 1;
+            }
+        }
+    }
+    json jo(pixels);
+    return jo;
+}
+
 json Trace::initJSON(unsigned long width)
 {
-    return timeToJSON(min_time, 1000000 + min_time, 0, roots->size(), width);
+    json jo = timeToJSON(last_init, 1000000 + last_init, 0, roots->size(), width);
+    jo["overview"] = timeOverview(width);
+
+    return jo;
 }

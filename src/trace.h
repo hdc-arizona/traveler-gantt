@@ -33,14 +33,6 @@ public:
                     unsigned long long entity_start,
                     unsigned long long entities,
                     unsigned long width);
-    void timeEventToJSON(Event * evt, int depth,
-                         unsigned long long start, unsigned long long stop,
-                         unsigned long long entity_start,
-                         unsigned long long entities,
-                         unsigned long long min_span,
-                         std::vector<json>& slice,
-                         std::vector<std::vector<json> >& parent_slice,
-                         std::map<std::string, std::string>& function_names);
     json initJSON(unsigned long width);
 
     std::string name;
@@ -73,9 +65,21 @@ public:
 
     unsigned long long max_time; // largest time
     unsigned long long min_time; // starting time
+    unsigned long long last_init; // time at which MPI_Init stops
+    unsigned long long last_finalize; // time at which last Finalize -starts-
 
 private:
     bool isProcessed; // Partitions exist
+
+    void timeEventToJSON(Event * evt, int depth,
+                         unsigned long long start, unsigned long long stop,
+                         unsigned long long entity_start,
+                         unsigned long long entities,
+                         unsigned long long min_span,
+                         std::vector<json>& slice,
+                         std::vector<std::vector<json> >& parent_slice,
+                         std::map<std::string, std::string>& function_names);
+    json timeOverview(unsigned long width);
 
     static const bool debug = false;
     static const int partition_portion = 25;

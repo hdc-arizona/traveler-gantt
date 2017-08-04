@@ -42,6 +42,10 @@ private:
     Trace * trace;
     int max_depth;
     unsigned long long globalID;
+    unsigned long long last_init;
+    unsigned long long last_finalize;
+    int initFunction;
+    int finalizeFunction;
 
     static const int event_match_portion = 24;
     static const int message_match_portion = 0;
