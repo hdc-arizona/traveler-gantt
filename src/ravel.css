@@ -110,6 +110,10 @@ html, body {
 	shape-rendering: crispEdges;
 }
 
+.overviewBar {
+    stroke: black 1px;
+}
+
 .comm_select {
     stroke: gray;
     stroke-opacity: .75;

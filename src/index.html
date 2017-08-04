@@ -152,7 +152,10 @@
       .range(['dimgray', 'lightgray']);
     ravel.mini_scale = d3.scale.linear()
       .domain([ravel.min_time, ravel.max_time])
-      .range([0, ravel.gantt_width]);
+      .range([0, ravel.gantt_width])
+    ravel.mini_y_scale = d3.scale.linear()
+      .domain([0, 1])
+      .range([0, ravel.miniHeight]);
     ravel.phys_scale = d3.scale.linear()
       .domain([ravel.min_time, ravel.min_time + ravel.current_span])
       .range([0, ravel.gantt_width]);
@@ -333,6 +336,7 @@
     }
     ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
     ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
+    ravel.mini_y_scale.domain([0, d3.max(ravel.data.overview)]);
     ravel.zoom.x(ravel.phys_scale);
     ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
     ravel.xAxis.scale(ravel.mini_scale);
@@ -378,6 +382,7 @@
     ravel.update_cursor();
 
     ravel.draw_traditional();
+    ravel.draw_overview();
   }
     
   ravel.update_cursor = function() {
@@ -587,6 +592,25 @@
     
 
     // Comms
+  };
+
+  ravel.draw_overview = function () {
+    var rects;
+
+    rects = ravel.mini.selectAll('.overviewBar')
+      .data(ravel.data.overview)
+      .attr('x', (d, i) => { return i; })
+      .attr('height', d => { return ravel.miniHeight - ravel.mini_y_scale(d); });
+
+    rects.enter().append('rect')
+      .attr('x', (d, i) => { return i; })
+      .attr('width', 1)
+      .attr('y', d => { return ravel.miniHeight - ravel.mini_y_scale(d); })
+      .attr('height', d => { return ravel.mini_y_scale(d); })
+      .attr('class', 'overviewBar');
+
+    rects.exit().remove();
+
   };
 
 
