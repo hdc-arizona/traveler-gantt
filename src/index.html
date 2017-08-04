@@ -416,7 +416,8 @@
 	"start" : start,
 	"stop" : stop,
 	"entity_start" : ravel.data.entity_start,
-	"entities" : ravel.data.entities
+	"entities" : ravel.data.entities,
+	"width" : ravel.gantt_width
       },
       success: function(json) {
 	ravel.update(json.traceinfo);
@@ -497,23 +498,23 @@
     d3.select('#laneNum').remove(); 
 
     // Add new lanes numbers
-    var physLanes = ravel.physRects.append('g')
+    var physLanes = ravel.traditional.append('g')
       .attr('id', 'laneNum');
 
     var physLanesText = physLanes.selectAll('.laneText')
       .data(ravel.lanes)
       .text(d => { return d; })
-      .attr('y', d => { return ravel.yphys(d + 0.5); });
+      .attr('y', d => { return ravel.margin.top + ravel.yphys(d + 0.5); });
 
     physLanesText.enter().append('text')
       .text(d => { return d;})
-      .attr('x', -20)
-      .attr('y', d => { return ravel.yphys(d + 0.5); })
+      .attr('x', ravel.margin.left - 15)
+      .attr('y', d => { return ravel.margin.top + ravel.yphys(d + 0.5); })
       .attr('dy', '0.5ex')
       .attr('text-anchor', 'start')
       .attr('class', 'laneText'); // TODO: More CSS
 
-    var laneLines = ravel.physRects.selectAll('laneLines')
+    var laneLines = ravel.physRects.selectAll('.laneLines')
       .data(ravel.lanes)
       //.attr('x1', d => { return ravel.phys_scale(minExtent); })
       .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
@@ -597,7 +598,10 @@ jQuery(function() {
       url: '/data',
       method: 'POST',
       dataType: 'json',
-      data: { "command" : 'load' },
+      data: { 
+	"command" : 'load', 
+	"width" : ravel.gantt_width
+      },
       success: function(json) {
 	ravel.init(json.traceinfo);
       }

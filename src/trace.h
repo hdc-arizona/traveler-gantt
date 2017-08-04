@@ -32,7 +32,7 @@ public:
     json timeToJSON(unsigned long long start, unsigned long long stop,
                     unsigned long long entity_start,
                     unsigned long long entities,
-                    unsigned long long min_span = 0);
+                    unsigned long width);
     void timeEventToJSON(Event * evt, int depth,
                          unsigned long long start, unsigned long long stop,
                          unsigned long long entity_start,
@@ -41,7 +41,7 @@ public:
                          std::vector<json>& slice,
                          std::vector<std::vector<json> >& parent_slice,
                          std::map<std::string, std::string>& function_names);
-    json initJSON();
+    json initJSON(unsigned long width);
 
     std::string name;
     std::string fullpath;

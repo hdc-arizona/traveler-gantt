@@ -157,7 +157,7 @@ Event * Trace::findEvent(int entity, unsigned long long time)
 json Trace::timeToJSON(unsigned long long start, unsigned long long stop, 
                        unsigned long long entity_start,
                        unsigned long long entities,
-                       unsigned long long min_span)
+                       unsigned long width)
 {
     json jo;
 
@@ -175,6 +175,9 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
         return jo;
     }
 
+    // Determine min_span of 1 pixel in width
+    unsigned long long a_pixel = (stop - start) / width;
+
     std::vector<json>  event_slice = std::vector<json>();
     event_slice.push_back(std::vector<std::vector<json> >());
     std::vector<std::vector<json> >  parent_slice
@@ -189,7 +192,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
              root != roots->at(entity)->end(); ++root)
         {
             timeEventToJSON(*root, 0, start, stop, entity_start, entities,
-                            min_span, event_slice, parent_slice, function_names);
+                            a_pixel, event_slice, parent_slice, function_names);
         }
     }
 
@@ -245,7 +248,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 
 }
 
-json Trace::initJSON()
+json Trace::initJSON(unsigned long width)
 {
-    return timeToJSON(min_time, 1000000 + min_time, 0, roots->size());
+    return timeToJSON(min_time, 1000000 + min_time, 0, roots->size(), width);
 }
