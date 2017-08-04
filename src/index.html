@@ -371,6 +371,16 @@
       .attr("stroke", 0)
       .attr("fill", "white")
       .attr('class', 'mini_background');
+    
+    ravel.mini_bars = ravel.mini.append('g');
+
+    ravel.overview_window = ravel.mini.append('rect')
+      .attr('x', ravel.mini_scale(ravel.data.starttime))
+      .attr('y', 0)
+      .attr('width', ravel.mini_scale(ravel.data.stoptime) - 
+	ravel.mini_scale(ravel.data.starttime))
+      .attr('height', ravel.miniHeight)
+      .attr('class', 'overviewWindow');
 
     for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
       ravel.phys_layers[layer] = ravel.physRects.append('g');
@@ -383,7 +393,7 @@
 
     ravel.draw_traditional();
     ravel.draw_overview();
-  }
+  };
     
   ravel.update_cursor = function() {
       // Nothing for now
@@ -487,6 +497,7 @@
     ravel.data = json;
     d3.select('.axis').call(ravel.phys_scaleDateAxis);
     ravel.draw_traditional();
+    ravel.update_overview();
   };
 
 
@@ -597,7 +608,7 @@
   ravel.draw_overview = function () {
     var rects;
 
-    rects = ravel.mini.selectAll('.overviewBar')
+    rects = ravel.mini_bars.selectAll('.overviewBar')
       .data(ravel.data.overview)
       .attr('x', (d, i) => { return i; })
       .attr('height', d => { return ravel.miniHeight - ravel.mini_y_scale(d); });
@@ -611,7 +622,15 @@
 
     rects.exit().remove();
 
+    ravel.update_overview();
   };
+
+  ravel.update_overview = function () {
+    ravel.overview_window
+      .attr('x', ravel.mini_scale(ravel.data.starttime))
+      .attr('width', ravel.mini_scale(ravel.data.stoptime) -
+	ravel.mini_scale(ravel.data.starttime));
+  }
 
 
 jQuery(function() {

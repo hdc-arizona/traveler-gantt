@@ -114,6 +114,12 @@ html, body {
     stroke: black 1px;
 }
 
+.overviewWindow {
+    stroke: blue 1px;
+    fill: lightblue;
+    opacity: 0.4;
+}
+
 .comm_select {
     stroke: gray;
     stroke-opacity: .75;
