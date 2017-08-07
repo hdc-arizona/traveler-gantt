@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="ravel.css" media="screen" />
-  <script src="//d3js.org/d3.v3.min.js"></script>
+  <script src="//d3js.org/d3.v4.min.js"></script>
   <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
   <script src="split.js"></script>
 </head>
@@ -141,28 +141,28 @@
     });
     ravel.calc_window_sizes();
   
-    ravel.typecolor = d3.scale.linear()
+    ravel.typecolor = d3.scaleLinear()
       .domain([1,2])
       .range(["lightblue", "lightblue"]);
-    ravel.bordercolor = d3.scale.linear()
+    ravel.bordercolor = d3.scaleLinear()
       .domain([1,2])
       .range(["blue", "blue"]);
-    ravel.parentcolor = d3.scale.linear()
+    ravel.parentcolor = d3.scaleLinear()
       .domain([0, 2])
       .range(['dimgray', 'lightgray']);
-    ravel.mini_scale = d3.scale.linear()
+    ravel.mini_scale = d3.scaleLinear()
       .domain([ravel.min_time, ravel.max_time])
       .range([0, ravel.gantt_width])
-    ravel.mini_y_scale = d3.scale.linear()
+    ravel.mini_y_scale = d3.scaleLinear()
       .domain([0, 1])
       .range([0, ravel.miniHeight]);
-    ravel.phys_scale = d3.scale.linear()
+    ravel.phys_scale = d3.scaleLinear()
       .domain([ravel.min_time, ravel.min_time + ravel.current_span])
       .range([0, ravel.gantt_width]);
 
     ravel.ext = d3.extent(1);
     ravel.show_ext = [0,1];
-    ravel.yphys = d3.scale.linear()
+    ravel.yphys = d3.scaleLinear()
       .domain([ravel.show_ext[0], ravel.show_ext[1]])
       .range([0, ravel.traditional_gantt_height]);
 
@@ -172,6 +172,19 @@
     ravel.saved_lanescale = 1;
 
     ravel.zoom_function = function () {
+      // ignore zoom-by-brush
+      if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return;
+
+      var t = d3.event.transform;
+      ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
+      //ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
+	//ravel.phys_scale.range().map(t.invertX, t));
+      
+      ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
+	Math.round(ravel.phys_scale.domain()[1]));
+
+      return;
+      
       if (!ravel.middledown) {
 	var t = ravel.zoom.translate();
 	var tx = t[0];
@@ -238,28 +251,37 @@
 	ravel.zoom.translate([0, 0]);
 	ravel.zoom.scale(1);
       }
-      ravel.get_data(d3.max([0, d3.round(ravel.phys_scale.domain()[0])]), 
-	d3.round(ravel.phys_scale.domain()[1]));
+      ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
+	Math.round(ravel.phys_scale.domain()[1]));
     }; // End zoom_function();
 
 
-    ravel.zoom = d3.behavior.zoom()
-      .x(ravel.phys_scale)
-      .y(ravel.yphys)
+    ravel.zoom = d3.zoom()
+      .scaleExtent([1, Infinity])
+      .translateExtent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
+      .extent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
+      //.x(ravel.phys_scale)
+      //.y(ravel.yphys)
       .on('zoom', ravel.zoom_function);
+
+    /*
+    ravel.gantt_brush = d3.brushX()
+      .extent([0, 0], [ravel.gantt_width, ravel.miniHeight])
+      .on("brush end", ravel.gantt_brush_function);
+    */
 
     ravel.traditional = d3.select('#traditional-div')
       .append('svg:svg')
       .attr('id', 'traditional')
       .attr('width', '100%')
       .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
-      .attr('class', 'traditional');
+      .attr('class', 'traditional')
+      .call(ravel.zoom);
 
     ravel.phys = ravel.traditional.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
       .attr('width', ravel.gantt_width)
       .attr('height', ravel.traditional_gantt_height)
-      .call(ravel.zoom)
       .attr('class', 'phys');
     
     ravel.traditional_clip = ravel.phys.append('defs').append('clipPath')
@@ -303,12 +325,15 @@
       .attr('class', 'mini')
       .on('click', ravel.handle_click);
 
-    ravel.counter_scale = d3.scale.linear()
+    ravel.counter_scale = d3.scaleLinear()
       .interpolate(d3.interpolateLab)
       .domain([1, 50, 100])
       .range(['lightblue', 'khaki', 'firebrick']);
      
     // draw the x axes on the charts
+    ravel.phys_scaleDateAxis = d3.axisBottom(ravel.phys_scale);
+    ravel.xAxis = d3.axisBottom(ravel.mini_scale);
+    /*
     ravel.phys_scaleDateAxis = d3.svg.axis()
       .scale(ravel.phys_scale)
       .orient('bottom')
@@ -318,6 +343,7 @@
       .scale(ravel.mini_scale)
       .orient('bottom')
       .tickSize(6, 0, 0);
+    */
     
     ravel.phys_layers = [];
     ravel.phys_comm_layer = null;
@@ -329,7 +355,7 @@
     ravel.min_time = ravel.data.mintime;
     ravel.max_time = ravel.data.maxtime;
     ravel.max_step = 0;
-    ravel.current_span = ravel.data.stoptime - ravel.data.startime;
+    ravel.current_span = ravel.data.stoptime - ravel.data.starttime;
 
     if (ravel.data.hasOwnProperty('max_depth')) {
       ravel.parentcolor.domain([0, ravel.data.max_depth]);
@@ -337,14 +363,16 @@
     ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
     ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
     ravel.mini_y_scale.domain([0, d3.max(ravel.data.overview)]);
-    ravel.zoom.x(ravel.phys_scale);
+    //ravel.zoom.x(ravel.phys_scale);
+    ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
+    ravel.zoom.translateTo(ravel.traditional, 0, 0);
     ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
     ravel.xAxis.scale(ravel.mini_scale);
 
     ravel.ext = d3.extent(ravel.lanes);
     ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
     ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
-    ravel.zoom.y(ravel.yphys);
+    //ravel.zoom.y(ravel.yphys);
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
     //var saved_step = step_scale.domain();
@@ -374,6 +402,20 @@
     
     ravel.mini_bars = ravel.mini.append('g');
 
+/*
+    ravel.gantt_brush_group = ravel.mini.append('g')
+      .attr("class", "brush")
+      .call(ravel.gantt_brush)
+      .call(ravel.gantt_brush.move, ravel.mini_scale.range());
+*/
+    /*
+    ravel.zoom_rect = ravel.traditional.append("rect")
+      .attr("class", "zoom")
+      .attr("width", ravel.traditional_gantt_width)
+      .attr("height", ravel.traditional_gantt_height)
+      .call(ravel.zoom);
+*/
+    /*
     ravel.overview_window = ravel.mini.append('rect')
       .attr('x', ravel.mini_scale(ravel.data.starttime))
       .attr('y', 0)
@@ -381,6 +423,7 @@
 	ravel.mini_scale(ravel.data.starttime))
       .attr('height', ravel.miniHeight)
       .attr('class', 'overviewWindow');
+    */
 
     for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
       ravel.phys_layers[layer] = ravel.physRects.append('g');
@@ -394,12 +437,27 @@
     ravel.draw_traditional();
     ravel.draw_overview();
   };
+
+  ravel.gantt_brush_function = function () {
+    // ignore brush-by-zoom
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; 
+    
+    var s = d3.event.selection || ravel.mini_scale.range();
+    ravel.phys_scale.domain(s.map(ravel.mini_scale.invert, ravel.mini_scale));
+    if (ravel.zoom_rect) {
+    ravel.zoom_rect.call(ravel.zoom.transform, d3.zoomIdentity
+      .scale(ravel.gantt_width / (s[1] - s[0]))
+      .translate(-1[0], 0));
+    }
+    ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
+  };
     
   ravel.update_cursor = function() {
       // Nothing for now
   };
   
   ravel.handle_click = function (d, i) {
+    return;
     var clicked = d3.mouse(this);
     ravel.cursor.x = clicked[0];
     ravel.cursor.y = clicked[1];
@@ -410,7 +468,7 @@
     ravel.phys_scale.domain([ravel.mini_scale.invert(ravel.cursor.x) - current_range/2.0,
       ravel.mini_scale.invert(ravel.cursor.x) + current_range/2.0]);
 
-    ravel.zoom.x(ravel.phys_scale);
+    //ravel.zoom.x(ravel.phys_scale);
     // Zero out so these don't get re-applied
     ravel.zoom.translate([0, 0]);
     ravel.zoom.scale([1]);
@@ -533,15 +591,15 @@
     var laneLines = ravel.physRects.selectAll('.laneLines')
       .data(ravel.lanes)
       //.attr('x1', d => { return ravel.phys_scale(minExtent); })
-      .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
-      .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; });
+      .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
+      .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; });
 
     laneLines.enter().append('line')
       .attr('phys_scale', 0)
       .attr('x1', 0) // d => { return ravel.phys_scale(minExtent); })
-      .attr('y1', d => { return d3.round(ravel.yphys(d)) + 0.5; })
+      .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
       .attr('x2', ravel.gantt_width)
-      .attr('y2', d => { return d3.round(ravel.yphys(d)) + 0.5; })
+      .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; })
       .attr('class', 'laneLines')
       .attr('stroke', 'lightgray');
 
@@ -626,10 +684,12 @@
   };
 
   ravel.update_overview = function () {
+    /*
     ravel.overview_window
       .attr('x', ravel.mini_scale(ravel.data.starttime))
       .attr('width', ravel.mini_scale(ravel.data.stoptime) -
 	ravel.mini_scale(ravel.data.starttime));
+    */
   }
 
 
