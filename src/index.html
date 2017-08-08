@@ -17,6 +17,7 @@
 </html>
   <script type="text/javascript">
   var ravel = {
+    get_data_state: false,
     data: null,
     items: null,
     lanes: null,
@@ -67,7 +68,6 @@
 	2 * ravel.margin.top - ravel.margin.bottom -
 	ravel.colorBarHeight - ravel.scaleHeight;
     }
-    console.log(ravel.width, ravel.gantt_width, ravel.traditional_height, ravel.traditional_gantt_height);
 
   }; // end ravel.resize
 
@@ -257,17 +257,6 @@
     // draw the x axes on the charts
     ravel.phys_scaleDateAxis = d3.axisBottom(ravel.phys_scale);
     ravel.xAxis = d3.axisBottom(ravel.mini_scale);
-    /*
-    ravel.phys_scaleDateAxis = d3.svg.axis()
-      .scale(ravel.phys_scale)
-      .orient('bottom')
-      .tickSize(6, 0, 0);
-
-    ravel.xAxis = d3.svg.axis()
-      .scale(ravel.mini_scale)
-      .orient('bottom')
-      .tickSize(6, 0, 0);
-    */
     
     ravel.phys_layers = [];
     ravel.phys_comm_layer = null;
@@ -354,7 +343,8 @@
     ravel.traditional.call(ravel.zoom.transform, d3.zoomIdentity
       .scale(ravel.gantt_width / (s[1] - s[0]))
       .translate(-s[0], 0));
-    ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
+    ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
+      Math.round(ravel.phys_scale.domain()[1]));
   };
     
   ravel.update_cursor = function() {
@@ -373,7 +363,6 @@
     ravel.phys_scale.domain([ravel.mini_scale.invert(ravel.cursor.x) - current_range/2.0,
       ravel.mini_scale.invert(ravel.cursor.x) + current_range/2.0]);
 
-    //ravel.zoom.x(ravel.phys_scale);
     // Zero out so these don't get re-applied
     ravel.zoom.translate([0, 0]);
     ravel.zoom.scale([1]);
@@ -385,6 +374,10 @@
 
 
   ravel.get_data = function (start, stop) {
+    if (ravel.get_data_state) {  // quickie perf hack
+      return;
+    }
+    ravel.get_data_state = true;
     $.ajax({
       mimeType: 'text/json; charset=x-user-defined',
       url: '/data',
@@ -400,6 +393,7 @@
       },
       success: function(json) {
 	ravel.update(json.traceinfo);
+	ravel.get_data_state = false;
       }
     });
   };
@@ -461,7 +455,6 @@
     ravel.data = json;
     d3.select('.axis').call(ravel.phys_scaleDateAxis);
     ravel.draw_traditional();
-    ravel.update_overview();
   };
 
 
@@ -496,7 +489,7 @@
 
     var laneLines = ravel.physRects.selectAll('.laneLines')
       .data(ravel.lanes)
-      //.attr('x1', d => { return ravel.phys_scale(minExtent); })
+      .attr('x2', ravel.gantt_width)
       .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
       .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; });
 
@@ -585,18 +578,7 @@
       .attr('class', 'overviewBar');
 
     rects.exit().remove();
-
-    ravel.update_overview();
   };
-
-  ravel.update_overview = function () {
-    /*
-    ravel.overview_window
-      .attr('x', ravel.mini_scale(ravel.data.starttime))
-      .attr('width', ravel.mini_scale(ravel.data.stoptime) -
-	ravel.mini_scale(ravel.data.starttime));
-    */
-  }
 
 
 jQuery(function() {

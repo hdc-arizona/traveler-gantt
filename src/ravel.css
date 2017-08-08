@@ -112,7 +112,7 @@ html, body {
     stroke: black 1px;
 }
 
-.overviewWindow {
+.brush.selection {
     stroke: blue 1px;
     stroke-opacity: 0.8;
     fill: lightblue;
