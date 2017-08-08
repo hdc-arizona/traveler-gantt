@@ -182,7 +182,6 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     std::vector<json> event_slice = std::vector<json>();
     std::vector<json> msg_slice = std::vector<json>();
     std::vector<json> collective_slice = std::vector<json>();
-    event_slice.push_back(std::vector<std::vector<json> >());
     std::vector<std::vector<json> >  parent_slice
         = std::vector<std::vector<json> >();
     parent_slice.push_back(std::vector<json>());

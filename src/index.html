@@ -502,8 +502,7 @@
       .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
       .attr('x2', ravel.gantt_width)
       .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; })
-      .attr('class', 'laneLines')
-      .attr('stroke', 'lightgray');
+      .attr('class', 'laneLines');
 
     laneLines.exit().remove();
   
@@ -520,7 +519,9 @@
 	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
 	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	  d3.max([ravel.phys_scale(d.enter), -10]); });
+	  d3.max([ravel.phys_scale(d.enter), -10]); })
+	.style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
+	  d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
       rects.enter().append('rect')
 	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
@@ -529,6 +530,8 @@
 	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
 	.style('fill', d => { return ravel.parentcolor(layer); })
+	.style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
+	  d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
 	.attr('class', 'parent')
 	.append('svg:title')
 	  .text(d => { return ravel.data.functions[d.function]; });
@@ -537,18 +540,25 @@
     }
 
     // Handle the comm items
+    console.log(ravel.data);
     rects = ravel.phys_comm_event_layer.selectAll('.event')
       .data(ravel.data.events, d => { return d.id; })
       .attr('x', d => { return ravel.phys_scale(d.enter); })
       .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
-      .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); });
+      .attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
+	d3.max([ravel.phys_scale(d.enter), -10]); })
+      .style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
+	d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
     rects.enter().append('rect')
       .attr('x', d => { return ravel.phys_scale(d.enter); })
       .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
-      .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); })
+      .attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
+	d3.max([ravel.phys_scale(d.enter), -10]); })
+      .style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
+	d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
       .attr('class', 'ravel event')
       .append('svg:title')
 	.text(d => { return ravel.data.functions[d.function]; });

@@ -76,6 +76,11 @@ rect {
     stroke-width: 1px;
 }
 
+.laneLines {
+    stroke: lightgray;
+    stroke-width: 1px;
+}
+
 .event {
     stroke: black;
     stroke-width: 1px;
