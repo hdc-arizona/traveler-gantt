@@ -185,77 +185,6 @@
       
       ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
 	Math.round(ravel.phys_scale.domain()[1]));
-
-      return;
-      
-      if (!ravel.middledown) {
-	var t = ravel.zoom.translate();
-	var tx = t[0];
-	var ty = t[1];
-	var average;
-
-	var xphys_minus = ravel.phys_scale.domain()[0];
-	var xphys_plus = ravel.phys_scale.domain()[1];
-	if (xphys_minus < ravel.min_time) {
-	  xphys_minus = ravel.min_time;
-	  ravel.zoom.translate([ravel.min_time, ty]);
-	}
-	if (xphys_plus > ravel.max_time) {
-	  xphys_plus = ravel.max_time;
-	  ravel.zoom.translate([ravel.max_time, ty]);
-	}
-	ravel.phys_scale.domain([xphys_minus, xphys_plus]);
-
-	// If we're not scrolling, force to saved
-	if (ravel.scroll_y) {
-	  ymphys_minus = ravel.yphys.domain()[0];
-	  yphys_plus = ravel.yphys.domain()[1];
-	  if (yphys_minus < ravel.ext[0]) {
-	    yphys_minus = ravel.ext[0];
-	  }
-	  if (yphys_minus > ravel.ext[1] + 1) {
-	    yphys_minus = ravel.ext[1] + 1;
-	  }
-	  if (yphys_plus > ravel.ext[1] + 1) {
-	    yphys_plus = ravel.ext[1] + 1;
-	  }
-	  if (yphys_plus < ravel.ext[0]) {
-	    yphys_plus = ravel.ext[0]
-	  }
-	  if (yphys_plus - yphys_minus < 1) {
-	    average = 0.5 * (yphys_plus + yphys_minus);
-	    if (average < ravel.ext[0]) {
-	      average = 1;
-	    }
-	    if (average > ravel.ext[1] + 1) {
-	      average = ravel.ext[1];
-	    }
-	    yphys_minus = average;
-	    yphys_plus = average + 1.0;
-	  }
-	  if (yphys_plus - yphys_minus > 17) {
-	    average = 0.5 * (yphys_plus + yphys_minus);
-	    yphys_plus = average + 8.5;
-	    yphys_minus = average - 8.5;
-	  }
-	  ravel.yphys.domain([yphys_minus, yphys_plus]);
-	  ravel.saved_yphys = ravel.yphys.domain()
-	} else {
-	  ravel.zoom.translate([tx, 0]);  // Since we're not using y zoom, don't put it in a weird place
-	  ravel.yphys.domain(ravel.saved_yphys);
-	}
-
-	ravel.cursor.x = Math.round(ravel.mini_scale((ravel.phys_scale.domain()[1] + ravel.phys_scale.domain()[0])/2.0))
-	ravel.update_cursor();
-
-      } else { // On middle click revert to saved, middle click is used for something else
-	ravel.phys_scale.domain([ravel.saved_xmain]);
-	ravel.yphys.domain(ravel.saved_yphys);
-	ravel.zoom.translate([0, 0]);
-	ravel.zoom.scale(1);
-      }
-      ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
-	Math.round(ravel.phys_scale.domain()[1]));
     }; // End zoom_function();
 
 
@@ -264,8 +193,6 @@
       .scaleExtent([1, Infinity])
       .translateExtent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
       .extent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
-      //.x(ravel.phys_scale)
-      //.y(ravel.yphys)
       .on('zoom', ravel.zoom_function);
 
     console.log('define brush');
@@ -441,17 +368,15 @@
   };
 
   ravel.gantt_brush_function = function () {
-    return; // Nothing for now
     // ignore brush-by-zoom
-    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; 
+    if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return;
+    if (ravel.gantt_brush_group === undefined) return;
     
     var s = d3.event.selection || ravel.mini_scale.range();
     ravel.phys_scale.domain(s.map(ravel.mini_scale.invert, ravel.mini_scale));
-    if (ravel.zoom_rect) {
     ravel.traditional.call(ravel.zoom.transform, d3.zoomIdentity
       .scale(ravel.gantt_width / (s[1] - s[0]))
-      .translate(-1[0], 0));
-    }
+      .translate(-s[0], 0));
     ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
   };
     

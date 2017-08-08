@@ -127,8 +127,8 @@ html, body {
 }
 
 .brush .extent {
-	stroke: blue;
-	stroke-opacity: 0.8;
-	fill: blue;
-	fill-opacity: .165;
+    stroke: blue 1px;
+    stroke-opacity: 0.9;
+    fill: blue;
+    fill-opacity: .165;
 }
