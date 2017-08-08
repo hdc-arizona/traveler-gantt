@@ -176,8 +176,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
         return jo;
     }
 
-    // Determine min_span of 1 pixel in width
-    unsigned long long a_pixel = (stop - start) / width;
+    // Determine min_span of half a pixel in width
+    unsigned long long a_pixel = (stop - start) / width / 2;
 
     std::vector<json> event_slice = std::vector<json>();
     std::vector<json> msg_slice = std::vector<json>();

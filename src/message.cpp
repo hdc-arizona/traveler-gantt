@@ -45,8 +45,8 @@ void to_json(json& j, const Message& m)
         {"id", m.id},
         {"sendtime", m.sendtime},
         {"recvtime", m.recvtime},
-        {"sender", m.sender->id},
-        {"receiver", m.receiver->id}
+        {"sender_entity", m.sender->entity},
+        {"receiver_entity", m.receiver->entity}
     };
 }
 
@@ -67,8 +67,8 @@ void to_json(json& j, const Message * m)
         {"id", m->id},
         {"sendtime", m->sendtime},
         {"recvtime", m->recvtime},
-        {"sender", m->sender->id},
-        {"receiver", m->receiver->id}
+        {"sender_entity", m->sender->entity},
+        {"receiver_entity", m->receiver->entity}
     };
 }
 

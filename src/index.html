@@ -5,7 +5,7 @@
   <title>Wravel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" type="text/css" href="ravel.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="ravel.css" />
   <script src="//d3js.org/d3.v4.min.js"></script>
   <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
   <script src="split.js"></script>
@@ -259,7 +259,8 @@
     ravel.xAxis = d3.axisBottom(ravel.mini_scale);
     
     ravel.phys_layers = [];
-    ravel.phys_comm_layer = null;
+    ravel.phys_comm_event_layer = null;
+    ravel.phys_comm_message_layer = null;
     
   };  // Ravel vars
  
@@ -300,10 +301,11 @@
       .attr("fill", "white")
       .attr('class', 'mini_background');
     
-    ravel.mini_bars = ravel.mini.append('g');
+    ravel.mini_bars = ravel.mini.append('g')
+      .attr('class', 'overviewBar');
 
     ravel.gantt_brush_group = ravel.mini.append('g')
-      .attr("class", "brush")
+      .attr("class", "ravel brush")
       .call(ravel.gantt_brush)
       .call(ravel.gantt_brush.move, ravel.mini_scale.range());
 
@@ -323,7 +325,8 @@
     for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
       ravel.phys_layers[layer] = ravel.physRects.append('g');
     }
-    ravel.phys_comm_layer = ravel.physRects.append('g');
+    ravel.phys_comm_event_layer = ravel.physRects.append('g');
+    ravel.phys_comm_message_layer = ravel.physRects.append('g');
 
     // Skip text for overview as well as rectangles
     
@@ -392,7 +395,6 @@
 	"width" : ravel.gantt_width
       },
       success: function(json) {
-	console.log(json.traceinfo);
 	ravel.update(json.traceinfo);
 	ravel.get_data_state = false;
       }
@@ -461,7 +463,7 @@
 
 
   ravel.draw_traditional = function () {
-    var rects, labels,
+    var rects, msgs, labels,
       minExtent = ravel.phys_scale.domain()[0],
       maxExtent = ravel.phys_scale.domain()[1],
       minEntity = ravel.yphys.domain()[0] - 1,
@@ -527,7 +529,6 @@
 	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
 	  d3.max([ravel.phys_scale(d.enter), -10]); })
 	.style('fill', d => { return ravel.parentcolor(layer); })
-	.style('stroke', 'black')
 	.attr('class', 'parent')
 	.append('svg:title')
 	  .text(d => { return ravel.data.functions[d.function]; });
@@ -536,22 +537,19 @@
     }
 
     // Handle the comm items
-    rects = ravel.phys_comm_layer.selectAll('.event')
+    rects = ravel.phys_comm_event_layer.selectAll('.event')
       .data(ravel.data.events, d => { return d.id; })
       .attr('x', d => { return ravel.phys_scale(d.enter); })
       .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
-      .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); })
-      .style('fill', 'lightblue'); // TODO, add lateness stuff
+      .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); });
 
     rects.enter().append('rect')
       .attr('x', d => { return ravel.phys_scale(d.enter); })
       .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
       .attr('width', d => { return ravel.phys_scale(d.exit) - ravel.phys_scale(d.enter); })
-      .attr('class', 'event')
-      .style('stroke', 'black')
-      .style('fill', 'lightblue')
+      .attr('class', 'ravel event')
       .append('svg:title')
 	.text(d => { return ravel.data.functions[d.function]; });
 
@@ -561,6 +559,21 @@
     
 
     // Comms
+    msgs = ravel.phys_comm_message_layer.selectAll('.message')
+      .data(ravel.data.messages, d => { return d.id; })
+      .attr('x1', d => { return ravel.phys_scale(d.sendtime); })
+      .attr('x2', d => { return ravel.phys_scale(d.recvtime); })
+      .attr('y1', d => { return ravel.yphys(d.sender_entity + 0.5); })
+      .attr('y2', d => { return ravel.yphys(d.receiver_entity + 0.5); });
+
+    msgs.enter().append('line')
+      .attr('class', 'ravel message')
+      .attr('x1', d => { return ravel.phys_scale(d.sendtime); })
+      .attr('x2', d => { return ravel.phys_scale(d.recvtime); })
+      .attr('y1', d => { return ravel.yphys(d.sender_entity + 0.5); })
+      .attr('y2', d => { return ravel.yphys(d.receiver_entity + 0.5); });
+
+    msgs.exit().remove();
   };
 
   ravel.draw_overview = function () {

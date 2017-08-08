@@ -4,7 +4,7 @@ html, body {
     padding: 0;
 }
 
-.rect {
+rect {
     shape-rendering: crispEdges;
 }
 
@@ -14,23 +14,6 @@ html, body {
 
 .overview {
     width: 100%;
-}
-
-.traditionalf {
-    position: absolute;
-    width: 100%;
-    height: calc(100% - 120px);
-    overflow: auto;
-    background: blue;
-    bottom: 120px;
-}
-
-.overviewf {
-    position: fixed;
-    width: 100%;
-    height: 120px;
-    background: red;
-    bottom: 0;
 }
 
 .split {
@@ -69,51 +52,49 @@ html, body {
 }
 
 .mini text {
-	font: 9px sans-serif;	
+    font: 9px sans-serif;	
 }
 
 .main text {
-	font: 10px sans-serif;	
+    font: 10px sans-serif;	
 }
 
 .detail text {
-	font: 10px sans-serif;
+    font: 10px sans-serif;
 }
 
 .old text {
-	font: 10px sans-serif;
-}
-
-
-.month text {
-	text-anchor: start;
+    font: 10px sans-serif;
 }
 
 .axis line, .axis path {
-	stroke: black;
-}
-
-.miniItem {
-	stroke-width: 6;	
-}
-
-.future {
-	stroke: gray;
-	fill: #ddd;
-}
-
-.rect4 {
-	stroke: green;
-	fill: lightgreen;
-	shape-rendering: crispEdges;
+    stroke: black;
 }
 
 .overviewBar {
-    stroke: black 1px;
+    stroke: black;
+    stroke-width: 1px;
 }
 
-.brush.selection {
-    stroke: blue 1px;
+.event {
+    stroke: black;
+    stroke-width: 1px;
+    fill: lightblue;
+}
+
+.parent {
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.message {
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.brush .selection {
+    stroke: lightblue;
+    stroke-width: 1px;
     stroke-opacity: 0.8;
     fill: lightblue;
     fill-opacity: 0.6;
@@ -126,9 +107,3 @@ html, body {
     fill-opacity: .25;
 }
 
-.brush .extent {
-    stroke: blue 1px;
-    stroke-opacity: 0.9;
-    fill: blue;
-    fill-opacity: .165;
-}
