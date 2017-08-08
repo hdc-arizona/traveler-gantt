@@ -328,6 +328,10 @@
     ravel.phys_comm_event_layer = ravel.physRects.append('g');
     ravel.phys_comm_message_layer = ravel.physRects.append('g');
 
+
+    // Find out text sizes
+    ravel.traditional_font_metrics = ravel.get_text_size(ravel.traditional, 'traditional');
+
     // Skip text for overview as well as rectangles
     
     ravel.update_cursor();
@@ -335,6 +339,29 @@
     ravel.draw_traditional();
     ravel.draw_overview();
   };
+
+  ravel.get_text_size = function (svg, font_class) {
+    var test_font = svg.selectAll('.test-font')
+      .data(['g'])
+      .enter()
+      .append('text');
+
+    test_font
+      .attr('id', 'ravel-test-font')
+      .attr('class', font_class)
+      .text(d => { return d; })
+      .attr('x', -100)
+      .attr('y', -100);
+
+    var bbox = document.getElementById('ravel-test-font').getBoundingClientRect();
+ 
+    test_font.remove();
+
+    return {
+      width: bbox.width,
+      height: bbox.height
+    };
+  }
 
   ravel.gantt_brush_function = function () {
     // ignore brush-by-zoom
@@ -460,6 +487,38 @@
     ravel.draw_traditional();
   };
 
+  // We will draw the labels once off screen to find out their size
+  // Then we will update them based on their size and put them into the
+  // correct place
+
+  ravel.filter_traditional_labels = function (previous_labels) {
+    var labels = [];
+    var multiplier = 10;
+
+    // We are not updating 
+    if (previous_labels === []) {
+      var physLanesText = physLanes.selectAll('.laneText');
+      console.log(physLanesText);
+      // recalculate multiplier here to guess pixels per text
+
+      for (var i = 0; i < ravel.data.events.length; i++) {
+        var evt = ravel.data.events[i];
+        var visible_width = d3.min([ravel.phys_scale(d.exit), ravel.gantt_width]) -
+  	  d3.max([ravel.phys_scale(d.enter), 0]);
+      }
+    
+    // We are tweaking
+    } else {
+      for (var j = 0; j < previous_labels.length; j++) {
+	var label = previous_labels[j];
+      }
+    
+    }
+
+    
+
+    return labels;
+  }
 
 
   ravel.draw_traditional = function () {
@@ -566,7 +625,7 @@
     rects.exit().remove();
       
     // Labels
-    
+    //label_events = ravel.filter_traditional_labels(); 
 
     // Comms
     msgs = ravel.phys_comm_message_layer.selectAll('.message')
