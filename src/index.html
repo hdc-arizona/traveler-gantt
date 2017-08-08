@@ -53,7 +53,7 @@
   };
 
   ravel.calc_window_sizes = function () {
-    ravel.full_mini_height = ravel.miniHeight + ravel.scaleHeight + ravel.margin.top + ravel.margin.bottom;
+    ravel.full_mini_height = ravel.miniHeight + ravel.scaleHeight + ravel.margin.top;
     ravel.width = d3.select('#traditional-div').node().offsetWidth - 5;
     ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
     ravel.full_height = $(document).height() - $('body').offset().top;
@@ -129,7 +129,9 @@
   }
 
   var init_ravel = function() {
+    console.log('init ravel');
     ravel.calc_window_sizes();
+    console.log('done calc window sizes');
     var overview_per = ( (ravel.full_mini_height + 5) / ravel.full_height) * 100;
     var trad_per = 100 - overview_per;
     console.log(trad_per, overview_per);
@@ -171,14 +173,15 @@
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
+    console.log('define zoom function');
     ravel.zoom_function = function () {
       // ignore zoom-by-brush
       if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return;
 
       var t = d3.event.transform;
       ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
-      //ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
-	//ravel.phys_scale.range().map(t.invertX, t));
+      ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
+	ravel.phys_scale.range().map(t.invertX, t));
       
       ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
 	Math.round(ravel.phys_scale.domain()[1]));
@@ -256,6 +259,7 @@
     }; // End zoom_function();
 
 
+    console.log('define zoom');
     ravel.zoom = d3.zoom()
       .scaleExtent([1, Infinity])
       .translateExtent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
@@ -264,11 +268,11 @@
       //.y(ravel.yphys)
       .on('zoom', ravel.zoom_function);
 
-    /*
+    console.log('define brush');
     ravel.gantt_brush = d3.brushX()
-      .extent([0, 0], [ravel.gantt_width, ravel.miniHeight])
+      .extent([[0, 0], [ravel.gantt_width, ravel.miniHeight]])
       .on("brush end", ravel.gantt_brush_function);
-    */
+    console.log('ravel brush extent', ravel.gantt_brush.extent()());
 
     ravel.traditional = d3.select('#traditional-div')
       .append('svg:svg')
@@ -351,7 +355,7 @@
   };  // Ravel vars
  
   ravel.init_display = function () {
-
+    console.log('init display');
     ravel.min_time = ravel.data.mintime;
     ravel.max_time = ravel.data.maxtime;
     ravel.max_step = 0;
@@ -363,21 +367,10 @@
     ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
     ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
     ravel.mini_y_scale.domain([0, d3.max(ravel.data.overview)]);
-    //ravel.zoom.x(ravel.phys_scale);
-    ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
-    ravel.zoom.translateTo(ravel.traditional, 0, 0);
+    console.log('update axes');
     ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
     ravel.xAxis.scale(ravel.mini_scale);
 
-    ravel.ext = d3.extent(ravel.lanes);
-    ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
-    ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
-    //ravel.zoom.y(ravel.yphys);
-    ravel.saved_xmain = [0, 0];
-    ravel.saved_yphys = ravel.yphys.domain();
-    //var saved_step = step_scale.domain();
-    ravel.saved_stepscale = 1;
-    ravel.saved_lanescale = 1;
 
     // Skipping middle-click drag for now 
     ravel.phys_axis = ravel.phys.append('g')
@@ -402,19 +395,28 @@
     
     ravel.mini_bars = ravel.mini.append('g');
 
-/*
     ravel.gantt_brush_group = ravel.mini.append('g')
       .attr("class", "brush")
       .call(ravel.gantt_brush)
       .call(ravel.gantt_brush.move, ravel.mini_scale.range());
-*/
-    /*
-    ravel.zoom_rect = ravel.traditional.append("rect")
-      .attr("class", "zoom")
-      .attr("width", ravel.traditional_gantt_width)
-      .attr("height", ravel.traditional_gantt_height)
-      .call(ravel.zoom);
-*/
+
+
+
+    //ravel.zoom.x(ravel.phys_scale);
+    console.log('update zoom');
+    ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
+    ravel.zoom.translateTo(ravel.traditional, 0, 0);
+
+    ravel.ext = d3.extent(ravel.lanes);
+    ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
+    ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
+    //ravel.zoom.y(ravel.yphys);
+    ravel.saved_xmain = [0, 0];
+    ravel.saved_yphys = ravel.yphys.domain();
+    //var saved_step = step_scale.domain();
+    ravel.saved_stepscale = 1;
+    ravel.saved_lanescale = 1;
+
     /*
     ravel.overview_window = ravel.mini.append('rect')
       .attr('x', ravel.mini_scale(ravel.data.starttime))
@@ -439,13 +441,14 @@
   };
 
   ravel.gantt_brush_function = function () {
+    return; // Nothing for now
     // ignore brush-by-zoom
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; 
     
     var s = d3.event.selection || ravel.mini_scale.range();
     ravel.phys_scale.domain(s.map(ravel.mini_scale.invert, ravel.mini_scale));
     if (ravel.zoom_rect) {
-    ravel.zoom_rect.call(ravel.zoom.transform, d3.zoomIdentity
+    ravel.traditional.call(ravel.zoom.transform, d3.zoomIdentity
       .scale(ravel.gantt_width / (s[1] - s[0]))
       .translate(-1[0], 0));
     }
