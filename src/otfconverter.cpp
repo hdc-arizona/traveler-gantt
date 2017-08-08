@@ -40,6 +40,7 @@ OTFConverter::OTFConverter()
       trace(NULL), 
       max_depth(0), 
       globalID(0),
+      globalMessageID(0),
       last_init(0),
       last_finalize(0),
       initFunction(-1),
@@ -291,6 +292,7 @@ void OTFConverter::matchEvents()
                                                     crec->group);
                         crec->message->tag = crec->tag;
                         crec->message->size = crec->size;
+                        crec->message->setID(globalMessageID++);
                     }
                     msgs->push_back(crec->message);
                     crec->message->sender = new P2PEvent(bgn->time, (*evt)->time,
@@ -327,6 +329,7 @@ void OTFConverter::matchEvents()
                                                         crec->group);
                             crec->message->tag = crec->tag;
                             crec->message->size = crec->size;
+                            crec->message->setID(globalMessageID++);
                         }
                         msgs->push_back(crec->message);
                         rindex++;

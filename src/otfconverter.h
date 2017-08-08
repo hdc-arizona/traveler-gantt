@@ -42,6 +42,7 @@ private:
     Trace * trace;
     int max_depth;
     unsigned long long globalID;
+    unsigned long long globalMessageID;
     unsigned long long last_init;
     unsigned long long last_finalize;
     int initFunction;

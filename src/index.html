@@ -392,6 +392,7 @@
 	"width" : ravel.gantt_width
       },
       success: function(json) {
+	console.log(json.traceinfo);
 	ravel.update(json.traceinfo);
 	ravel.get_data_state = false;
       }

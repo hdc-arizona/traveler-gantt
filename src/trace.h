@@ -77,6 +77,8 @@ private:
                          unsigned long long entities,
                          unsigned long long min_span,
                          std::vector<json>& slice,
+                         std::vector<json>& msg_slice,
+                         std::vector<json>& collective_slice,
                          std::vector<std::vector<json> >& parent_slice,
                          std::map<std::string, std::string>& function_names);
     json timeOverview(unsigned long width);

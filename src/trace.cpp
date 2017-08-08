@@ -18,6 +18,7 @@
 #include "ravelutils.h"
 #include "primaryentitygroup.h"
 #include "metrics.h"
+#include "message.h"
 
 Trace::Trace(int nt, int np)
     : name(""),
@@ -178,7 +179,9 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     // Determine min_span of 1 pixel in width
     unsigned long long a_pixel = (stop - start) / width;
 
-    std::vector<json>  event_slice = std::vector<json>();
+    std::vector<json> event_slice = std::vector<json>();
+    std::vector<json> msg_slice = std::vector<json>();
+    std::vector<json> collective_slice = std::vector<json>();
     event_slice.push_back(std::vector<std::vector<json> >());
     std::vector<std::vector<json> >  parent_slice
         = std::vector<std::vector<json> >();
@@ -192,7 +195,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
              root != roots->at(entity)->end(); ++root)
         {
             timeEventToJSON(*root, 0, start, stop, entity_start, entities,
-                            a_pixel, event_slice, parent_slice, function_names);
+                            a_pixel, event_slice, msg_slice, collective_slice,
+                            parent_slice, function_names);
         }
     }
 
@@ -200,6 +204,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     // Should autoconvert from std::vector and std::map to json
     jo["events"] = event_slice;
     jo["parent_events"] = parent_slice;
+    jo["messages"] = msg_slice;
+    jo["collectives"] = collective_slice;
     jo["functions"] = function_names;
 
     return jo;
@@ -209,6 +215,8 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span,
     std::vector<json>& slice,
+    std::vector<json>& msg_slice,
+    std::vector<json>& collective_slice,
     std::vector<std::vector<json> >& parent_slice,
     std::map<std::string, std::string>& function_names)
 {
@@ -230,9 +238,22 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
         json jevt(evt);
         function_names.insert(std::pair<std::string, std::string>(std::to_string(evt->function), 
                                                                   functions->at(evt->function)->name));
-        if (evt->isCommEvent()) {
+        if (evt->isCommEvent()) 
+        {
             slice.push_back(jevt);
-        } else {
+            std::vector<Message *> * messages = static_cast<CommEvent *>(evt)->getMessages();
+            for (std::vector<Message *>::iterator msg = messages->begin();
+                msg != messages->end(); ++msg)
+            {
+                if ((*msg)->sendtime < start || !evt->isReceive()) 
+                {
+                    json jmsg(*msg);
+                    msg_slice.push_back(jmsg);
+                }
+            }
+        } 
+        else 
+        {
             parent_slice.at(depth).push_back(jevt);
         }
 
@@ -241,7 +262,8 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
             child != evt->callees->end(); ++child)
         {
             timeEventToJSON(*child, depth + 1, start, stop, entity_start,
-                            entities, min_span, slice, parent_slice, 
+                            entities, min_span, slice, msg_slice, 
+                            collective_slice, parent_slice, 
                             function_names);
         }
     }
