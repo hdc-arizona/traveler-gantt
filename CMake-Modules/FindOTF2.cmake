@@ -1,11 +1,11 @@
-find_path(OTF2_INCLUDE_DIRS otf2/otf2.h
-    $ENV{HOME}/opt/include
-    /usr/opt/otf2/include
+find_path(OTF2_INCLUDE_DIRS 
+    NAMES otf2/otf2.h
+    PATHS $ENV{HOME}/opt/include /usr/opt/otf2/include
 )
 
-find_library(OTF2_LIBRARIES otf2
-    $ENV{HOME}/opt/lib
-    /usr/opt/otf2/lib
+find_library(OTF2_LIBRARIES 
+    NAMES libotf2
+    PATHS $ENV{HOME}/opt/lib/ /usr/opt/otf2/lib
 )
 
 

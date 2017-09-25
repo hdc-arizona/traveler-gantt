@@ -15,10 +15,9 @@ operation compared to its peers at the same logical timestep.
 
 Installation
 ------------
-Ravel depends on:
+Ravel without its GUI depends on:
 - [Open Trace Format version 2 1.4+](http://www.vi-hps.org/projects/score-p/)
-- [Qt5+](http://www.qt.io/download/)
-- [Muster 1.0.1+](https://github.com/scalability-llnl/muster)
+- [nlohmann's json](http://github.com/nlohmann/json)
 - (Install only) [cmake 2.8.9+](http://www.cmake.org/download/)
 - (Optional) [Open Trace Format 1.12+](http://tu-dresden.de/die_tu_dresden/zentrale_einrichtungen/zih/forschung/projekte/otf/index_html/document_view?set_language=en)
 
