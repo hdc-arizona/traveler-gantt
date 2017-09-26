@@ -13,7 +13,7 @@
 #include "trace.h"
 #include "importfunctor.h"
 #include "external/mongoose.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 

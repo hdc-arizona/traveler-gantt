@@ -5,7 +5,7 @@ find_path(OTF_INCLUDE_DIRS
 
 find_library(
   OTF_LIBRARIES 
-  NAMES libotf libopen-trace-format
+  NAMES otf open-trace-format
   PATHS $ENV{HOME}/opt/lib)
 
 find_package_handle_standard_args(

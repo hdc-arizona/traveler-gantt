@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 #include <otf2/otf2.h>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 class Function;
 class Metrics;

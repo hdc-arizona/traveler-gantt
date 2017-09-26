@@ -1,7 +1,7 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 class P2PEvent;
 class CommEvent;

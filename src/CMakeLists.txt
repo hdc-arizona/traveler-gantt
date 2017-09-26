@@ -1,7 +1,7 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 11)
 
-find_package(OTF)
+#find_package(OTF)
 find_package(OTF2 REQUIRED)
 find_package(ZLIB REQUIRED)
 
@@ -17,12 +17,12 @@ include_directories(${OTF2_INCLUDE_DIRS}
 SET(ADDED_SOURCES "")
 SET(ADDED_HEADERS "")
 
-if (OTF_FOUND)
-    include_directories(${OTF_INCLUDE_DIRS})
-    add_definitions(-DOTF1LIB)
-    list(APPEND ADDED_HEADERS otfimporter.h)
-    list(APPEND ADDED_SOURCES otfimporter.cpp)
-endif()
+#if (OTF_FOUND)
+#    include_directories(${OTF_INCLUDE_DIRS})
+#    add_definitions(-DOTF1LIB)
+#    list(APPEND ADDED_HEADERS otfimporter.h)
+#    list(APPEND ADDED_SOURCES otfimporter.cpp)
+#endif()
 
 # Sources and UI Files
 set(Ravel_SOURCES
@@ -97,10 +97,10 @@ target_link_libraries(Ravel
                       ${ZLIB_LIBRARIES}
                      )
 
-if (OTF_FOUND)
-    target_link_libraries(Ravel
-                          ${OTF_LIBRARIES}
-                         )
-endif()
+#if (OTF_FOUND)
+#    target_link_libraries(Ravel
+#                          ${OTF_LIBRARIES}
+#                         )
+#endif()
 
 install(TARGETS Ravel DESTINATION bin)
