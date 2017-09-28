@@ -492,31 +492,18 @@
   // Then we will update them based on their size and put them into the
   // correct place
 
-  ravel.filter_traditional_labels = function (previous_labels) {
+  ravel.filter_traditional_labels = function (events) {
     var labels = [];
-    var multiplier = 10;
+    var multiplier = ravel.traditional_font_metrics.width;
 
-    // We are not updating 
-    if (previous_labels === []) {
-      var physLanesText = physLanes.selectAll('.laneText');
-      console.log(physLanesText);
-      // recalculate multiplier here to guess pixels per text
-
-      for (var i = 0; i < ravel.data.events.length; i++) {
-        var evt = ravel.data.events[i];
-        var visible_width = d3.min([ravel.phys_scale(d.exit), ravel.gantt_width]) -
-  	  d3.max([ravel.phys_scale(d.enter), 0]);
+    for (var i = 0; i < events.length; i++) {
+      var evt = events[i];
+      var visible_width = d3.min([ravel.phys_scale(evt.exit), ravel.gantt_width]) -
+	d3.max([ravel.phys_scale(evt.enter), 0]);
+      if (visible_width > multiplier * ravel.data.functions[evt.function].length) {
+	labels.push(evt);
       }
-    
-    // We are tweaking
-    } else {
-      for (var j = 0; j < previous_labels.length; j++) {
-	var label = previous_labels[j];
-      }
-    
     }
-
-    
 
     return labels;
   }
