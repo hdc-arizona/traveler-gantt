@@ -232,6 +232,8 @@
 
     // draw the items for the main view, use a clip-path for the ones that
     // are slightly outside of our drawing area
+    ravel.physLaneLines = ravel.phys.append('g')
+      .attr('clip-path', 'url(#clip)');
     ravel.physRects = ravel.phys.append('g')
       .attr('clip-path', 'url(#clip)');
 
@@ -322,7 +324,7 @@
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
-    for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
+    for (var layer = 0; layer < ravel.data.max_depth; layer++) {
       ravel.phys_layers[layer] = ravel.physRects.append('g');
     }
     ravel.phys_comm_event_layer = ravel.physRects.append('g');
@@ -548,7 +550,7 @@
       .attr('text-anchor', 'start')
       .attr('class', 'laneText'); // TODO: More CSS
 
-    var laneLines = ravel.physRects.selectAll('.laneLines')
+    var laneLines = ravel.physLaneLines.selectAll('.laneLines')
       .data(ravel.lanes)
       .attr('x2', ravel.gantt_width)
       .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
@@ -654,7 +656,7 @@
     } else {
       ravel.traditional_label_events = [];
     }
-    labels = current_depth.selectAll('.evtText')
+    labels = ravel.phys_comm_event_layer.selectAll('.evtText')
       .data(ravel.traditional_label_events, d => { return d.id; })
       .attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
       .attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; });

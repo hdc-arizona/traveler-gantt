@@ -225,12 +225,6 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
         return;
     }
 
-    // Make sure we have a vector at this depth
-    if (depth >= parent_slice.size())
-    {
-        parent_slice.push_back(std::vector<json>());
-    }
-
     // Add the event
     if ((evt->exit - evt->enter) > min_span)
     {
@@ -270,6 +264,12 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
         } 
         else 
         {
+            // Make sure we have a vector at this depth
+            if (depth >= parent_slice.size())
+            {
+                parent_slice.push_back(std::vector<json>());
+            }
+
             parent_slice.at(depth).push_back(jevt);
         }
 

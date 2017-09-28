@@ -33,10 +33,9 @@ public:
     }
 
     // For timing information
-    static void gu_printTime(double nanos, std::string label)
+    static void gu_printTime(double seconds, std::string label)
     {
         std::cout << label.c_str();
-        double seconds = nanos * 1e-9;
         if (seconds < 300)
         {
             std::cout << seconds << " seconds " << std::endl;
