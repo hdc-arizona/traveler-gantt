@@ -239,15 +239,32 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
                                                                   functions->at(evt->function)->name));
         if (evt->isCommEvent()) 
         {
-            slice.push_back(jevt);
-            std::vector<Message *> * messages = static_cast<CommEvent *>(evt)->getMessages();
-            for (std::vector<Message *>::iterator msg = messages->begin();
-                msg != messages->end(); ++msg)
+            CommEvent * cevt = static_cast<CommEvent *>(evt);
+            json jevt(cevt);
+            /*if (cevt->hasMetric(metric)) 
             {
-                if ((*msg)->sendtime < start || !evt->isReceive()) 
+                jevt["metrics"] = { cevt->getMetric(metric), cevt->getMetric(metric, true) };
+            }
+            if (cevt->isP2P())
+            {
+                P2PEvent * pevt = static_cast<P2PEvent *>(cevt);
+                if (pevt->subevents != NULL)
                 {
-                    json jmsg(*msg);
-                    msg_slice.push_back(jmsg);
+                    jevt["coalesced"] = 1;
+                }
+            }
+            */
+            slice.push_back(jevt);
+            std::vector<Message *> * messages = cevt->getMessages();
+            if (messages != NULL) {
+                for (std::vector<Message *>::iterator msg = messages->begin();
+                    msg != messages->end(); ++msg)
+                {
+                    if ((*msg)->sendtime < start || !evt->isReceive()) 
+                    {
+                        json jmsg(*msg);
+                        msg_slice.push_back(jmsg);
+                    }
                 }
             }
         } 
@@ -260,6 +277,8 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
         for (std::vector<Event *>::iterator child = evt->callees->begin();
             child != evt->callees->end(); ++child)
         {
+            if ((*child)->enter > stop)
+                break;
             timeEventToJSON(*child, depth + 1, start, stop, entity_start,
                             entities, min_span, slice, msg_slice, 
                             collective_slice, parent_slice, 
@@ -273,7 +292,7 @@ json Trace::timeOverview(unsigned long width)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
     std::vector<unsigned long long> pixels = std::vector<unsigned long long>();
-    std::cout << "width is " << width << " and start " << last_init << " and stop " << last_finalize << std::endl;
+    //std::cout << "width is " << width << " and start " << last_init << " and stop " << last_finalize << std::endl;
     for (unsigned long i = 0; i <= width; i++)
     {
         pixels.push_back(0);

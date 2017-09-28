@@ -328,7 +328,6 @@
     ravel.phys_comm_event_layer = ravel.physRects.append('g');
     ravel.phys_comm_message_layer = ravel.physRects.append('g');
 
-
     // Find out text sizes
     ravel.traditional_font_metrics = ravel.get_text_size(ravel.traditional, 'traditional');
 
@@ -596,12 +595,34 @@
 	  .text(d => { return ravel.data.functions[d.function]; });
 
       rects.exit().remove();
+
+      if (ravel.traditional_font_metrics.height + 4 < barHeight) {
+	ravel.traditional_label_events = ravel.filter_traditional_labels(
+	  ravel.data.parent_events[layer]
+	);
+      } else {
+	ravel.traditional_label_events = [];
+      }
+      labels = current_depth.selectAll('.evtText')
+	.data(ravel.traditional_label_events, d => { return d.id; })
+	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
+	.attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; });
+
+      labels.enter().append('text')
+	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
+	.attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; })
+	.attr('class', 'ravel evtText')
+	.text(d => { return ravel.data.functions[d.function]; });
+
+      labels.exit().remove();
+
     }
 
     // Handle the comm items
-    console.log(ravel.data);
+    //console.log(ravel.data);
+    var traditional_comm_items = ravel.data.events.filter(d => { return !d.hasOwnProperty("coalesced"); });
     rects = ravel.phys_comm_event_layer.selectAll('.event')
-      .data(ravel.data.events, d => { return d.id; })
+      .data(traditional_comm_items, d => { return d.id; })
       .attr('x', d => { return ravel.phys_scale(d.enter); })
       .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
@@ -626,6 +647,26 @@
       
     // Labels
     //label_events = ravel.filter_traditional_labels(); 
+    if (ravel.traditional_font_metrics.height + 4 < barHeight) {
+      ravel.traditional_label_events = ravel.filter_traditional_labels(
+        traditional_comm_items
+      );
+    } else {
+      ravel.traditional_label_events = [];
+    }
+    labels = current_depth.selectAll('.evtText')
+      .data(ravel.traditional_label_events, d => { return d.id; })
+      .attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
+      .attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; });
+
+    labels.enter().append('text')
+      .attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
+      .attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; })
+      .attr('class', 'ravel evtText')
+      .text(d => { return ravel.data.functions[d.function]; });
+
+    labels.exit().remove();
+
 
     // Comms
     msgs = ravel.phys_comm_message_layer.selectAll('.message')
