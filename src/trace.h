@@ -71,7 +71,7 @@ public:
 
 private:
     bool isProcessed; // Partitions exist
-
+/*
     void timeEventToJSON(Event * evt, int depth,
                          unsigned long long start, unsigned long long stop,
                          unsigned long long entity_start,
@@ -83,7 +83,7 @@ private:
                          std::vector<std::vector<json> >& parent_slice,
                          std::map<std::string, std::string>& function_names);
     json timeOverview(unsigned long width);
-
+*/
     static const bool debug = false;
     static const int partition_portion = 25;
     static const int lateness_portion = 45;

@@ -60,7 +60,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
       //j["debug"] = 0;
   }
 
-  mg_printf_http_chunk(nc, j.dump().c_str());
+  //mg_printf_http_chunk(nc, j.dump().c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 
