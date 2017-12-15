@@ -1,13 +1,12 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include <nlohmann/json.hpp>
+//#include <nlohmann/json.hpp>
 
 class P2PEvent;
 class CommEvent;
 
-using json = nlohmann::json;
-
+//using json = nlohmann::json;
 
 // Holder of message info
 class Message
@@ -36,9 +35,11 @@ public:
     bool operator==(const Message &);
 };
 
+/*
 void to_json(json& j, const Message& e);
 //void from_json(const json& j, Message& e);
 void to_json(json& j, const Message * e);
 //void from_json(const json& j, Message * e);
+*/
 
 #endif // MESSAGE_H

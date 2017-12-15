@@ -39,6 +39,7 @@ CommEvent * Message::getDesignee()
     return sender;
 }
 
+/*
 void to_json(json& j, const Message& m)
 {
     j = json{
@@ -49,8 +50,9 @@ void to_json(json& j, const Message& m)
         {"receiver_entity", m.receiver->entity}
     };
 }
+*/
 
-/*
+/* commented pre-rostam
 void from_json(const json& j, Message& m)
 {
     m.id = j.at("id").get<unsigned long long>();
@@ -61,6 +63,7 @@ void from_json(const json& j, Message& m)
 }
 */
 
+/*
 void to_json(json& j, const Message * m)
 {
     j = json{
@@ -71,8 +74,9 @@ void to_json(json& j, const Message * m)
         {"receiver_entity", m->receiver->entity}
     };
 }
+*/
 
-/*
+/* commented pre-rostam
 void from_json(const json& j, Message * m)
 {
     m->id = j.at("id").get<unsigned long long>();

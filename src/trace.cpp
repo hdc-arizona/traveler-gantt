@@ -154,7 +154,7 @@ Event * Trace::findEvent(int entity, unsigned long long time)
 
     return found;
 }
-
+/*
 json Trace::timeToJSON(unsigned long long start, unsigned long long stop, 
                        unsigned long long entity_start,
                        unsigned long long entities,
@@ -235,19 +235,18 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
         {
             CommEvent * cevt = static_cast<CommEvent *>(evt);
             json jevt(cevt);
-            /*if (cevt->hasMetric(metric)) 
-            {
-                jevt["metrics"] = { cevt->getMetric(metric), cevt->getMetric(metric, true) };
-            }
-            if (cevt->isP2P())
-            {
-                P2PEvent * pevt = static_cast<P2PEvent *>(cevt);
-                if (pevt->subevents != NULL)
-                {
-                    jevt["coalesced"] = 1;
-                }
-            }
-            */
+            //if (cevt->hasMetric(metric)) 
+            //{
+            //    jevt["metrics"] = { cevt->getMetric(metric), cevt->getMetric(metric, true) };
+           // }
+           // if (cevt->isP2P())
+           // {
+           //     P2PEvent * pevt = static_cast<P2PEvent *>(cevt);
+           //     if (pevt->subevents != NULL)
+           //     {
+           //         jevt["coalesced"] = 1;
+           //     }
+           // }
             slice.push_back(jevt);
             std::vector<Message *> * messages = cevt->getMessages();
             if (messages != NULL) {
@@ -339,3 +338,4 @@ json Trace::initJSON(unsigned long width)
 
     return jo;
 }
+*/

@@ -9,9 +9,9 @@
 #include <memory>
 #include <ctime>
 #include <stdint.h>
-#include <nlohmann/json.hpp>
+//#include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+//using json = nlohmann::json;
 
 class Event;
 class CommEvent;
@@ -29,12 +29,13 @@ public:
 
     void preprocess();
     Event * findEvent(int entity, unsigned long long time);
+/*
     json timeToJSON(unsigned long long start, unsigned long long stop,
                     unsigned long long entity_start,
                     unsigned long long entities,
                     unsigned long width);
     json initJSON(unsigned long width);
-
+*/
     std::string name;
     std::string fullpath;
     int num_entities;
