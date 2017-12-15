@@ -154,7 +154,7 @@ Event * Trace::findEvent(int entity, unsigned long long time)
 
     return found;
 }
-/*
+
 json Trace::timeToJSON(unsigned long long start, unsigned long long stop, 
                        unsigned long long entity_start,
                        unsigned long long entities,
@@ -338,4 +338,3 @@ json Trace::initJSON(unsigned long width)
 
     return jo;
 }
-*/

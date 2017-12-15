@@ -4,12 +4,12 @@
 #include <vector>
 #include <string>
 #include <otf2/otf2.h>
-//#include <nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 class Function;
 class Metrics;
 
-//using json = nlohmann::json;
+using json = nlohmann::json;
 
 class Event
 {
@@ -57,11 +57,9 @@ public:
     Metrics * metrics; // Lateness or Counters etc
 };
 
-/*
 void to_json(json& j, const Event& e);
 void from_json(const json& j, Event& e);
 void to_json(json& j, const Event * e);
 void from_json(const json& j, Event * e);
-*/
 
 #endif // EVENT_H

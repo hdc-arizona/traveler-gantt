@@ -127,7 +127,6 @@ void Event::addMetric(std::string name, double event_value)
     metrics->addMetric(name, event_value);
 }
 
-/*
 void to_json(json& j, const Event& e)
 {
     j = json{
@@ -167,4 +166,3 @@ void from_json(const json& j, Event * e)
     e->function = j.at("function").get<int>();
     e->entity = j.at("entity").get<unsigned long>();
 }
-*/

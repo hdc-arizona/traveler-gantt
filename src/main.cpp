@@ -14,15 +14,15 @@
 #include "importfunctor.h"
 #include <cstdio>
 #include "external/mongoose.h"
-//#include <nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
-//using json = nlohmann::json;
+using json = nlohmann::json;
 
 static const char *s_http_port = "8000";
 static struct mg_serve_http_opts s_http_server_opts;
 
 Trace * trace = NULL;
-//json j;
+json j;
 
 static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
   char command[100];
@@ -44,26 +44,24 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
 
-/*
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
                                        std::stoull(stop), 
                                        std::stoull(entity_start),
                                        std::stoull(entities),
                                        std::stoul(width));
-*/
   }
   else if (strncmp(command, "load", 4) == 0)
   {
     char width[100];
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    //j["traceinfo"] = trace->initJSON(std::stoul(width));
+    j["traceinfo"] = trace->initJSON(std::stoul(width));
   }
   else
   {
-      //j["debug"] = 0;
+      j["debug"] = 0;
   }
 
-  //mg_printf_http_chunk(nc, j.dump().c_str());
+  mg_printf_http_chunk(nc, j.dump().c_str());
   mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 
