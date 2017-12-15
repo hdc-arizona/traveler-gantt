@@ -4,7 +4,7 @@ find_path(OTF2_INCLUDE_DIRS
 )
 
 find_library(OTF2_LIBRARIES 
-    NAMES libotf2.a libotf2.so otf2
+    NAMES libotf2.so libotf2.a otf2
     PATHS $ENV{HOME}/opt/lib/ /usr/opt/otf2/lib
 )
 

@@ -3,7 +3,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 #find_package(OTF)
 find_package(OTF2 REQUIRED)
-find_package(ZLIB REQUIRED)
+#find_package(ZLIB REQUIRED)
+#find_package(JSON REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMG_ENABLE_THREADS -DMG_ENABLE_HTTP_WEBSOCKET=0 -pthread")
 
@@ -11,7 +12,8 @@ set(CMAKE_AUTOMOC ON)
 
 # Includes, Definitions, Flags
 include_directories(${OTF2_INCLUDE_DIRS}
-                    ${ZLIB_INCLUDE_DIRS}
+#                    ${ZLIB_INCLUDE_DIRS}
+#		    ${JSON_INCLUDE_DIRS}
                    )
 
 SET(ADDED_SOURCES "")
@@ -93,8 +95,10 @@ set_source_Files_properties(${Ravel_STATIC_FILES} PROPERTIES
     MACOSX_PACKAGE_LOCATION MacOS)
 
 target_link_libraries(Ravel
+		      m
+	              pthread
                       ${OTF2_LIBRARIES}
-                      ${ZLIB_LIBRARIES}
+                      #${ZLIB_LIBRARIES}
                      )
 
 #if (OTF_FOUND)
