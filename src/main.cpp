@@ -12,6 +12,7 @@
 #include <sstream>
 #include "trace.h"
 #include "importfunctor.h"
+#include <cstdio>
 //#include "external/mongoose.h"
 //#include <nlohmann/json.hpp>
 
