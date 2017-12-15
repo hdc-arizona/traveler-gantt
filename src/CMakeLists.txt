@@ -78,6 +78,7 @@ set(Ravel_HEADERS
     rawtrace.h
     trace.h
     external/mongoose.h
+#   nlohmann/json.hpp
     ${ADDED_HEADERS}
 )
 
