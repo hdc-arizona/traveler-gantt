@@ -13,37 +13,37 @@
 #include "trace.h"
 #include "importfunctor.h"
 #include <cstdio>
-//#include "external/mongoose.h"
+#include "external/mongoose.h"
 //#include <nlohmann/json.hpp>
 
 //using json = nlohmann::json;
 
-//static const char *s_http_port = "8000";
-//static struct mg_serve_http_opts s_http_server_opts;
+static const char *s_http_port = "8000";
+static struct mg_serve_http_opts s_http_server_opts;
 
 Trace * trace = NULL;
 //json j;
 
-static void handle_data_call() { //struct mg_connection *nc, struct http_message *hm) {
+static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
   char command[100];
 
   /* Get command variables */
-  //mg_get_http_var(&hm->body, "command", command, sizeof(command));
+  mg_get_http_var(&hm->body, "command", command, sizeof(command));
 
   /* Send headers */
-  //mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
+  mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
 
   /* Check for trace info */
   if (strncmp(command, "time", 4) == 0)
   {
     char start[100], stop[100], entity_start[100], entities[100], width[100];
-/*
+
     mg_get_http_var(&hm->body, "start", start, sizeof(start));
     mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
     mg_get_http_var(&hm->body, "entity_start", entity_start, sizeof(entity_start));
     mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
-*/
+
 /*
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
                                        std::stoull(stop), 
@@ -55,7 +55,7 @@ static void handle_data_call() { //struct mg_connection *nc, struct http_message
   else if (strncmp(command, "load", 4) == 0)
   {
     char width[100];
-  //  mg_get_http_var(&hm->body, "width", width, sizeof(width));
+    mg_get_http_var(&hm->body, "width", width, sizeof(width));
     //j["traceinfo"] = trace->initJSON(std::stoul(width));
   }
   else
@@ -64,10 +64,10 @@ static void handle_data_call() { //struct mg_connection *nc, struct http_message
   }
 
   //mg_printf_http_chunk(nc, j.dump().c_str());
- // mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
+  mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
 }
 
-/*
+
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
   struct http_message *hm = (struct http_message *) ev_data;
 
@@ -88,7 +88,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
       break;
   }
 }
-*/
+
 
 static void setTrace(std::string dataFileName) {
     trace = NULL;
@@ -114,9 +114,9 @@ static void setTrace(std::string dataFileName) {
 }
 
 int main(int argc, char *argv[]) {
-  //struct mg_mgr mgr;
-  //struct mg_connection *nc;
-  //struct mg_bind_opts bind_opts;
+  struct mg_mgr mgr;
+  struct mg_connection *nc;
+  struct mg_bind_opts bind_opts;
   int i;
   char *cp;
   const char *err_str;
@@ -124,40 +124,40 @@ int main(int argc, char *argv[]) {
   const char *ssl_cert = NULL;
 #endif
 
-  //mg_mgr_init(&mgr, NULL);
+  mg_mgr_init(&mgr, NULL);
 
   /* Use current binary directory as document root */
-/*
+
   if (argc > 0 && ((cp = strrchr(argv[0], DIRSEP)) != NULL)) {
     *cp = '\0';
-    //s_http_server_opts.document_root = argv[0];
+    s_http_server_opts.document_root = argv[0];
   }
-*/
+
   std::string filename = "";
   /* Process command line options to customize HTTP server */
   for (i = 1; i < argc; i++) {
     if (strcmp(argv[i], "-D") == 0 && i + 1 < argc) {
-      //mgr.hexdump_file = argv[++i];
+      mgr.hexdump_file = argv[++i];
     } else if (strcmp(argv[i], "-d") == 0 && i + 1 < argc) {
-      //s_http_server_opts.document_root = argv[++i];
+      s_http_server_opts.document_root = argv[++i];
     } else if (strcmp(argv[i], "-p") == 0 && i + 1 < argc) {
-      //s_http_port = argv[++i];
+      s_http_port = argv[++i];
     } else if (strcmp(argv[i], "-a") == 0 && i + 1 < argc) {
-      //s_http_server_opts.auth_domain = argv[++i];
+      s_http_server_opts.auth_domain = argv[++i];
 #if MG_ENABLE_JAVASCRIPT
     } else if (strcmp(argv[i], "-j") == 0 && i + 1 < argc) {
       const char *init_file = argv[++i];
-      //mg_enable_javascript(&mgr, v7_create(), init_file);
+      mg_enable_javascript(&mgr, v7_create(), init_file);
 #endif
     } else if (strcmp(argv[i], "-P") == 0 && i + 1 < argc) {
-      //s_http_server_opts.global_auth_file = argv[++i];
+      s_http_server_opts.global_auth_file = argv[++i];
     } else if (strcmp(argv[i], "-A") == 0 && i + 1 < argc) {
-      //s_http_server_opts.per_directory_auth_file = argv[++i];
+      s_http_server_opts.per_directory_auth_file = argv[++i];
     } else if (strcmp(argv[i], "-r") == 0 && i + 1 < argc) {
-      //s_http_server_opts.url_rewrites = argv[++i];
+      s_http_server_opts.url_rewrites = argv[++i];
 #if MG_ENABLE_HTTP_CGI
     } else if (strcmp(argv[i], "-i") == 0 && i + 1 < argc) {
-      //s_http_server_opts.cgi_interpreter = argv[++i];
+      s_http_server_opts.cgi_interpreter = argv[++i];
 #endif
 #if MG_ENABLE_SSL
     } else if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* Set HTTP server options */
-/*
+
   memset(&bind_opts, 0, sizeof(bind_opts));
   bind_opts.error_string = &err_str;
 #if MG_ENABLE_SSL
@@ -197,6 +197,6 @@ int main(int argc, char *argv[]) {
     mg_mgr_poll(&mgr, 1000);
   }
   mg_mgr_free(&mgr);
-*/
+
   return 0;
 }
