@@ -179,6 +179,7 @@
     ravel.zoom_function = function () {
       // ignore zoom-by-brush
       if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return;
+      if (ravel.init_in_process) return;
 
       var t = d3.event.transform;
       ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
@@ -317,12 +318,13 @@
       .call(ravel.gantt_brush)
       .call(ravel.gantt_brush.move, ravel.mini_scale.range());
 
-
+    ravel.init_in_process = true;
     ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
     ravel.zoom.translateTo(ravel.traditional, 0, 0);
+    ravel.init_in_process = false;
 
     ravel.rows = d3.extent(ravel.lanes);
-    ravel.show_rows = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
+    ravel.show_rows = [ravel.rows[0], d3.min([ravel.rows[1] + 1, 17])];
     ravel.yphys.domain([ravel.show_rows[0], ravel.show_rows[1]]);
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
@@ -531,6 +533,7 @@
       maxExtent = ravel.phys_scale.domain()[1],
       minEntity = ravel.yphys.domain()[0] - 1,
       maxEntity = ravel.yphys.domain()[1];
+
 
     // Remove old lane numbers
     d3.select('#laneNum').remove(); 
