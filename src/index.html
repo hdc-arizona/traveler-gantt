@@ -53,12 +53,15 @@
     current_span: 1
   };
 
+  // Figure out width and height of Gantt chart from the window size
   ravel.calc_window_sizes = function () {
     ravel.full_mini_height = ravel.miniHeight + ravel.scaleHeight + ravel.margin.top;
     ravel.width = d3.select('#traditional-div').node().offsetWidth - 5;
+
     ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
     ravel.full_height = $(document).height() - $('body').offset().top;
     ravel.traditional_height = d3.select('#traditional-div').node().offsetHeight;
+
     if (ravel.traditional_height <= 0) {
       ravel.traditional_gantt_height = ravel.full_height - ravel.full_mini_height -
 	2 * ravel.margin.top - ravel.margin.bottom -
@@ -69,7 +72,8 @@
 	ravel.colorBarHeight - ravel.scaleHeight;
     }
 
-  }; // end ravel.resize
+  }; // end ravel.calc_window_sizes
+
 
   ravel.resize = function () {
     ravel.mini_scale
@@ -103,7 +107,6 @@
       .attr('width', ravel.gantt_width)
       .attr('height', ravel.traditional_gantt_height);
 
-    // Skipping middle-click drag for now 
     ravel.phys_axis
       .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
       .call(ravel.phys_scaleDateAxis);
@@ -116,17 +119,20 @@
       .attr("width", ravel.gantt_width);
 
     ravel.draw_traditional();
-  }
+  } // end ravel.resize
+
 
   ravel.splitter_change = function () {
     ravel.calc_window_sizes();
     ravel.resize();
   };
 
+
   window.onresize = function(event) {
     ravel.calc_window_sizes();
     ravel.resize();
   }
+
 
   var init_ravel = function() {
     ravel.calc_window_sizes();
@@ -159,10 +165,10 @@
       .domain([ravel.min_time, ravel.min_time + ravel.current_span])
       .range([0, ravel.gantt_width]);
 
-    ravel.ext = d3.extent(1);
-    ravel.show_ext = [0,1];
+    ravel.rows = d3.extent(1);
+    ravel.show_rows = [0,1];
     ravel.yphys = d3.scaleLinear()
-      .domain([ravel.show_ext[0], ravel.show_ext[1]])
+      .domain([ravel.show_rows[0], ravel.show_rows[1]])
       .range([0, ravel.traditional_gantt_height]);
 
     ravel.saved_xmain = [0, 0];
@@ -265,7 +271,8 @@
     ravel.phys_comm_message_layer = null;
     
   };  // Ravel vars
- 
+
+
   ravel.init_display = function () {
     ravel.min_time = ravel.data.mintime;
     ravel.max_time = ravel.data.maxtime;
@@ -282,7 +289,6 @@
     ravel.xAxis.scale(ravel.mini_scale);
 
 
-    // Skipping middle-click drag for now 
     ravel.phys_axis = ravel.phys.append('g')
       .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
@@ -315,12 +321,11 @@
     ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
     ravel.zoom.translateTo(ravel.traditional, 0, 0);
 
-    ravel.ext = d3.extent(ravel.lanes);
-    ravel.show_ext = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
-    ravel.yphys.domain([ravel.show_ext[0], ravel.show_ext[1]]);
+    ravel.rows = d3.extent(ravel.lanes);
+    ravel.show_rows = [ravel.ext[0], d3.min([ravel.ext[1] + 1, 17])];
+    ravel.yphys.domain([ravel.show_rows[0], ravel.show_rows[1]]);
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
-    //var saved_step = step_scale.domain();
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
@@ -341,6 +346,8 @@
     ravel.draw_overview();
   };
 
+
+  // Figure out text size
   ravel.get_text_size = function (svg, font_class) {
     var test_font = svg.selectAll('.test-font')
       .data(['g'])
@@ -377,11 +384,13 @@
     ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
       Math.round(ravel.phys_scale.domain()[1]));
   };
-    
+   
+
   ravel.update_cursor = function() {
       // Nothing for now
   };
-  
+
+
   ravel.handle_click = function (d, i) {
     return;
     var clicked = d3.mouse(this);
@@ -429,6 +438,8 @@
     });
   };
 
+
+  // Change dict (as object) into array for d3
   ravel.object_filter = function (obj, func) {
     var retarray = [];
     for (key in obj) {
@@ -441,6 +452,7 @@
     return retarray;
   };
 
+  // Find min element of a dict
   ravel.object_min = function (obj, func) {
       var ret = null;
       for (key in obj) {
@@ -457,6 +469,7 @@
       return ret;
   };
 
+  // Find max object as a dict
   ravel.object_max = function (obj, func) {
       var ret = null;
       for (key in obj) {
@@ -473,6 +486,7 @@
       return ret;
   };
 
+
   ravel.init = function (json) {
     ravel.data = json;
     ravel.lanes = [];
@@ -482,16 +496,17 @@
     ravel.init_display();
   };
 
+
   ravel.update = function (json) {
     ravel.data = json;
     d3.select('.axis').call(ravel.phys_scaleDateAxis);
     ravel.draw_traditional();
   };
 
+
   // We will draw the labels once off screen to find out their size
   // Then we will update them based on their size and put them into the
   // correct place
-
   ravel.filter_traditional_labels = function (events) {
     var labels = [];
     var multiplier = ravel.traditional_font_metrics.width;
@@ -509,6 +524,7 @@
   }
 
 
+
   ravel.draw_traditional = function () {
     var rects, msgs, labels,
       minExtent = ravel.phys_scale.domain()[0],
@@ -516,7 +532,6 @@
       minEntity = ravel.yphys.domain()[0] - 1,
       maxEntity = ravel.yphys.domain()[1];
 
-    
     // Remove old lane numbers
     d3.select('#laneNum').remove(); 
 
@@ -524,8 +539,9 @@
     var physLanes = ravel.traditional.append('g')
       .attr('id', 'laneNum');
 
+    // Labels for rows
     var physLanesText = physLanes.selectAll('.laneText')
-      .data(ravel.lanes)
+      .data(ravel.show_rows)
       .text(d => { return d; })
       .attr('y', d => { return ravel.margin.top + ravel.yphys(d + 0.5); });
 
@@ -537,8 +553,9 @@
       .attr('text-anchor', 'start')
       .attr('class', 'laneText'); // TODO: More CSS
 
+    // Lines between rows
     var laneLines = ravel.physLaneLines.selectAll('.laneLines')
-      .data(ravel.lanes)
+      .data(ravel.show_rows)
       .attr('x2', ravel.gantt_width)
       .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
       .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; });
@@ -552,10 +569,12 @@
       .attr('class', 'laneLines');
 
     laneLines.exit().remove();
+
+
   
     var barHeight = 0.8 * (ravel.yphys(2.0) - ravel.yphys(1.0));
 
-    // Handle the nested parents
+    // Draw the nested parent function bars
     for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
       // TODO: Base this on a max depth
       var current_depth = ravel.phys_layers[layer];
@@ -607,8 +626,7 @@
 
     }
 
-    // Handle the comm items
-    //console.log(ravel.data);
+    // Handle the communication calls differently
     var traditional_comm_items = ravel.data.events.filter(d => { return !d.hasOwnProperty("coalesced"); });
     rects = ravel.phys_comm_event_layer.selectAll('.event')
       .data(traditional_comm_items, d => { return d.id; })
@@ -634,8 +652,7 @@
 
     rects.exit().remove();
       
-    // Labels
-    //label_events = ravel.filter_traditional_labels(); 
+    // Draw the labels
     if (ravel.traditional_font_metrics.height + 4 < barHeight) {
       ravel.traditional_label_events = ravel.filter_traditional_labels(
         traditional_comm_items
@@ -657,7 +674,7 @@
     labels.exit().remove();
 
 
-    // Comms
+    // Draw the message lines
     msgs = ravel.phys_comm_message_layer.selectAll('.message')
       .data(ravel.data.messages, d => { return d.id; })
       .attr('x1', d => { return ravel.phys_scale(d.sendtime); })
@@ -675,6 +692,8 @@
     msgs.exit().remove();
   };
 
+
+  // Draw the overview plot.
   ravel.draw_overview = function () {
     var rects;
 
@@ -694,6 +713,8 @@
   };
 
 
+
+// Get the initial data
 jQuery(function() {
 
   $(document).ready(function() {
