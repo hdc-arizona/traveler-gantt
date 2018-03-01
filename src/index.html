@@ -88,7 +88,7 @@
       .range([0, ravel.traditional_gantt_height]);
     ravel.phys
       .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height);
+      .attr('height', ravel.traditional_gantt_height + ravel.scaleHeight);
 
     ravel.mini 
       .attr('width', ravel.gantt_width) 
@@ -96,11 +96,11 @@
 
     ravel.traditional_clip
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height); 
+	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight); 
 
     ravel.traditional_lanes_clip
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height);
+	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight);
 
     // White backgrounds for the views
     ravel.phys_background
@@ -212,20 +212,20 @@
     ravel.phys = ravel.traditional.append('g')
       .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
       .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height)
+      .attr('height', ravel.traditional_gantt_height + ravel.scaleHeight)
       .attr('class', 'phys');
     
     ravel.traditional_clip = ravel.phys.append('defs').append('clipPath')
       .attr('id', 'clip')
       .append('rect')
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height); 
+	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight); 
 
     ravel.traditional_lanes_clip = ravel.phys.append('defs').append('clipPath')
       .attr('id', 'lanesclip')
       .append('rect')
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height);
+	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight);
     
     // White backgrounds for the views
     ravel.phys_background = ravel.phys.append('rect')
@@ -290,7 +290,7 @@
     ravel.xAxis.scale(ravel.mini_scale);
 
 
-    ravel.phys_axis = ravel.phys.append('g')
+    ravel.phys_axis = ravel.physRects.append('g')
       .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
       .call(ravel.phys_scaleDateAxis);
