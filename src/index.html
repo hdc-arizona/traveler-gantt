@@ -544,7 +544,7 @@
 
     // Labels for rows
     var physLanesText = physLanes.selectAll('.laneText')
-      .data(ravel.show_rows)
+      .data(ravel.lanes.slice(d3.min[minEntity, 0], maxEntity))
       .text(d => { return d; })
       .attr('y', d => { return ravel.margin.top + ravel.yphys(d + 0.5); });
 
@@ -558,7 +558,7 @@
 
     // Lines between rows
     var laneLines = ravel.physLaneLines.selectAll('.laneLines')
-      .data(ravel.show_rows)
+      .data(ravel.lanes.slice(d3.min[minEntity, 0], maxEntity))
       .attr('x2', ravel.gantt_width)
       .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
       .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; });
