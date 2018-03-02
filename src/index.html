@@ -88,7 +88,7 @@
       .range([0, ravel.traditional_gantt_height]);
     ravel.phys
       .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height + ravel.scaleHeight);
+      .attr('height', ravel.traditional_gantt_height);
 
     ravel.mini 
       .attr('width', ravel.gantt_width) 
@@ -96,11 +96,15 @@
 
     ravel.traditional_clip
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight); 
+	.attr('height', ravel.traditional_gantt_height); 
 
     ravel.traditional_lanes_clip
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight);
+	.attr('height', ravel.traditional_gantt_height);
+
+    ravel.traditional_scale_clip
+	.attr('width', ravel.gantt_width)
+	.attr('height', ravel.scaleHeight);
 
     // White backgrounds for the views
     ravel.phys_background
@@ -219,13 +223,20 @@
       .attr('id', 'clip')
       .append('rect')
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight); 
+	.attr('height', ravel.traditional_gantt_height); 
 
     ravel.traditional_lanes_clip = ravel.phys.append('defs').append('clipPath')
       .attr('id', 'lanesclip')
       .append('rect')
 	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height + ravel.scaleHeight);
+	.attr('height', ravel.traditional_gantt_height);
+
+    ravel.traditional_scale_clip = ravel.phys.append('defs').append('clipPath')
+      .attr('id', 'scaleclip')
+      .append('rect')
+        .attr('y', ravel.traditional_gantt_height)
+	.attr('width', ravel.gantt_width)
+        .attr('height', ravel.scaleHeight);
     
     // White backgrounds for the views
     ravel.phys_background = ravel.phys.append('rect')
@@ -240,9 +251,11 @@
     // draw the items for the main view, use a clip-path for the ones that
     // are slightly outside of our drawing area
     ravel.physLaneLines = ravel.phys.append('g')
-      .attr('clip-path', 'url(#clip)');
+      .attr('clip-path', 'url(#lanesclip)');
     ravel.physRects = ravel.phys.append('g')
       .attr('clip-path', 'url(#clip)');
+    ravel.physScale = ravel.phys.append('g')
+      .attr('clip-path', 'url(#scaleclip)')
 
     ravel.overview = d3.select('#overview-div')
       .append('svg:svg')
@@ -290,7 +303,7 @@
     ravel.xAxis.scale(ravel.mini_scale);
 
 
-    ravel.phys_axis = ravel.physRects.append('g')
+    ravel.phys_axis = ravel.physScale.append('g')
       .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
       .call(ravel.phys_scaleDateAxis);
@@ -493,7 +506,7 @@
     ravel.data = json;
     ravel.lanes = [];
     for (var i = 0; i < ravel.data.entities; i++) {
-      ravel.lanes.push(i);
+      ravel.lanes.push(ravel.data.entity_start + i);
     }
     ravel.init_display();
   };
