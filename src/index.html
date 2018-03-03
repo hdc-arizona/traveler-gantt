@@ -51,7 +51,7 @@
     max_time: 1,
     max_step: 0,
     current_span: 1,
-    current_y_scale: 1,
+    current_k_scale: 1,
     current_y_offset: 0
   };
 
@@ -198,14 +198,25 @@
 	console.log('shift', ravel.yphys.domain(), t);
 	//ravel.yphys.domain(t.rescaleY(ravel.total_y_scale).domain());
 
+	// scale bigger = zoom in
+	// scale smaller = zoom out
+	var old_domain = ravel.yphys.domain();
+	if (Math.abs(t.k - ravel.current_k_scale) > 1e-6) {
+	    if (t.k > ravel.current_k_scale) {
+		// Zoom in -- find out what the offset is in y and use that
+	    } else {
+		// Zoom out
+
+	    }
+	}
+
 	// current_y_offset is the last offset
-	// current_y_scale is the last scale
+	// current_k_scale is the last scale
 	// y is in the range field, the space of the gantt height
 	// Negative means pulling up. Rows should increase.
 	// Positive means pulling down. Rows should decrease.
 	var total_screen_y = ravel.yphys.range()[1];
 	var screen_frac = (t.y - ravel.current_y_offset) / total_screen_y;
-	var old_domain = ravel.yphys.domain();
 	var row_frac = screen_frac * (old_domain[1] - old_domain[0]);
 
 	// Clamp to edges
@@ -228,6 +239,8 @@
 	 
 	ravel.draw_traditional();
       } else {
+	ravel.current_y_offset = t.y;
+	ravel.current_k_scale = t.k;
 	console.log('xshift', ravel.phys_scale.domain(), t);
 	ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
 	ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
@@ -378,7 +391,7 @@
 
     ravel.init_in_process = true;
     ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
-    ravel.current_y_scale = (ravel.max_time - ravel.min_time) / ravel.current_span;
+    ravel.current_k_scale = (ravel.max_time - ravel.min_time) / ravel.current_span;
     ravel.current_y_offset = 0;
     ravel.zoom.translateTo(ravel.traditional, 0, 0);
     ravel.init_in_process = false;
