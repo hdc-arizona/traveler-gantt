@@ -52,7 +52,8 @@
     max_step: 0,
     current_span: 1,
     current_k_scale: 1,
-    current_y_offset: 0
+    current_y_offset: 0,
+    y_k_factor: 1
   };
 
   // Figure out width and height of Gantt chart from the window size
@@ -194,58 +195,73 @@
       if (ravel.init_in_process) return;
 
       var t = d3.event.transform;
-      if (d3.event.sourceEvent.shiftKey) {
-	console.log('shift', ravel.yphys.domain(), t);
+      if (d3.event.sourceEvent.metaKey) {
+	console.log('meta key', ravel.yphys.domain(), t);
 	//ravel.yphys.domain(t.rescaleY(ravel.total_y_scale).domain());
 
 	// scale bigger = zoom in
 	// scale smaller = zoom out
+	ravel.y_k_factor = (ravel.show_rows[1] - ravel.show_rows[0] + 1) * ravel.current_k_scale / ravel.lanes.length;
 	var old_domain = ravel.yphys.domain();
+	var old_x_domain = ravel.phys_scale.domain();
+	console.log('k is', t.k, ravel.current_k_scale, ravel.y_k_factor, (ravel.current_k_scale / ravel.y_k_factor));
 	if (Math.abs(t.k - ravel.current_k_scale) > 1e-6) {
-	    if (t.k > ravel.current_k_scale) {
-		// Zoom in -- find out what the offset is in y and use that
-	    } else {
-		// Zoom out
+	    var y_zoom = t.k / ravel.y_k_factor;
 
+	    // Now with y zoom...
+	    // Rescale
+	    var show_lanes = ravel.lanes.length / y_zoom;
+
+	    // Translate
+	    var old_lanes = old_domain[1] - old_domain[0];
+	    var lane_offset = (old_lanes - show_lanes) / 2;
+
+	    console.log('y_zoom', y_zoom, 'show_lanes', show_lanes, 'old_lanes', old_lanes, 'lane_offset', lane_offset);
+	    console.log('old_domain', ravel.yphys.domain(), 'current_y_offset', ravel.current_y_offset);
+	    ravel.current_y_offset += lane_offset;
+	    ravel.init_in_process = true;
+	    ravel.zoom.scaleTo(ravel.traditional, ravel.current_k_scale);
+	    ravel.zoom.translateTo(ravel.traditional, old_x_domain[0], old_domain[0] + lane_offset);
+	    ravel.yphys.domain([old_domain[0] + lane_offset, old_domain[1] - lane_offset]);
+	    ravel.init_in_process = false;
+	    console.log('old_domain', ravel.yphys.domain(), 'current_y_offset', ravel.current_y_offset);
+	    ravel.current_k_scale = t.k;
+	    ravel.current_y_offset += lane_offset * ravel.yphys.range()[1];
+	} else {
+
+	    // current_y_offset is the last offset
+	    // current_k_scale is the last scale
+	    // y is in the range field, the space of the gantt height
+	    // Negative means pulling up. Rows should increase.
+	    // Positive means pulling down. Rows should decrease.
+	    var total_screen_y = ravel.yphys.range()[1];
+	    var screen_frac = (t.y - ravel.current_y_offset) / total_screen_y;
+	    var row_frac = screen_frac * (old_domain[1] - old_domain[0]);
+
+	    // Clamp to edges
+	    if ((old_domain[0] - row_frac) < ravel.total_y_scale.domain()[0]) {
+		row_frac = old_domain[0] - ravel.total_y_scale.domain()[0];
+		ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
 	    }
-	}
+	    else if ((old_domain[1] - row_frac) > ravel.total_y_scale.domain()[1]) {
+		row_frac = old_domain[1] - ravel.total_y_scale.domain()[1];
+		ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
+	    }
+	    else {
+		ravel.current_y_offset = t.y;
+	    }
 
-	// current_y_offset is the last offset
-	// current_k_scale is the last scale
-	// y is in the range field, the space of the gantt height
-	// Negative means pulling up. Rows should increase.
-	// Positive means pulling down. Rows should decrease.
-	var total_screen_y = ravel.yphys.range()[1];
-	var screen_frac = (t.y - ravel.current_y_offset) / total_screen_y;
-	var row_frac = screen_frac * (old_domain[1] - old_domain[0]);
-
-	// Clamp to edges
-	if ((old_domain[0] - row_frac) < ravel.total_y_scale.domain()[0]) {
-	    row_frac = old_domain[0] - ravel.total_y_scale.domain()[0];
-	    ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
-	    console.log(row_frac, 'clamp bottom');
+	    ravel.yphys.domain([old_domain[0] - row_frac, old_domain[1] - row_frac]);
 	}
-	else if ((old_domain[1] - row_frac) > ravel.total_y_scale.domain()[1]) {
-	    row_frac = old_domain[1] - ravel.total_y_scale.domain()[1];
-	    ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
-	    console.log(row_frac, 'clamp top');
-	}
-	else {
-	    ravel.current_y_offset = t.y;
-	}
-
-	ravel.yphys.domain([old_domain[0] - row_frac, old_domain[1] - row_frac]);
-	console.log('transform', ravel.yphys.domain());
 	 
 	ravel.draw_traditional();
       } else {
+	console.log('t in x is', t);
 	ravel.current_y_offset = t.y;
 	ravel.current_k_scale = t.k;
-	console.log('xshift', ravel.phys_scale.domain(), t);
 	ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
 	ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
 	  ravel.phys_scale.range().map(t.invertX, t));
-	console.log('xshift', ravel.phys_scale.domain(), t);
 	  
 	ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
 	  Math.round(ravel.phys_scale.domain()[1]));
@@ -400,6 +416,7 @@
     ravel.total_y_scale.domain([ravel.rows[0], ravel.rows[1] + 1]);
     ravel.show_rows = [ravel.rows[0], d3.min([ravel.rows[1] + 1, 17])];
     ravel.yphys.domain([ravel.show_rows[0], ravel.show_rows[1]]);
+    ravel.y_k_factor = (ravel.show_rows[1] - ravel.show_rows[0] + 1) * ravel.current_k_scale / ravel.lanes.length;
     ravel.saved_xmain = [0, 0];
     ravel.saved_yphys = ravel.yphys.domain();
     ravel.saved_stepscale = 1;
