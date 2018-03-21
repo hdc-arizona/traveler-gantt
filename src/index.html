@@ -53,6 +53,7 @@
     current_span: 1,
     current_k_scale: 1,
     current_y_offset: 0,
+    current_x_offset: 0,
     y_k_factor: 1
   };
 
@@ -189,6 +190,9 @@
     ravel.saved_stepscale = 1;
     ravel.saved_lanescale = 1;
 
+    // See: http://bl.ocks.org/jgbos/9752277
+    // See: https://jsfiddle.net/DaWa/dLmp8zk8/2/
+
     ravel.zoom_function = function () {
       // ignore zoom-by-brush
       if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return;
@@ -221,7 +225,7 @@
 	    ravel.current_y_offset += lane_offset;
 	    ravel.init_in_process = true;
 	    ravel.zoom.scaleTo(ravel.traditional, ravel.current_k_scale);
-	    ravel.zoom.translateTo(ravel.traditional, old_x_domain[0], old_domain[0] + lane_offset);
+	    ravel.zoom.translateTo(ravel.traditional, ravel.current_x_offset, old_domain[0] + lane_offset);
 	    ravel.yphys.domain([old_domain[0] + lane_offset, old_domain[1] - lane_offset]);
 	    ravel.init_in_process = false;
 	    console.log('old_domain', ravel.yphys.domain(), 'current_y_offset', ravel.current_y_offset);
@@ -242,22 +246,29 @@
 	    if ((old_domain[0] - row_frac) < ravel.total_y_scale.domain()[0]) {
 		row_frac = old_domain[0] - ravel.total_y_scale.domain()[0];
 		ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
+		console.log('y offset clamped', ravel.current_y_offset);
 	    }
 	    else if ((old_domain[1] - row_frac) > ravel.total_y_scale.domain()[1]) {
 		row_frac = old_domain[1] - ravel.total_y_scale.domain()[1];
 		ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
+		console.log('y offset clamped 2', ravel.current_y_offset);
 	    }
 	    else {
 		ravel.current_y_offset = t.y;
+		console.log('y offset is t.y', ravel.current_y_offset);
 	    }
 
 	    ravel.yphys.domain([old_domain[0] - row_frac, old_domain[1] - row_frac]);
+	    //ravel.init_in_process = true;
+	    ravel.zoom.translateTo(ravel.traditional, ravel.current_x_offset, ravel.current_y_offset);
+	    //ravel.init_in_process = false;
 	}
 	 
 	ravel.draw_traditional();
       } else {
 	console.log('t in x is', t);
 	ravel.current_y_offset = t.y;
+	ravel.current_x_offset = t.x;
 	ravel.current_k_scale = t.k;
 	ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
 	ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
