@@ -19,6 +19,7 @@
 #include "collectiverecord.h"
 #include "eventrecord.h"
 #include "commrecord.h"
+#include "guidrecord.h"
 #include "counterrecord.h"
 #include "event.h"
 #include "commevent.h"
@@ -263,12 +264,59 @@ void OTFConverter::matchEvents()
                 }
 
                 Event * e = NULL;
-                if (cr)
+                if (rawtrace->phylanx)
+                {
+                    std::vector<Message *> * msgs = new std::vector<Message *>();
+                    P2PEvent * p = new P2PEvent(bgn->time, (*evt)->time,
+                                                bgn->value, bgn->entity,
+                                                bgn->entity, phase, msgs);
+                    p->setGUID(bgn->guid);
+                    p->setParentGUID(bgn->parent_guid);
+                    if (bgn->to_crs) {
+                        for (std::vector<GUIDRecord *>::iterator gitr = bgn->to_crs->begin();
+                            gitr != bgn->to_crs->end(); ++gitr)
+                        {
+                            if (!(*gitr)->message) {
+                                (*gitr)->message = new Message((*gitr)->parent_time,
+                                                               (*gitr)->child_time,
+                                                               0);
+                            }
+                            (*gitr)->message->receiver = p;
+                            msgs->push_back((*gitr)->message);
+                        }
+                    }
+                    if (bgn->from_cr) {
+                        if (!bgn->from_cr->message) {
+                            bgn->from_cr->message = new Message(bgn->from_cr->parent_time,
+                                                                bgn->from_cr->child_time,
+                                                                0);
+                        }
+                        bgn->from_cr->message->sender = p;
+                        msgs->push_back(bgn->from_cr->message);
+                    }
+                   
+                    if (!msgs->empty()) 
+                    {
+                        msgs->at(0)->receiver->comm_prev = prev;
+                        if (prev)
+                            prev->comm_next = p;
+                        prev = p;
+                    }
+
+                    counter_index = advanceCounters(p,
+                                                    counterstack,
+                                                    counters, counter_index,
+                                                    lastcounters);
+
+                    e = p;     
+                }
+                else if (cr)
                 {
                     cr->events->push_back(new CollectiveEvent(bgn->time, (*evt)->time,
                                             bgn->value, bgn->entity, bgn->entity,
                                             phase, cr));
-                    cr->events->back()->setID(globalID++);
+                    if (!rawtrace->phylanx)
+                        cr->events->back()->setID(globalID++);
                     cr->events->back()->comm_prev = prev;
                     if (prev)
                         prev->comm_next = cr->events->back();
@@ -299,7 +347,9 @@ void OTFConverter::matchEvents()
                                                          bgn->value,
                                                          bgn->entity, bgn->entity, phase,
                                                          msgs);
-                    crec->message->sender->setID(globalID++);
+
+                    if (!rawtrace->phylanx)
+                        crec->message->sender->setID(globalID++);
 
                     crec->message->sender->comm_prev = prev;
                     if (prev)
@@ -338,7 +388,9 @@ void OTFConverter::matchEvents()
                                                          bgn->value,
                                                          bgn->entity, bgn->entity, phase,
                                                          msgs);
-                    msgs->at(0)->receiver->setID(globalID++);
+
+                    if (!rawtrace->phylanx)
+                        msgs->at(0)->receiver->setID(globalID++);
                     for (int i = 1; i < msgs->size(); i++)
                     {
                         msgs->at(i)->receiver = msgs->at(0)->receiver;
@@ -361,7 +413,16 @@ void OTFConverter::matchEvents()
                 {
                     e = new Event(bgn->time, (*evt)->time, bgn->value,
                                   bgn->entity, bgn->entity);
-                    e->setID(globalID++);
+
+                    if (!rawtrace->phylanx)
+                    {
+                        e->setID(globalID++);
+                    }
+                    else
+                    {
+                        e->setGUID(bgn->guid);
+                        e->setParentGUID(bgn->parent_guid);
+                    }
 
 
                     // Squelch counter values that we're not keeping track of here (for now)

@@ -301,6 +301,7 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
         } else if (stringMap->at(eitr->second->name) == PHYLANX_PARENT_GUID_STRING) {
             phylanx_Parent_GUID = eitr->first;
             phylanx = true;
+            rawtrace->phylanx = true;
         }
     }
 

@@ -32,7 +32,8 @@ RawTrace::RawTrace(int nt, int np)
       num_pes(np),
       second_magnitude(1),
       metric_names(NULL),
-      metric_units(NULL)
+      metric_units(NULL),
+      phylanx(false)
 {
 
 }

@@ -52,6 +52,8 @@ public:
     int second_magnitude; // seconds are 10^this over the smallest smaple unit
     std::vector<std::string> * metric_names;
     std::map<std::string, std::string> * metric_units;
+
+    bool phylanx;
 };
 
 #endif // RAWTRACE_H
