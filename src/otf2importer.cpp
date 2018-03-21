@@ -6,6 +6,7 @@
 #include "ravelutils.h"
 #include "rawtrace.h"
 #include "commrecord.h"
+#include "guidrecord.h"
 #include "eventrecord.h"
 #include "collectiverecord.h"
 #include "entitygroup.h"
@@ -62,8 +63,8 @@ OTF2Importer::OTF2Importer()
       phylanx(false),
       phylanx_GUID(0),
       phylanx_Parent_GUID(0),
-      unmatched_guids(new std::map<uint64_t, CommRecord *>()),
-      unmatched_parent_guids(new std::map<uint64_t, CommRecord *>())
+      unmatched_guids(new std::map<uint64_t, std::vector<GUIDRecord *> *>()),
+      parent_guids(new std::map<uint64_t, EventRecord *>())
 {
     collective_definitions->insert(std::pair<int, OTFCollective*>(0, new OTFCollective(0, 1, "Barrier")));
     collective_definitions->insert(std::pair<int, OTFCollective*>(1, new OTFCollective(1, 2, "Bcast")));
@@ -347,9 +348,9 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     if (phylanx) 
     {
       delete unmatched_guids;
-      unmatched_guids = new std::map<uint64_t, CommRecord *>();
-      delete unmatched_parent_guids;
-      unmatched_parent_guids = new std::map<uint64_t, CommRecord *>();
+      unmatched_guids = new std::map<uint64_t, std::vector<GUIDRecord *> *>();
+      delete parent_guids;
+      parent_guids = new std::map<uint64_t, EventRecord *>();
     }
 
     for (int i = 0; i < num_processes; i++) {
@@ -433,27 +434,21 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     if (phylanx) 
     {
         int unmatched_guid_count = 0;
-        for (std::map<uint64_t, CommRecord *>::iterator eitr
+        for (std::map<uint64_t, std::vector<GUIDRecord *> *>::iterator eitr
              = unmatched_guids->begin();
              eitr != unmatched_guids->end(); ++eitr)
         {
             unmatched_guid_count++;
-            std::cout << "Unmatched guid " << (eitr)->second->sender << "->"
-                      << (eitr)->second->receiver << " (" << (eitr)->second->send_time << ", "
-                      << (eitr)->second->send_time << ")" << std::endl;
+            for (std::vector<GUIDRecord *>::iterator itr
+            = eitr->second->begin();
+            itr != eitr->second->end(); ++itr)
+            {
+                std::cout << "Orphan guid " << (*itr)->parent << "->"
+                          << (*itr)->child << " (" << (*itr)->parent_time << ", "
+                          << (*itr)->child_time << ")" << std::endl;
+            }
         }
-        int unmatched_parent_guid_count = 0;
-        for (std::map<uint64_t, CommRecord *>::iterator eitr
-             = unmatched_parent_guids->begin();
-             eitr != unmatched_parent_guids->end(); ++eitr)
-        {
-            unmatched_parent_guid_count++;
-            std::cout << "Unmatched parent_guid " << (eitr)->second->sender << "->"
-                      << (eitr)->second->receiver << " (" << (eitr)->second->send_time << ", "
-                      << (eitr)->second->recv_time << ")" << std::endl;
-        }
-        std::cout << unmatched_parent_guid_count << " unmatched parent_guids and "
-                  << unmatched_guid_count << " unmatched guids." << std::endl;
+        std::cout << unmatched_guid_count << " orphan guids." << std::endl;
     }
 
     defineEntities();
@@ -769,9 +764,10 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                                               OTF2_RegionRef region)
 {
     unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
+    unsigned long long converted_time = convertTime(userData, time);
     int function = ((OTF2Importer *) userData)->regionIndexMap->at(region);
     EventRecord * er = new EventRecord(location,
-                                       convertTime(userData, time),
+                                       converted_time,
                                        function,
                                        false);
     ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->push_back(er);
@@ -780,15 +776,50 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
         && ((OTF2Importer * ) userData)->phylanx)
     {
         uint64_t metric;
+        std::map<uint64_t, std::vector<GUIDRecord *> *> * guids = ((OTF2Importer *) userData)->unmatched_guids;
+        std::map<uint64_t, EventRecord *> * parent_guids = ((OTF2Importer *) userData)->parent_guids;
+        
         OTF2_AttributeList_GetUint64(attributeList,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &metric);
         er->setGUID(metric);
+        parent_guids->insert(std::pair<uint64_t, EventRecord *>(metric, er));
+        GUIDRecord * cr = NULL;
+        if (guids->count(metric) == 1) {
+            // I have waiting children -- I need to set my own location and such
+            for (std::vector<GUIDRecord *>::iterator itr = guids->at(metric)->begin();
+                itr != guids->at(metric)->end(); ++itr) 
+            {
+                cr = *itr;
+                cr->parent_time = converted_time;
+                cr->parent = metric;
+                er->to_crs->push_back(cr); // add to parent, already in child
+            }
+            delete guids->at(metric);
+            guids->erase(metric);
+        }
 
         OTF2_AttributeList_GetUint64(attributeList,
                                      ((OTF2Importer *) userData)->phylanx_Parent_GUID,
                                      &metric);
         er->setParentGUID(metric);
+        if (parent_guids->at(metric)) {
+            // My parent already exists
+            EventRecord * pr = parent_guids->at(metric);
+            cr = new GUIDRecord(metric, pr->time, er->getGUID(), converted_time);
+            er->setFromGUIDRecord(cr); // add to child
+            pr->to_crs->push_back(cr); // add to parent
+        } else {
+            // Waiting on my parent
+            cr = new GUIDRecord(metric, 0, er->getGUID(), converted_time);
+            er->setFromGUIDRecord(cr);
+            if (guids->count(metric) == 0) 
+            {
+                guids->insert(std::pair<uint64_t, std::vector<GUIDRecord *> *>(metric, new std::vector<GUIDRecord *>()));
+            }
+            guids->at(metric)->push_back(cr);
+        }
+
     }
 
     return OTF2_CALLBACK_SUCCESS;

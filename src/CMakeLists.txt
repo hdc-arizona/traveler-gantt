@@ -38,6 +38,7 @@ set(Ravel_SOURCES
     entitygroup.cpp
     event.cpp
     eventrecord.cpp
+    guidrecord.cpp
     function.cpp
     importfunctor.cpp
     main.cpp
@@ -65,6 +66,7 @@ set(Ravel_HEADERS
     entitygroup.h
     event.h
     eventrecord.h
+    guidrecord.h
     function.h
     importfunctor.h
     message.h

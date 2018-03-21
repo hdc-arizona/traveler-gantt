@@ -8,7 +8,11 @@ EventRecord::EventRecord(unsigned long _entity, unsigned long long int _t,
       value(_v),
       enter(_e),
       children(std::vector<Event *>()),
-      metrics(NULL)
+      metrics(NULL),
+      guid(0),
+      parent_guid(0),
+      from_cr(NULL),
+      to_crs(new std::vector<GUIDRecord *>())
 {
 }
 

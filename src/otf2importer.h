@@ -9,6 +9,8 @@
 #include <set>
 
 class CommRecord;
+class GUIDRecord;
+class EventRecord;
 class RawTrace;
 class Function;
 class EntityGroup;
@@ -383,8 +385,8 @@ private:
     bool phylanx;
     uint64_t phylanx_GUID;
     uint64_t phylanx_Parent_GUID;
-    std::map<uint64_t, CommRecord *> * unmatched_guids;
-    std::map<uint64_t, CommRecord *> * unmatched_parent_guids;
+    std::map<uint64_t, std::vector<GUIDRecord *> *> * unmatched_guids;
+    std::map<uint64_t, EventRecord *> * parent_guids;
 
     const std::string PHYLANX_GUID_STRING = "GUID";
     const std::string PHYLANX_PARENT_GUID_STRING = "Parent GUID";

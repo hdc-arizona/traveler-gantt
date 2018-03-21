@@ -6,6 +6,7 @@
 #include <map>
 
 class Event;
+class GUIDRecord;
 
 // Holder for OTF Event info
 class EventRecord
@@ -27,6 +28,10 @@ public:
     uint64_t getGUID() { return guid; };
     void setParentGUID(uint64_t g) { parent_guid = g; };
     uint64_t getParentGUID() { return parent_guid; };
+    GUIDRecord * from_cr;
+    std::vector<GUIDRecord *> * to_crs;
+    void setFromGUIDRecord(GUIDRecord * _cr) { from_cr = _cr; };
+    GUIDRecord * getFromGUIDRecord() { return from_cr; };
 
     // Based on time
     bool operator<(const EventRecord &);
