@@ -21,6 +21,13 @@ public:
     std::vector<Event *> children;
     std::map<std::string, unsigned long long> * metrics;
 
+    uint64_t guid;
+    uint64_t parent_guid;
+    void setGUID(uint64_t g) { guid = g; };
+    uint64_t getGUID() { return guid; };
+    void setParentGUID(uint64_t g) { parent_guid = g; };
+    uint64_t getParentGUID() { return parent_guid; };
+
     // Based on time
     bool operator<(const EventRecord &);
     bool operator>(const EventRecord &);

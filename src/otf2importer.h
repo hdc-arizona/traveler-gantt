@@ -379,6 +379,15 @@ private:
     std::vector<OTF2_AttributeRef> metrics;
     std::vector<std::string> * metric_names;
     std::map<std::string, std::string> * metric_units;
+
+    bool phylanx;
+    uint64_t phylanx_GUID;
+    uint64_t phylanx_Parent_GUID;
+    std::map<uint64_t, CommRecord *> * unmatched_guids;
+    std::map<uint64_t, CommRecord *> * unmatched_parent_guids;
+
+    const std::string PHYLANX_GUID_STRING = "GUID";
+    const std::string PHYLANX_PARENT_GUID_STRING = "Parent GUID";
 };
 
 #endif // OTF2IMPORTER_H

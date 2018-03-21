@@ -58,7 +58,12 @@ OTF2Importer::OTF2Importer()
       collective_fragments(NULL),
       metrics(std::vector<OTF2_AttributeRef>()),
       metric_names(new std::vector<std::string>()),
-      metric_units(new std::map<std::string, std::string>())
+      metric_units(new std::map<std::string, std::string>()),
+      phylanx(false),
+      phylanx_GUID(0),
+      phylanx_Parent_GUID(0),
+      unmatched_guids(new std::map<uint64_t, CommRecord *>()),
+      unmatched_parent_guids(new std::map<uint64_t, CommRecord *>())
 {
     collective_definitions->insert(std::pair<int, OTFCollective*>(0, new OTFCollective(0, 1, "Barrier")));
     collective_definitions->insert(std::pair<int, OTFCollective*>(1, new OTFCollective(1, 2, "Bcast")));
@@ -277,12 +282,28 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     rawtrace->metric_units = metric_units;
 
     // Adding locations
-    // Use the locationIndexMap to only chooes the ones we can handle (right now just MPI)
+    // Use the locationIndexMap to only choose the ones we can handle (right now just MPI)
     for (std::map<OTF2_LocationRef, unsigned long>::iterator loc = locationIndexMap->begin();
          loc != locationIndexMap->end(); ++loc)
     {
         OTF2_Reader_SelectLocation(otfReader, loc->first);
     }
+
+
+    // Checking for phylanx GUID and parent GUID
+    for (std::map<OTF2_AttributeRef, OTF2Attribute *>::iterator eitr
+         = attributeMap->begin();
+         eitr != attributeMap->end(); ++eitr)
+    {
+        if (stringMap->at(eitr->second->name) == PHYLANX_GUID_STRING) {
+            phylanx_GUID = eitr->first;
+        } else if (stringMap->at(eitr->second->name) == PHYLANX_PARENT_GUID_STRING) {
+            phylanx_Parent_GUID = eitr->first;
+            phylanx = true;
+        }
+    }
+
+    return rawtrace;
 
     bool def_files_success = OTF2_Reader_OpenDefFiles(otfReader) == OTF2_SUCCESS;
     OTF2_Reader_OpenEvtFiles(otfReader);
@@ -322,6 +343,15 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     collective_begins = new std::vector<std::list<uint64_t> *>(num_processes);
     delete collective_fragments;
     collective_fragments = new std::vector<std::list<OTF2CollectiveFragment *> *>(num_processes);
+   
+    if (phylanx) 
+    {
+      delete unmatched_guids;
+      unmatched_guids = new std::map<uint64_t, CommRecord *>();
+      delete unmatched_parent_guids;
+      unmatched_parent_guids = new std::map<uint64_t, CommRecord *>();
+    }
+
     for (int i = 0; i < num_processes; i++) {
         (*unmatched_recvs)[i] = new std::list<CommRecord *>();
         (*unmatched_sends)[i] = new std::list<CommRecord *>();
@@ -336,6 +366,8 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
         (*collective_fragments)[i] = new std::list<OTF2CollectiveFragment *>();
         (*(rawtrace->collectiveBits))[i] = new std::vector<RawTrace::CollectiveBit *>();
     }
+
+        
 
 
     OTF2_GlobalEvtReader * global_evt_reader = OTF2_Reader_GetGlobalEvtReader(otfReader);
@@ -398,6 +430,32 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
               << unmatched_recv_count << " unmatched recvs." << std::endl;
 
 
+    if (phylanx) 
+    {
+        int unmatched_guid_count = 0;
+        for (std::map<uint64_t, CommRecord *>::iterator eitr
+             = unmatched_guids->begin();
+             eitr != unmatched_guids->end(); ++eitr)
+        {
+            unmatched_guid_count++;
+            std::cout << "Unmatched guid " << (eitr)->second->sender << "->"
+                      << (eitr)->second->receiver << " (" << (eitr)->second->send_time << ", "
+                      << (eitr)->second->send_time << ")" << std::endl;
+        }
+        int unmatched_parent_guid_count = 0;
+        for (std::map<uint64_t, CommRecord *>::iterator eitr
+             = unmatched_parent_guids->begin();
+             eitr != unmatched_parent_guids->end(); ++eitr)
+        {
+            unmatched_parent_guid_count++;
+            std::cout << "Unmatched parent_guid " << (eitr)->second->sender << "->"
+                      << (eitr)->second->receiver << " (" << (eitr)->second->send_time << ", "
+                      << (eitr)->second->recv_time << ")" << std::endl;
+        }
+        std::cout << unmatched_parent_guid_count << " unmatched parent_guids and "
+                  << unmatched_guid_count << " unmatched guids." << std::endl;
+    }
+
     defineEntities();
     rawtrace->processingElements = processingElements;
     rawtrace->num_entities = MPILocations.size();
@@ -406,7 +464,6 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
     double traceElapsed = (end - start) / CLOCKS_PER_SEC;
     RavelUtils::gu_printTime(traceElapsed, "OTF Reading: ");
 
-    return rawtrace;
 }
 
 void OTF2Importer::setDefCallbacks()
@@ -713,11 +770,27 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
 {
     unsigned long location = ((OTF2Importer *) userData)->locationIndexMap->at(locationID);
     int function = ((OTF2Importer *) userData)->regionIndexMap->at(region);
-    ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->push_back(new EventRecord(location,
-                                                                                           convertTime(userData,
-                                                                                                       time),
-                                                                                           function,
-                                                                                           true));
+    EventRecord * er = new EventRecord(location,
+                                       convertTime(userData, time),
+                                       function,
+                                       false);
+    ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->push_back(er);
+
+    if (OTF2_AttributeList_GetNumberOfElements(attributeList) > 0
+        && ((OTF2Importer * ) userData)->phylanx)
+    {
+        uint64_t metric;
+        OTF2_AttributeList_GetUint64(attributeList,
+                                     ((OTF2Importer *) userData)->phylanx_GUID,
+                                     &metric);
+        er->setGUID(metric);
+
+        OTF2_AttributeList_GetUint64(attributeList,
+                                     ((OTF2Importer *) userData)->phylanx_Parent_GUID,
+                                     &metric);
+        er->setParentGUID(metric);
+    }
+
     return OTF2_CALLBACK_SUCCESS;
 }
 

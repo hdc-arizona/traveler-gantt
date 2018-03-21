@@ -40,8 +40,17 @@ public:
     void addMetric(std::string name, double event_value);
 
     void setID(unsigned long long i) { id = i; }
+    void setGUID(uint64_t g) { 
+        guid = g; 
+        id = g;
+    }
+    uint64_t getGUID() { return guid; }
+    void setParentGUID(uint64_t g) { parent_guid = g; }
+    uint64_t getParentGUID() { return parent_guid; }
 
     unsigned long long id;
+    uint64_t guid;
+    uint64_t parent_guid;
 
     // Call tree info
     Event * caller;
