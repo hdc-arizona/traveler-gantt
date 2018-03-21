@@ -272,7 +272,7 @@ void OTFConverter::matchEvents()
                                                 bgn->entity, phase, msgs);
                     p->setGUID(bgn->guid);
                     p->setParentGUID(bgn->parent_guid);
-                    if (bgn->to_crs) {
+                    if ((*evt)->to_crs) {  // to_crs are collected by the leave
                         for (std::vector<GUIDRecord *>::iterator gitr = bgn->to_crs->begin();
                             gitr != bgn->to_crs->end(); ++gitr)
                         {
@@ -285,7 +285,7 @@ void OTFConverter::matchEvents()
                             msgs->push_back((*gitr)->message);
                         }
                     }
-                    if (bgn->from_cr) {
+                    if (bgn->from_cr) { // from cr is collected by the enter
                         if (!bgn->from_cr->message) {
                             bgn->from_cr->message = new Message(bgn->from_cr->parent_time,
                                                                 bgn->from_cr->child_time,

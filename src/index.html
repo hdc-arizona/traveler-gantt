@@ -705,7 +705,7 @@
 	  d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
 	.attr('class', 'parent')
 	.append('svg:title')
-	  .text(d => { return ravel.data.functions[d.function]; });
+	  .text(d => { return ravel.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
 
       rects.exit().remove();
 
@@ -753,7 +753,7 @@
 	d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
       .attr('class', 'ravel event')
       .append('svg:title')
-	.text(d => { return ravel.data.functions[d.function]; });
+	.text(d => { return ravel.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
 
     rects.exit().remove();
       
