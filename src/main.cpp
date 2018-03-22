@@ -43,6 +43,8 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     mg_get_http_var(&hm->body, "entity_start", entity_start, sizeof(entity_start));
     mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
+    std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
+    std::cout << "entity_start/entities/width " << entity_start << ", " << entities << ", " << width << std::endl;
 
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
                                        std::stoull(stop), 

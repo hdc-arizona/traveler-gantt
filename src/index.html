@@ -603,6 +603,7 @@
 
   ravel.update = function (json) {
     ravel.data = json;
+    console.log(ravel.data);
     d3.select('.axis').call(ravel.phys_scaleDateAxis);
     ravel.draw_traditional();
   };
@@ -780,8 +781,14 @@
 
 
     // Draw the message lines
+    var traditional_messages = ravel.data.messages.filter(
+	d => { 
+	    return d.sendtime >= ravel.data.starttime || d.recvtime <= ravel.data.stoptime; 
+	}
+    );   
+    console.log(traditional_messages.length, "# messages drawn");
     msgs = ravel.phys_comm_message_layer.selectAll('.message')
-      .data(ravel.data.messages, d => { return d.id; })
+      .data(traditional_messages, d => { return d.id; })
       .attr('x1', d => { return ravel.phys_scale(d.sendtime); })
       .attr('x2', d => { return ravel.phys_scale(d.recvtime); })
       .attr('y1', d => { return ravel.yphys(d.sender_entity + 0.5); })

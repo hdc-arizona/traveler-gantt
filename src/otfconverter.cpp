@@ -282,8 +282,9 @@ void OTFConverter::matchEvents()
                                 (*gitr)->message = new Message((*gitr)->parent_time,
                                                                (*gitr)->child_time,
                                                                0);
+                                (*gitr)->message->setID(globalMessageID++);
                             }
-                            (*gitr)->message->receiver = p;
+                            (*gitr)->message->sender = p;
                             msgs->push_back((*gitr)->message);
                         }
                         if (!msgs->empty()) 
@@ -299,8 +300,9 @@ void OTFConverter::matchEvents()
                             bgn->from_cr->message = new Message(bgn->from_cr->parent_time,
                                                                 bgn->from_cr->child_time,
                                                                 0);
+                            bgn->from_cr->message->setID(globalMessageID++);
                         }
-                        bgn->from_cr->message->sender = p;
+                        bgn->from_cr->message->receiver = p;
                         msgs->push_back(bgn->from_cr->message);
                         p->comm_prev = prev;
                         if (prev)
