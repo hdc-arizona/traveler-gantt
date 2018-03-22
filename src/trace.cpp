@@ -253,8 +253,10 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
                 for (std::vector<Message *>::iterator msg = messages->begin();
                     msg != messages->end(); ++msg)
                 {
-                    if ((*msg)->sendtime < start || !(evt == (*msg)->receiver)) 
+                    if ((*msg)->recvtime > stop || !(evt == (*msg)->sender)) 
+                    //if ((*msg)->sendtime < start || !(evt == (*msg)->receiver)) 
                     {
+                        std::cout << "Attempting to write a message" << std::endl;
                         json jmsg(*msg);
                         msg_slice.push_back(jmsg);
                     }

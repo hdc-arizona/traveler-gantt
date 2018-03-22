@@ -274,9 +274,10 @@ void OTFConverter::matchEvents()
                                                 bgn->entity, phase, msgs);
                     p->setGUID((*evt)->guid);
                     p->setParentGUID(bgn->parent_guid);
+                    //std::cout << "guid " << p->guid << " parent_guid " << p->parent_guid << std::endl;
                     if ((*evt)->to_crs) {  // to_crs are collected by the leave
-                        for (std::vector<GUIDRecord *>::iterator gitr = bgn->to_crs->begin();
-                            gitr != bgn->to_crs->end(); ++gitr)
+                        for (std::vector<GUIDRecord *>::iterator gitr = (*evt)->to_crs->begin();
+                            gitr != (*evt)->to_crs->end(); ++gitr)
                         {
                             if (!(*gitr)->message) {
                                 (*gitr)->message = new Message((*gitr)->parent_time,
@@ -286,6 +287,7 @@ void OTFConverter::matchEvents()
                             }
                             (*gitr)->message->sender = p;
                             msgs->push_back((*gitr)->message);
+                            std::cout << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << std::endl;
                         }
                         if (!msgs->empty()) 
                         {
@@ -301,6 +303,7 @@ void OTFConverter::matchEvents()
                                                                 bgn->from_cr->child_time,
                                                                 0);
                             bgn->from_cr->message->setID(globalMessageID++);
+                            std::cout << bgn->from_cr->parent << " to " << bgn->from_cr->child << " at " << bgn->from_cr->parent_time << " to " << bgn->from_cr->child_time <<  std::endl;
                         }
                         bgn->from_cr->message->receiver = p;
                         msgs->push_back(bgn->from_cr->message);
