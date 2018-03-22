@@ -772,7 +772,7 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
     EventRecord * er = new EventRecord(location,
                                        converted_time,
                                        function,
-                                       false);
+                                       true);
     ((*((((OTF2Importer*) userData)->rawtrace)->events))[location])->push_back(er);
 
     if (OTF2_AttributeList_GetNumberOfElements(attributeList) > 0
@@ -786,7 +786,7 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
         er->setGUID(m1);
-        std::cout << "   Entering " << m1 << std::endl;
+        //std::cout << "   Entering " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;
         if (guids->count(m1) == 1) {
@@ -856,11 +856,11 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
         er->setGUID(m1);
-        std::cout << "   Leaving " << m1 << std::endl;
+        //std::cout << "   Leaving " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;
         if (guids->count(m1) == 1) {
-            std::cout << "Orphan found: " << m1 << std::endl;
+            //std::cout << "Orphan found: " << m1 << std::endl;
             // I have waiting children -- I need to set my own location and such
             for (std::vector<GUIDRecord *>::iterator itr = guids->at(m1)->begin();
                 itr != guids->at(m1)->end(); ++itr) 

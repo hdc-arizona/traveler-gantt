@@ -129,6 +129,7 @@ void OTFConverter::convert()
     }
 
     // Set up collective metrics
+    std::cout << "Setting up metrics..." << std::endl;
     for (std::map<unsigned int, Counter *>::iterator counter = rawtrace->counters->begin();
          counter != rawtrace->counters->end(); ++counter)
     {
@@ -138,6 +139,7 @@ void OTFConverter::convert()
     }
 
     // Convert the events into matching enter and exit
+    std::cout << "Matching events" << std::endl;
     matchEvents();
 
     // Sort all the collective records
