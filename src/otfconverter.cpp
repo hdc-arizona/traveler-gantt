@@ -272,7 +272,7 @@ void OTFConverter::matchEvents()
                     P2PEvent * p = new P2PEvent(bgn->time, (*evt)->time,
                                                 bgn->value, bgn->entity,
                                                 bgn->entity, phase, msgs);
-                    p->setGUID(bgn->guid);
+                    p->setGUID((*evt)->guid);
                     p->setParentGUID(bgn->parent_guid);
                     if ((*evt)->to_crs) {  // to_crs are collected by the leave
                         for (std::vector<GUIDRecord *>::iterator gitr = bgn->to_crs->begin();
@@ -286,6 +286,13 @@ void OTFConverter::matchEvents()
                             (*gitr)->message->receiver = p;
                             msgs->push_back((*gitr)->message);
                         }
+                        if (!msgs->empty()) 
+                        {
+                            p->comm_prev = prev;
+                            if (prev)
+                                prev->comm_next = p;
+                            prev = p;
+                        }
                     }
                     if (bgn->from_cr) { // from cr is collected by the enter
                         if (!bgn->from_cr->message) {
@@ -295,15 +302,12 @@ void OTFConverter::matchEvents()
                         }
                         bgn->from_cr->message->sender = p;
                         msgs->push_back(bgn->from_cr->message);
-                    }
-                   
-                    if (!msgs->empty()) 
-                    {
-                        msgs->at(0)->receiver->comm_prev = prev;
+                        p->comm_prev = prev;
                         if (prev)
                             prev->comm_next = p;
                         prev = p;
                     }
+                   
 
                     counter_index = advanceCounters(p,
                                                     counterstack,
