@@ -274,39 +274,83 @@ void OTFConverter::matchEvents()
                                                 bgn->entity, phase, msgs);
                     p->setGUID((*evt)->guid);
                     p->setParentGUID(bgn->parent_guid);
-                    //std::cout << "guid " << p->guid << " parent_guid " << p->parent_guid << std::endl;
+                    std::cout << "guid " << p->guid << " parent_guid " << p->parent_guid << " and to_crs length " 
+                        << (*evt)->to_crs->size() << " and bgn to_crs " << bgn->to_crs->size() << std::endl;
                     if ((*evt)->to_crs) {  // to_crs are collected by the leave
                         for (std::vector<GUIDRecord *>::iterator gitr = (*evt)->to_crs->begin();
                             gitr != (*evt)->to_crs->end(); ++gitr)
                         {
-                            if (!(*gitr)->message) {
-                                (*gitr)->message = new Message((*gitr)->parent_time,
-                                                               (*gitr)->child_time,
-                                                               0);
-                                (*gitr)->message->setID(globalMessageID++);
+                            if ((*gitr)->matched) 
+                            {
+                                if (!(*gitr)->message) 
+                                {
+                                    (*gitr)->message = new Message((*gitr)->parent_time,
+                                                                   (*gitr)->child_time,
+                                                                   0);
+                                    (*gitr)->message->setID(globalMessageID++);
+                                    std::cout << "Creating evt message: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                }
+                                (*gitr)->message->sender = p;
+                                msgs->push_back((*gitr)->message);
                             }
-                            (*gitr)->message->sender = p;
-                            msgs->push_back((*gitr)->message);
-                            std::cout << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << std::endl;
+                            else
+                            {
+                                std::cout << "Unmatched record: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                            }
                         }
+                        /*
                         if (!msgs->empty()) 
                         {
                             p->comm_prev = prev;
                             if (prev)
                                 prev->comm_next = p;
                             prev = p;
+                        }*/
+                    }
+                    if (bgn->to_crs) {  // to_crs are collected by the leave
+                        for (std::vector<GUIDRecord *>::iterator gitr = bgn->to_crs->begin();
+                            gitr != bgn->to_crs->end(); ++gitr)
+                        {
+                            if ((*gitr)->matched) 
+                            {
+                                if (!(*gitr)->message) 
+                                {
+                                    (*gitr)->message = new Message((*gitr)->parent_time,
+                                                                   (*gitr)->child_time,
+                                                                   0);
+                                    (*gitr)->message->setID(globalMessageID++);
+                                    std::cout << "Creating bgn-evt message: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                }
+                                (*gitr)->message->sender = p;
+                                msgs->push_back((*gitr)->message);
+                            }
+                            else
+                            {
+                                std::cout << "Unmatched record: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                            }
                         }
                     }
                     if (bgn->from_cr) { // from cr is collected by the enter
-                        if (!bgn->from_cr->message) {
-                            bgn->from_cr->message = new Message(bgn->from_cr->parent_time,
-                                                                bgn->from_cr->child_time,
-                                                                0);
-                            bgn->from_cr->message->setID(globalMessageID++);
-                            std::cout << bgn->from_cr->parent << " to " << bgn->from_cr->child << " at " << bgn->from_cr->parent_time << " to " << bgn->from_cr->child_time <<  std::endl;
+                        if (bgn->from_cr->matched) {
+                            if (!bgn->from_cr->message) {
+                                bgn->from_cr->message = new Message(bgn->from_cr->parent_time,
+                                                                    bgn->from_cr->child_time,
+                                                                    0);
+                                bgn->from_cr->message->setID(globalMessageID++);
+                                std::cout << "Creating bgn message: " << bgn->from_cr->parent << " to " << bgn->from_cr->child << " at " << bgn->from_cr->parent_time << " to " << bgn->from_cr->child_time << " : " << bgn->from_cr->matched << std::endl;
+                            }
+                            bgn->from_cr->message->receiver = p;
+                            msgs->push_back(bgn->from_cr->message);
+                            /*
+                            p->comm_prev = prev;
+                            if (prev)
+                                prev->comm_next = p;
+                            prev = p;
+                            */
                         }
-                        bgn->from_cr->message->receiver = p;
-                        msgs->push_back(bgn->from_cr->message);
+                    }
+                    if (!msgs->empty()) 
+                    {
                         p->comm_prev = prev;
                         if (prev)
                             prev->comm_next = p;
