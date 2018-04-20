@@ -1,7 +1,6 @@
 #include "message.h"
 #include "commevent.h"
 #include "p2pevent.h"
-#include <iostream>
 
 Message::Message(unsigned long long send, unsigned long long recv, int group)
     : sender(NULL), receiver(NULL),
@@ -42,7 +41,6 @@ CommEvent * Message::getDesignee()
 
 void to_json(json& j, const Message& m)
 {
-    std::cout << m.id << ", " << m.sendtime << ", " << m.recvtime << ", " << (m.sender == NULL) << ", " << (m.receiver == NULL) << std::endl;
     j = json{
         {"id", m.id},
         {"sendtime", m.sendtime},
@@ -65,7 +63,6 @@ void from_json(const json& j, Message& m)
 
 void to_json(json& j, const Message * m)
 {
-    std::cout << m->id << ", " << m->sendtime << ", " << m->recvtime << ", " << (m->sender == NULL) << ", " << (m->receiver == NULL) << std::endl;
     j = json{
         {"id", m->id},
         {"sendtime", m->sendtime},

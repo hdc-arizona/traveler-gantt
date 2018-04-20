@@ -447,7 +447,6 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
                 std::cout << "Orphan guid " << (*itr)->parent << "->"
                           << (*itr)->child << " (" << (*itr)->parent_time << ", "
                           << (*itr)->child_time << ")" << std::endl;
-                (*itr)->matched = false;
             }
         }
         std::cout << unmatched_guid_count << " orphan guids." << std::endl;
@@ -790,7 +789,6 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
         //std::cout << "   Entering " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;
-        std::cout << "m1 is " << m1 << " and guids count is " << guids->count(m1) << std::endl;
         if (guids->count(m1) == 1) {
             // I have waiting children -- I need to set my own location and such
             for (std::vector<GUIDRecord *>::iterator itr = guids->at(m1)->begin();
@@ -800,7 +798,6 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
-                std::cout << "ENTER Orphan found: " << m1 << " to " << cr->child << std::endl;
             }
             delete guids->at(m1);
             guids->erase(m1);
@@ -811,14 +808,13 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                                      &m2);
         er->setParentGUID(m2);
         if (m2 != 0) {
-            std::cout << "m2 is " << m2 << " and guids count is " << guids->count(m2) << std::endl;
+            std::cout << "m2 is " << m2 << std::endl;
             if (parent_guids->count(m2) == 1) {
                 // My parent already exists
                 EventRecord * pr = parent_guids->at(m2);
                 cr = new GUIDRecord(m2, pr->time, m1, converted_time);
                 er->setFromGUIDRecord(cr); // add to child
                 pr->to_crs->push_back(cr); // add to parent
-                std::cout << "Parent already exists: " << m2 << " to " << cr->child << std::endl;
             } else {
                 // Waiting on my parent
                 cr = new GUIDRecord(m2, 0, m1, converted_time);
@@ -863,7 +859,7 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
         er->setGUID(m1);
-        std::cout << "   Leaving " << m1 << " and guids count is " << guids->count(m1) << std::endl;
+        //std::cout << "   Leaving " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;
         if (guids->count(m1) == 1) {
@@ -875,7 +871,7 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
-                std::cout << "Leave Orphan found: " << m1 << " to " << cr->child << std::endl;
+                std::cout << "Orphan found: " << m1 << " to " << cr->child << std::endl;
             }
             delete guids->at(m1);
             guids->erase(m1);
