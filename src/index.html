@@ -6,7 +6,7 @@
   <!-- Task Runtime Analysis and Visualization for Execution Log Exploration and Research -->
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <link rel="stylesheet" type="text/css" href="ravel.css" />
+  <link rel="stylesheet" type="text/css" href="traveler.css" />
   <script src="d3.v4.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
   <script src="split.js"></script>
@@ -17,7 +17,7 @@
 </body>
 </html>
   <script type="text/javascript">
-  var ravel = {
+  var traveler = {
     get_data_state: false,
     data: null,
     items: null,
@@ -59,179 +59,179 @@
   };
 
   // Figure out width and height of Gantt chart from the window size
-  ravel.calc_window_sizes = function () {
-    ravel.full_mini_height = ravel.miniHeight + ravel.scaleHeight + ravel.margin.top;
-    ravel.width = d3.select('#traditional-div').node().offsetWidth - 5;
+  traveler.calc_window_sizes = function () {
+    traveler.full_mini_height = traveler.miniHeight + traveler.scaleHeight + traveler.margin.top;
+    traveler.width = d3.select('#traditional-div').node().offsetWidth - 5;
 
-    ravel.gantt_width = ravel.width - ravel.margin.left - ravel.margin.right;
-    ravel.full_height = $(document).height() - $('body').offset().top;
-    ravel.traditional_height = d3.select('#traditional-div').node().offsetHeight;
+    traveler.gantt_width = traveler.width - traveler.margin.left - traveler.margin.right;
+    traveler.full_height = $(document).height() - $('body').offset().top;
+    traveler.traditional_height = d3.select('#traditional-div').node().offsetHeight;
 
-    if (ravel.traditional_height <= 0) {
-      ravel.traditional_gantt_height = ravel.full_height - ravel.full_mini_height -
-	2 * ravel.margin.top - ravel.margin.bottom -
-	ravel.colorBarHeight - ravel.scaleHeight;
+    if (traveler.traditional_height <= 0) {
+      traveler.traditional_gantt_height = traveler.full_height - traveler.full_mini_height -
+	2 * traveler.margin.top - traveler.margin.bottom -
+	traveler.colorBarHeight - traveler.scaleHeight;
     } else {
-      ravel.traditional_gantt_height = ravel.traditional_height - 
-	2 * ravel.margin.top - ravel.margin.bottom -
-	ravel.colorBarHeight - ravel.scaleHeight;
+      traveler.traditional_gantt_height = traveler.traditional_height - 
+	2 * traveler.margin.top - traveler.margin.bottom -
+	traveler.colorBarHeight - traveler.scaleHeight;
     }
 
-  }; // end ravel.calc_window_sizes
+  }; // end traveler.calc_window_sizes
 
 
-  ravel.resize = function () {
-    ravel.mini_scale
-      .range([0, ravel.gantt_width]);
-    ravel.phys_scale
-      .range([0, ravel.gantt_width]);
+  traveler.resize = function () {
+    traveler.mini_scale
+      .range([0, traveler.gantt_width]);
+    traveler.phys_scale
+      .range([0, traveler.gantt_width]);
 
-    ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
-    ravel.xAxis.scale(ravel.mini_scale);
+    traveler.phys_scaleDateAxis.scale(traveler.phys_scale);
+    traveler.xAxis.scale(traveler.mini_scale);
     
-    ravel.yphys
-      .range([0, ravel.traditional_gantt_height]);
-    ravel.total_y_scale
-      .range([0, ravel.traditional_gantt_height]);
+    traveler.yphys
+      .range([0, traveler.traditional_gantt_height]);
+    traveler.total_y_scale
+      .range([0, traveler.traditional_gantt_height]);
     
-    ravel.phys
-      .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height);
+    traveler.phys
+      .attr('width', traveler.gantt_width)
+      .attr('height', traveler.traditional_gantt_height);
 
-    ravel.mini 
-      .attr('width', ravel.gantt_width) 
-      .attr('height', ravel.miniHeight);
+    traveler.mini 
+      .attr('width', traveler.gantt_width) 
+      .attr('height', traveler.miniHeight);
 
-    ravel.traditional_clip
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height); 
+    traveler.traditional_clip
+	.attr('width', traveler.gantt_width)
+	.attr('height', traveler.traditional_gantt_height); 
 
-    ravel.traditional_lanes_clip
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height);
+    traveler.traditional_lanes_clip
+	.attr('width', traveler.gantt_width)
+	.attr('height', traveler.traditional_gantt_height);
 
-    ravel.traditional_scale_clip
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.scaleHeight);
+    traveler.traditional_scale_clip
+	.attr('width', traveler.gantt_width)
+	.attr('height', traveler.scaleHeight);
 
     // White backgrounds for the views
-    ravel.phys_background
-      .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height);
+    traveler.phys_background
+      .attr('width', traveler.gantt_width)
+      .attr('height', traveler.traditional_gantt_height);
 
-    ravel.phys_axis
-      .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
-      .call(ravel.phys_scaleDateAxis);
+    traveler.phys_axis
+      .attr('transform', 'translate(0,' + traveler.traditional_gantt_height + ')')
+      .call(traveler.phys_scaleDateAxis);
 
-    ravel.mini_axis
-      .call(ravel.xAxis);
+    traveler.mini_axis
+      .call(traveler.xAxis);
 
     // Draw a white background for the overview
-    ravel.mini_background
-      .attr("width", ravel.gantt_width);
+    traveler.mini_background
+      .attr("width", traveler.gantt_width);
 
-    ravel.draw_traditional();
-  } // end ravel.resize
+    traveler.draw_traditional();
+  } // end traveler.resize
 
 
-  ravel.splitter_change = function () {
-    ravel.calc_window_sizes();
-    ravel.resize();
+  traveler.splitter_change = function () {
+    traveler.calc_window_sizes();
+    traveler.resize();
   };
 
 
   window.onresize = function(event) {
-    ravel.calc_window_sizes();
-    ravel.resize();
+    traveler.calc_window_sizes();
+    traveler.resize();
   }
 
 
-  var init_ravel = function() {
-    ravel.calc_window_sizes();
-    var overview_per = ( (ravel.full_mini_height + 5) / ravel.full_height) * 100;
+  var init_traveler = function() {
+    traveler.calc_window_sizes();
+    var overview_per = ( (traveler.full_mini_height + 5) / traveler.full_height) * 100;
     var trad_per = 100 - overview_per;
     Split(['#traditional-div', '#overview-div'], {
       direction: 'vertical',
       sizes: [trad_per, overview_per],
       minSize: [0, 0],
-      onDrag: ravel.splitter_change
+      onDrag: traveler.splitter_change
     });
-    ravel.calc_window_sizes();
+    traveler.calc_window_sizes();
   
-    ravel.typecolor = d3.scaleLinear()
+    traveler.typecolor = d3.scaleLinear()
       .domain([1,2])
       .range(["lightblue", "lightblue"]);
-    ravel.bordercolor = d3.scaleLinear()
+    traveler.bordercolor = d3.scaleLinear()
       .domain([1,2])
       .range(["blue", "blue"]);
-    ravel.parentcolor = d3.scaleLinear()
+    traveler.parentcolor = d3.scaleLinear()
       .domain([0, 2])
       .range(['gray', 'lightgray']);
-    ravel.mini_scale = d3.scaleLinear()
-      .domain([ravel.min_time, ravel.max_time])
-      .range([0, ravel.gantt_width])
-    ravel.mini_y_scale = d3.scaleLinear()
+    traveler.mini_scale = d3.scaleLinear()
+      .domain([traveler.min_time, traveler.max_time])
+      .range([0, traveler.gantt_width])
+    traveler.mini_y_scale = d3.scaleLinear()
       .domain([0, 1])
-      .range([0, ravel.miniHeight]);
-    ravel.phys_scale = d3.scaleLinear()
-      .domain([ravel.min_time, ravel.min_time + ravel.current_span])
-      .range([0, ravel.gantt_width]);
+      .range([0, traveler.miniHeight]);
+    traveler.phys_scale = d3.scaleLinear()
+      .domain([traveler.min_time, traveler.min_time + traveler.current_span])
+      .range([0, traveler.gantt_width]);
 
-    ravel.rows = d3.extent(1);
-    ravel.show_rows = [0,1];
-    ravel.yphys = d3.scaleLinear()
-      .domain([ravel.show_rows[0], ravel.show_rows[1]])
-      .range([0, ravel.traditional_gantt_height]);
-    ravel.total_y_scale = d3.scaleLinear()
-      .domain([ravel.rows[0], ravel.rows[1] + 1])
-      .range([0, ravel.traditional_gantt_height]);
+    traveler.rows = d3.extent(1);
+    traveler.show_rows = [0,1];
+    traveler.yphys = d3.scaleLinear()
+      .domain([traveler.show_rows[0], traveler.show_rows[1]])
+      .range([0, traveler.traditional_gantt_height]);
+    traveler.total_y_scale = d3.scaleLinear()
+      .domain([traveler.rows[0], traveler.rows[1] + 1])
+      .range([0, traveler.traditional_gantt_height]);
 
-    ravel.saved_xmain = [0, 0];
-    ravel.saved_yphys = ravel.yphys.domain();
-    ravel.saved_stepscale = 1;
-    ravel.saved_lanescale = 1;
+    traveler.saved_xmain = [0, 0];
+    traveler.saved_yphys = traveler.yphys.domain();
+    traveler.saved_stepscale = 1;
+    traveler.saved_lanescale = 1;
 
     // See: http://bl.ocks.org/jgbos/9752277
     // See: https://jsfiddle.net/DaWa/dLmp8zk8/2/
 
-    ravel.zoom_function = function () {
+    traveler.zoom_function = function () {
       // ignore zoom-by-brush
       if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return;
-      if (ravel.init_in_process) return;
+      if (traveler.init_in_process) return;
 
       var t = d3.event.transform;
       if (d3.event.sourceEvent.metaKey) {
-	console.log('meta key', ravel.yphys.domain(), t);
-	//ravel.yphys.domain(t.rescaleY(ravel.total_y_scale).domain());
+	console.log('meta key', traveler.yphys.domain(), t);
+	//traveler.yphys.domain(t.rescaleY(traveler.total_y_scale).domain());
 
 	// scale bigger = zoom in
 	// scale smaller = zoom out
-	ravel.y_k_factor = (ravel.show_rows[1] - ravel.show_rows[0] + 1) * ravel.current_k_scale / ravel.lanes.length;
-	var old_domain = ravel.yphys.domain();
-	var old_x_domain = ravel.phys_scale.domain();
-	console.log('k is', t.k, ravel.current_k_scale, ravel.y_k_factor, (ravel.current_k_scale / ravel.y_k_factor));
-	if (Math.abs(t.k - ravel.current_k_scale) > 1e-6) {
-	    var y_zoom = t.k / ravel.y_k_factor;
+	traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
+	var old_domain = traveler.yphys.domain();
+	var old_x_domain = traveler.phys_scale.domain();
+	console.log('k is', t.k, traveler.current_k_scale, traveler.y_k_factor, (traveler.current_k_scale / traveler.y_k_factor));
+	if (Math.abs(t.k - traveler.current_k_scale) > 1e-6) {
+	    var y_zoom = t.k / traveler.y_k_factor;
 
 	    // Now with y zoom...
 	    // Rescale
-	    var show_lanes = ravel.lanes.length / y_zoom;
+	    var show_lanes = traveler.lanes.length / y_zoom;
 
 	    // Translate
 	    var old_lanes = old_domain[1] - old_domain[0];
 	    var lane_offset = (old_lanes - show_lanes) / 2;
 
 	    console.log('y_zoom', y_zoom, 'show_lanes', show_lanes, 'old_lanes', old_lanes, 'lane_offset', lane_offset);
-	    console.log('old_domain', ravel.yphys.domain(), 'current_y_offset', ravel.current_y_offset);
-	    ravel.current_y_offset += lane_offset;
-	    ravel.init_in_process = true;
-	    ravel.zoom.scaleTo(ravel.traditional, ravel.current_k_scale);
-	    ravel.zoom.translateTo(ravel.traditional, ravel.current_x_offset, old_domain[0] + lane_offset);
-	    ravel.yphys.domain([old_domain[0] + lane_offset, old_domain[1] - lane_offset]);
-	    ravel.init_in_process = false;
-	    console.log('old_domain', ravel.yphys.domain(), 'current_y_offset', ravel.current_y_offset);
-	    ravel.current_k_scale = t.k;
-	    ravel.current_y_offset += lane_offset * ravel.yphys.range()[1];
+	    console.log('old_domain', traveler.yphys.domain(), 'current_y_offset', traveler.current_y_offset);
+	    traveler.current_y_offset += lane_offset;
+	    traveler.init_in_process = true;
+	    traveler.zoom.scaleTo(traveler.traditional, traveler.current_k_scale);
+	    traveler.zoom.translateTo(traveler.traditional, traveler.current_x_offset, old_domain[0] + lane_offset);
+	    traveler.yphys.domain([old_domain[0] + lane_offset, old_domain[1] - lane_offset]);
+	    traveler.init_in_process = false;
+	    console.log('old_domain', traveler.yphys.domain(), 'current_y_offset', traveler.current_y_offset);
+	    traveler.current_k_scale = t.k;
+	    traveler.current_y_offset += lane_offset * traveler.yphys.range()[1];
 	} else {
 
 	    // current_y_offset is the last offset
@@ -239,234 +239,234 @@
 	    // y is in the range field, the space of the gantt height
 	    // Negative means pulling up. Rows should increase.
 	    // Positive means pulling down. Rows should decrease.
-	    var total_screen_y = ravel.yphys.range()[1];
-	    var screen_frac = (t.y - ravel.current_y_offset) / total_screen_y;
+	    var total_screen_y = traveler.yphys.range()[1];
+	    var screen_frac = (t.y - traveler.current_y_offset) / total_screen_y;
 	    var row_frac = screen_frac * (old_domain[1] - old_domain[0]);
 
 	    // Clamp to edges
-	    if ((old_domain[0] - row_frac) < ravel.total_y_scale.domain()[0]) {
-		row_frac = old_domain[0] - ravel.total_y_scale.domain()[0];
-		ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
-		console.log('y offset clamped', ravel.current_y_offset);
+	    if ((old_domain[0] - row_frac) < traveler.total_y_scale.domain()[0]) {
+		row_frac = old_domain[0] - traveler.total_y_scale.domain()[0];
+		traveler.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
+		console.log('y offset clamped', traveler.current_y_offset);
 	    }
-	    else if ((old_domain[1] - row_frac) > ravel.total_y_scale.domain()[1]) {
-		row_frac = old_domain[1] - ravel.total_y_scale.domain()[1];
-		ravel.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
-		console.log('y offset clamped 2', ravel.current_y_offset);
+	    else if ((old_domain[1] - row_frac) > traveler.total_y_scale.domain()[1]) {
+		row_frac = old_domain[1] - traveler.total_y_scale.domain()[1];
+		traveler.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
+		console.log('y offset clamped 2', traveler.current_y_offset);
 	    }
 	    else {
-		ravel.current_y_offset = t.y;
-		console.log('y offset is t.y', ravel.current_y_offset);
+		traveler.current_y_offset = t.y;
+		console.log('y offset is t.y', traveler.current_y_offset);
 	    }
 
-	    ravel.yphys.domain([old_domain[0] - row_frac, old_domain[1] - row_frac]);
-	    //ravel.init_in_process = true;
-	    ravel.zoom.translateTo(ravel.traditional, ravel.current_x_offset, ravel.current_y_offset);
-	    //ravel.init_in_process = false;
+	    traveler.yphys.domain([old_domain[0] - row_frac, old_domain[1] - row_frac]);
+	    //traveler.init_in_process = true;
+	    traveler.zoom.translateTo(traveler.traditional, traveler.current_x_offset, traveler.current_y_offset);
+	    //traveler.init_in_process = false;
 	}
 	 
-	ravel.draw_traditional();
+	traveler.draw_traditional();
       } else {
 	console.log('t in x is', t);
-	ravel.current_y_offset = t.y;
-	ravel.current_x_offset = t.x;
-	ravel.current_k_scale = t.k;
-	ravel.phys_scale.domain(t.rescaleX(ravel.mini_scale).domain());
-	ravel.gantt_brush_group.call(ravel.gantt_brush.move, 
-	  ravel.phys_scale.range().map(t.invertX, t));
+	traveler.current_y_offset = t.y;
+	traveler.current_x_offset = t.x;
+	traveler.current_k_scale = t.k;
+	traveler.phys_scale.domain(t.rescaleX(traveler.mini_scale).domain());
+	traveler.gantt_brush_group.call(traveler.gantt_brush.move, 
+	  traveler.phys_scale.range().map(t.invertX, t));
 	  
-	ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
-	  Math.round(ravel.phys_scale.domain()[1]));
+	traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
+	  Math.round(traveler.phys_scale.domain()[1]));
       }
     }; // End zoom_function();
 
 
-    ravel.zoom = d3.zoom()
+    traveler.zoom = d3.zoom()
       .scaleExtent([1, Infinity])
-      .translateExtent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
-      .extent([[0, 0], [ravel.gantt_width, ravel.traditional_gantt_height]])
-      .on('zoom', ravel.zoom_function);
+      .translateExtent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]])
+      .extent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]])
+      .on('zoom', traveler.zoom_function);
 
-    ravel.gantt_brush = d3.brushX()
-      .extent([[0, 0], [ravel.gantt_width, ravel.miniHeight]])
-      .on("brush end", ravel.gantt_brush_function);
+    traveler.gantt_brush = d3.brushX()
+      .extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
+      .on("brush end", traveler.gantt_brush_function);
 
-    ravel.traditional = d3.select('#traditional-div')
+    traveler.traditional = d3.select('#traditional-div')
       .append('svg:svg')
       .attr('id', 'traditional')
       .attr('width', '100%')
       .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
       .attr('class', 'traditional')
-      .call(ravel.zoom);
+      .call(traveler.zoom);
 
-    ravel.phys = ravel.traditional.append('g')
-      .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
-      .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height + ravel.scaleHeight)
+    traveler.phys = traveler.traditional.append('g')
+      .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
+      .attr('width', traveler.gantt_width)
+      .attr('height', traveler.traditional_gantt_height + traveler.scaleHeight)
       .attr('class', 'phys');
     
-    ravel.traditional_clip = ravel.phys.append('defs').append('clipPath')
+    traveler.traditional_clip = traveler.phys.append('defs').append('clipPath')
       .attr('id', 'clip')
       .append('rect')
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height); 
+	.attr('width', traveler.gantt_width)
+	.attr('height', traveler.traditional_gantt_height); 
 
-    ravel.traditional_lanes_clip = ravel.phys.append('defs').append('clipPath')
+    traveler.traditional_lanes_clip = traveler.phys.append('defs').append('clipPath')
       .attr('id', 'lanesclip')
       .append('rect')
-	.attr('width', ravel.gantt_width)
-	.attr('height', ravel.traditional_gantt_height);
+	.attr('width', traveler.gantt_width)
+	.attr('height', traveler.traditional_gantt_height);
 
-    ravel.traditional_scale_clip = ravel.phys.append('defs').append('clipPath')
+    traveler.traditional_scale_clip = traveler.phys.append('defs').append('clipPath')
       .attr('id', 'scaleclip')
       .append('rect')
-        .attr('y', ravel.traditional_gantt_height)
-	.attr('width', ravel.gantt_width)
-        .attr('height', ravel.scaleHeight);
+        .attr('y', traveler.traditional_gantt_height)
+	.attr('width', traveler.gantt_width)
+        .attr('height', traveler.scaleHeight);
     
     // White backgrounds for the views
-    ravel.phys_background = ravel.phys.append('rect')
+    traveler.phys_background = traveler.phys.append('rect')
       .attr('x', 0)
       .attr('y', 0)
-      .attr('width', ravel.gantt_width)
-      .attr('height', ravel.traditional_gantt_height)
+      .attr('width', traveler.gantt_width)
+      .attr('height', traveler.traditional_gantt_height)
       .attr('stroke', 0)
       .attr('fill', 'white')
       .attr('class', 'phys_background');
 
     // draw the items for the main view, use a clip-path for the ones that
     // are slightly outside of our drawing area
-    ravel.physLaneLines = ravel.phys.append('g')
+    traveler.physLaneLines = traveler.phys.append('g')
       .attr('clip-path', 'url(#lanesclip)');
-    ravel.physRects = ravel.phys.append('g')
+    traveler.physRects = traveler.phys.append('g')
       .attr('clip-path', 'url(#clip)');
-    ravel.physScale = ravel.phys.append('g')
+    traveler.physScale = traveler.phys.append('g')
       .attr('clip-path', 'url(#scaleclip)')
 
-    ravel.overview = d3.select('#overview-div')
+    traveler.overview = d3.select('#overview-div')
       .append('svg:svg')
       .attr('id', 'overview')
-      .attr('height', ravel.full_mini_height)
+      .attr('height', traveler.full_mini_height)
       .attr('width', '100%')
       .attr('class', 'overview')
 
-    ravel.mini = ravel.overview.append('g')
-      .attr('transform', 'translate(' + ravel.margin.left + ',' + ravel.margin.top + ')')
-      .attr('width', ravel.gantt_width) //ravel.miniWidth)
-      .attr('height', ravel.miniHeight)
+    traveler.mini = traveler.overview.append('g')
+      .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
+      .attr('width', traveler.gantt_width) //traveler.miniWidth)
+      .attr('height', traveler.miniHeight)
       .attr('class', 'mini')
-      .on('click', ravel.handle_click);
+      .on('click', traveler.handle_click);
 
-    ravel.counter_scale = d3.scaleLinear()
+    traveler.counter_scale = d3.scaleLinear()
       .interpolate(d3.interpolateLab)
       .domain([1, 50, 100])
       .range(['lightblue', 'khaki', 'firebrick']);
      
     // draw the x axes on the charts
-    ravel.phys_scaleDateAxis = d3.axisBottom(ravel.phys_scale);
-    ravel.xAxis = d3.axisBottom(ravel.mini_scale);
+    traveler.phys_scaleDateAxis = d3.axisBottom(traveler.phys_scale);
+    traveler.xAxis = d3.axisBottom(traveler.mini_scale);
     
-    ravel.phys_layers = [];
-    ravel.phys_comm_event_layer = null;
-    ravel.phys_comm_message_layer = null;
+    traveler.phys_layers = [];
+    traveler.phys_comm_event_layer = null;
+    traveler.phys_comm_message_layer = null;
     
-  };  // Ravel vars
+  };  // traveler vars
 
 
-  ravel.init_display = function () {
-    ravel.min_time = ravel.data.mintime;
-    ravel.max_time = ravel.data.maxtime;
-    ravel.max_step = 0;
-    ravel.current_span = ravel.data.stoptime - ravel.data.starttime;
+  traveler.init_display = function () {
+    traveler.min_time = traveler.data.mintime;
+    traveler.max_time = traveler.data.maxtime;
+    traveler.max_step = 0;
+    traveler.current_span = traveler.data.stoptime - traveler.data.starttime;
 
-    if (ravel.data.hasOwnProperty('max_depth')) {
-      ravel.parentcolor.domain([0, ravel.data.max_depth]);
+    if (traveler.data.hasOwnProperty('max_depth')) {
+      traveler.parentcolor.domain([0, traveler.data.max_depth]);
     }
-    ravel.mini_scale.domain([ravel.min_time, ravel.max_time]);
-    ravel.phys_scale.domain([ravel.data.starttime, ravel.data.stoptime]);
-    ravel.mini_y_scale.domain([0, d3.max(ravel.data.overview)]);
-    ravel.phys_scaleDateAxis.scale(ravel.phys_scale);
-    ravel.xAxis.scale(ravel.mini_scale);
+    traveler.mini_scale.domain([traveler.min_time, traveler.max_time]);
+    traveler.phys_scale.domain([traveler.data.starttime, traveler.data.stoptime]);
+    traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
+    traveler.phys_scaleDateAxis.scale(traveler.phys_scale);
+    traveler.xAxis.scale(traveler.mini_scale);
 
 
-    ravel.phys_axis = ravel.physScale.append('g')
-      .attr('transform', 'translate(0,' + ravel.traditional_gantt_height + ')')
+    traveler.phys_axis = traveler.physScale.append('g')
+      .attr('transform', 'translate(0,' + traveler.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
-      .call(ravel.phys_scaleDateAxis);
+      .call(traveler.phys_scaleDateAxis);
 
-    ravel.mini_axis = ravel.mini.append('g')
-      .attr('transform', 'translate(0, ' + ravel.miniHeight + ')')
+    traveler.mini_axis = traveler.mini.append('g')
+      .attr('transform', 'translate(0, ' + traveler.miniHeight + ')')
       .attr('class', 'mini axis date')
-      .call(ravel.xAxis);
+      .call(traveler.xAxis);
 
     // Draw a white background for the overview
-    ravel.mini_background = ravel.mini.append('rect')
+    traveler.mini_background = traveler.mini.append('rect')
       .attr("x", 0)
       .attr("y", 0)
-      .attr("width", ravel.gantt_width)
-      .attr("height", ravel.miniHeight)
+      .attr("width", traveler.gantt_width)
+      .attr("height", traveler.miniHeight)
       .attr("stroke", 0)
       .attr("fill", "white")
       .attr('class', 'mini_background');
     
-    ravel.mini_bars = ravel.mini.append('g')
+    traveler.mini_bars = traveler.mini.append('g')
       .attr('class', 'overviewBar');
 
-    ravel.gantt_brush_group = ravel.mini.append('g')
-      .attr("class", "ravel brush")
-      .call(ravel.gantt_brush)
-      .call(ravel.gantt_brush.move, ravel.mini_scale.range());
+    traveler.gantt_brush_group = traveler.mini.append('g')
+      .attr("class", "traveler brush")
+      .call(traveler.gantt_brush)
+      .call(traveler.gantt_brush.move, traveler.mini_scale.range());
 
-    ravel.init_in_process = true;
-    ravel.zoom.scaleTo(ravel.traditional, (ravel.max_time - ravel.min_time) / ravel.current_span);
-    ravel.current_k_scale = (ravel.max_time - ravel.min_time) / ravel.current_span;
-    ravel.current_y_offset = 0;
-    ravel.zoom.translateTo(ravel.traditional, 0, 0);
-    ravel.init_in_process = false;
+    traveler.init_in_process = true;
+    traveler.zoom.scaleTo(traveler.traditional, (traveler.max_time - traveler.min_time) / traveler.current_span);
+    traveler.current_k_scale = (traveler.max_time - traveler.min_time) / traveler.current_span;
+    traveler.current_y_offset = 0;
+    traveler.zoom.translateTo(traveler.traditional, 0, 0);
+    traveler.init_in_process = false;
 
-    ravel.rows = d3.extent(ravel.lanes);
-    ravel.total_y_scale.domain([ravel.rows[0], ravel.rows[1] + 1]);
-    ravel.show_rows = [ravel.rows[0], d3.min([ravel.rows[1] + 1, 17])];
-    ravel.yphys.domain([ravel.show_rows[0], ravel.show_rows[1]]);
-    ravel.y_k_factor = (ravel.show_rows[1] - ravel.show_rows[0] + 1) * ravel.current_k_scale / ravel.lanes.length;
-    ravel.saved_xmain = [0, 0];
-    ravel.saved_yphys = ravel.yphys.domain();
-    ravel.saved_stepscale = 1;
-    ravel.saved_lanescale = 1;
+    traveler.rows = d3.extent(traveler.lanes);
+    traveler.total_y_scale.domain([traveler.rows[0], traveler.rows[1] + 1]);
+    traveler.show_rows = [traveler.rows[0], d3.min([traveler.rows[1] + 1, 17])];
+    traveler.yphys.domain([traveler.show_rows[0], traveler.show_rows[1]]);
+    traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
+    traveler.saved_xmain = [0, 0];
+    traveler.saved_yphys = traveler.yphys.domain();
+    traveler.saved_stepscale = 1;
+    traveler.saved_lanescale = 1;
 
-    for (var layer = 0; layer < ravel.data.max_depth; layer++) {
-      ravel.phys_layers[layer] = ravel.physRects.append('g');
+    for (var layer = 0; layer < traveler.data.max_depth; layer++) {
+      traveler.phys_layers[layer] = traveler.physRects.append('g');
     }
-    ravel.phys_comm_event_layer = ravel.physRects.append('g');
-    ravel.phys_comm_message_layer = ravel.physRects.append('g');
+    traveler.phys_comm_event_layer = traveler.physRects.append('g');
+    traveler.phys_comm_message_layer = traveler.physRects.append('g');
 
     // Find out text sizes
-    ravel.traditional_font_metrics = ravel.get_text_size(ravel.traditional, 'traditional');
+    traveler.traditional_font_metrics = traveler.get_text_size(traveler.traditional, 'traditional');
 
     // Skip text for overview as well as rectangles
     
-    ravel.update_cursor();
+    traveler.update_cursor();
 
-    ravel.draw_traditional();
-    ravel.draw_overview();
+    traveler.draw_traditional();
+    traveler.draw_overview();
   };
 
 
   // Figure out text size
-  ravel.get_text_size = function (svg, font_class) {
+  traveler.get_text_size = function (svg, font_class) {
     var test_font = svg.selectAll('.test-font')
       .data(['g'])
       .enter()
       .append('text');
 
     test_font
-      .attr('id', 'ravel-test-font')
+      .attr('id', 'traveler-test-font')
       .attr('class', font_class)
       .text(d => { return d; })
       .attr('x', -100)
       .attr('y', -100);
 
-    var bbox = document.getElementById('ravel-test-font').getBoundingClientRect();
+    var bbox = document.getElementById('traveler-test-font').getBoundingClientRect();
  
     test_font.remove();
 
@@ -476,53 +476,53 @@
     };
   }
 
-  ravel.gantt_brush_function = function () {
+  traveler.gantt_brush_function = function () {
     // ignore brush-by-zoom
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return;
-    if (ravel.gantt_brush_group === undefined) return;
+    if (traveler.gantt_brush_group === undefined) return;
     
-    var s = d3.event.selection || ravel.mini_scale.range();
-    ravel.phys_scale.domain(s.map(ravel.mini_scale.invert, ravel.mini_scale));
-    ravel.traditional.call(ravel.zoom.transform, d3.zoomIdentity
-      .scale(ravel.gantt_width / (s[1] - s[0]))
+    var s = d3.event.selection || traveler.mini_scale.range();
+    traveler.phys_scale.domain(s.map(traveler.mini_scale.invert, traveler.mini_scale));
+    traveler.traditional.call(traveler.zoom.transform, d3.zoomIdentity
+      .scale(traveler.gantt_width / (s[1] - s[0]))
       .translate(-s[0], 0));
-    ravel.get_data(d3.max([0, Math.round(ravel.phys_scale.domain()[0])]), 
-      Math.round(ravel.phys_scale.domain()[1]));
+    traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
+      Math.round(traveler.phys_scale.domain()[1]));
   };
    
 
-  ravel.update_cursor = function() {
+  traveler.update_cursor = function() {
       // Nothing for now
   };
 
 
-  ravel.handle_click = function (d, i) {
+  traveler.handle_click = function (d, i) {
     return;
     var clicked = d3.mouse(this);
-    ravel.cursor.x = clicked[0];
-    ravel.cursor.y = clicked[1];
+    traveler.cursor.x = clicked[0];
+    traveler.cursor.y = clicked[1];
 
-    var minExtent = ravel.phys_scale.domain()[0];
-    var maxExtent = ravel.phys_scale.domain()[1];
+    var minExtent = traveler.phys_scale.domain()[0];
+    var maxExtent = traveler.phys_scale.domain()[1];
     var current_range = maxExtent - minExtent; // current zoom
-    ravel.phys_scale.domain([ravel.mini_scale.invert(ravel.cursor.x) - current_range/2.0,
-      ravel.mini_scale.invert(ravel.cursor.x) + current_range/2.0]);
+    traveler.phys_scale.domain([traveler.mini_scale.invert(traveler.cursor.x) - current_range/2.0,
+      traveler.mini_scale.invert(traveler.cursor.x) + current_range/2.0]);
 
     // Zero out so these don't get re-applied
-    ravel.zoom.translate([0, 0]);
-    ravel.zoom.scale([1]);
+    traveler.zoom.translate([0, 0]);
+    traveler.zoom.scale([1]);
     
-    ravel.update_cursor();
+    traveler.update_cursor();
     
-    ravel.get_data(ravel.phys_scale.domain()[0], ravel.phys_scale.domain()[1]);
+    traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
   };
 
 
-  ravel.get_data = function (start, stop) {
-    if (ravel.get_data_state) {  // quickie perf hack
+  traveler.get_data = function (start, stop) {
+    if (traveler.get_data_state) {  // quickie perf hack
       return;
     }
-    ravel.get_data_state = true;
+    traveler.get_data_state = true;
     $.ajax({
       mimeType: 'text/json; charset=x-user-defined',
       url: '/data',
@@ -532,20 +532,20 @@
 	"command" : 'time',
 	"start" : start,
 	"stop" : stop,
-	"entity_start" : ravel.data.entity_start,
-	"entities" : ravel.data.entities,
-	"width" : ravel.gantt_width
+	"entity_start" : traveler.data.entity_start,
+	"entities" : traveler.data.entities,
+	"width" : traveler.gantt_width
       },
       success: function(json) {
-	ravel.update(json.traceinfo);
-	ravel.get_data_state = false;
+	traveler.update(json.traceinfo);
+	traveler.get_data_state = false;
       }
     });
   };
 
 
   // Change dict (as object) into array for d3
-  ravel.object_filter = function (obj, func) {
+  traveler.object_filter = function (obj, func) {
     var retarray = [];
     for (key in obj) {
 	if (obj.hasOwnProperty(key)) {
@@ -558,7 +558,7 @@
   };
 
   // Find min element of a dict
-  ravel.object_min = function (obj, func) {
+  traveler.object_min = function (obj, func) {
       var ret = null;
       for (key in obj) {
 	  if (obj.hasOwnProperty(key)) {
@@ -575,7 +575,7 @@
   };
 
   // Find max object as a dict
-  ravel.object_max = function (obj, func) {
+  traveler.object_max = function (obj, func) {
       var ret = null;
       for (key in obj) {
 	  if (obj.hasOwnProperty(key)) {
@@ -592,36 +592,36 @@
   };
 
 
-  ravel.init = function (json) {
-    ravel.data = json;
-    ravel.lanes = [];
-    for (var i = 0; i < ravel.data.entities; i++) {
-      ravel.lanes.push(ravel.data.entity_start + i);
+  traveler.init = function (json) {
+    traveler.data = json;
+    traveler.lanes = [];
+    for (var i = 0; i < traveler.data.entities; i++) {
+      traveler.lanes.push(traveler.data.entity_start + i);
     }
-    ravel.init_display();
+    traveler.init_display();
   };
 
 
-  ravel.update = function (json) {
-    ravel.data = json;
-    console.log(ravel.data);
-    d3.select('.axis').call(ravel.phys_scaleDateAxis);
-    ravel.draw_traditional();
+  traveler.update = function (json) {
+    traveler.data = json;
+    console.log(traveler.data);
+    d3.select('.axis').call(traveler.phys_scaleDateAxis);
+    traveler.draw_traditional();
   };
 
 
   // We will draw the labels once off screen to find out their size
   // Then we will update them based on their size and put them into the
   // correct place
-  ravel.filter_traditional_labels = function (events) {
+  traveler.filter_traditional_labels = function (events) {
     var labels = [];
-    var multiplier = ravel.traditional_font_metrics.width;
+    var multiplier = traveler.traditional_font_metrics.width;
 
     for (var i = 0; i < events.length; i++) {
       var evt = events[i];
-      var visible_width = d3.min([ravel.phys_scale(evt.exit), ravel.gantt_width]) -
-	d3.max([ravel.phys_scale(evt.enter), 0]);
-      if (visible_width > multiplier * ravel.data.functions[evt.function].length) {
+      var visible_width = d3.min([traveler.phys_scale(evt.exit), traveler.gantt_width]) -
+	d3.max([traveler.phys_scale(evt.enter), 0]);
+      if (visible_width > multiplier * traveler.data.functions[evt.function].length) {
 	labels.push(evt);
       }
     }
@@ -631,195 +631,195 @@
 
 
 
-  ravel.draw_traditional = function () {
+  traveler.draw_traditional = function () {
     var rects, msgs, labels,
-      minExtent = ravel.phys_scale.domain()[0],
-      maxExtent = ravel.phys_scale.domain()[1],
-      minEntity = ravel.yphys.domain()[0] - 1,
-      maxEntity = ravel.yphys.domain()[1];
+      minExtent = traveler.phys_scale.domain()[0],
+      maxExtent = traveler.phys_scale.domain()[1],
+      minEntity = traveler.yphys.domain()[0] - 1,
+      maxEntity = traveler.yphys.domain()[1];
 
 
     // Remove old lane numbers
     d3.select('#laneNum').remove(); 
 
     // Add new lanes numbers
-    var physLanes = ravel.traditional.append('g')
+    var physLanes = traveler.traditional.append('g')
       .attr('id', 'laneNum');
 
     // Labels for rows
     var physLanesText = physLanes.selectAll('.laneText')
-      .data(ravel.lanes.slice(d3.min[minEntity, 0], maxEntity))
+      .data(traveler.lanes.slice(d3.min[minEntity, 0], maxEntity))
       .text(d => { return d; })
-      .attr('y', d => { return ravel.margin.top + ravel.yphys(d + 0.5); });
+      .attr('y', d => { return traveler.margin.top + traveler.yphys(d + 0.5); });
 
     physLanesText.enter().append('text')
       .text(d => { return d;})
-      .attr('x', ravel.margin.left - 15)
-      .attr('y', d => { return ravel.margin.top + ravel.yphys(d + 0.5); })
+      .attr('x', traveler.margin.left - 15)
+      .attr('y', d => { return traveler.margin.top + traveler.yphys(d + 0.5); })
       .attr('dy', '0.5ex')
       .attr('text-anchor', 'start')
       .attr('class', 'laneText'); // TODO: More CSS
 
     // Lines between rows
-    var laneLines = ravel.physLaneLines.selectAll('.laneLines')
-      .data(ravel.lanes.slice(d3.min[minEntity, 0], maxEntity))
-      .attr('x2', ravel.gantt_width)
-      .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
-      .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; });
+    var laneLines = traveler.physLaneLines.selectAll('.laneLines')
+      .data(traveler.lanes.slice(d3.min[minEntity, 0], maxEntity))
+      .attr('x2', traveler.gantt_width)
+      .attr('y1', d => { return Math.round(traveler.yphys(d)) + 0.5; })
+      .attr('y2', d => { return Math.round(traveler.yphys(d)) + 0.5; });
 
     laneLines.enter().append('line')
       .attr('phys_scale', 0)
-      .attr('x1', 0) // d => { return ravel.phys_scale(minExtent); })
-      .attr('y1', d => { return Math.round(ravel.yphys(d)) + 0.5; })
-      .attr('x2', ravel.gantt_width)
-      .attr('y2', d => { return Math.round(ravel.yphys(d)) + 0.5; })
+      .attr('x1', 0) // d => { return traveler.phys_scale(minExtent); })
+      .attr('y1', d => { return Math.round(traveler.yphys(d)) + 0.5; })
+      .attr('x2', traveler.gantt_width)
+      .attr('y2', d => { return Math.round(traveler.yphys(d)) + 0.5; })
       .attr('class', 'laneLines');
 
     laneLines.exit().remove();
 
 
   
-    var barHeight = 0.8 * (ravel.yphys(2.0) - ravel.yphys(1.0));
+    var barHeight = 0.8 * (traveler.yphys(2.0) - traveler.yphys(1.0));
 
     // Draw the nested parent function bars
-    for (var layer = 0; layer < ravel.data.parent_events.length; layer++) {
+    for (var layer = 0; layer < traveler.data.parent_events.length; layer++) {
       // TODO: Base this on a max depth
-      var current_depth = ravel.phys_layers[layer];
+      var current_depth = traveler.phys_layers[layer];
 
       rects = current_depth.selectAll('.parent')
-	.data(ravel.data.parent_events[layer], d => { return d.id; })
-	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
-	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+	.data(traveler.data.parent_events[layer], d => { return d.id; })
+	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
+	.attr('y', d => { return traveler.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	  d3.max([ravel.phys_scale(d.enter), -10]); })
-	.style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	  d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
+	.attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	  d3.max([traveler.phys_scale(d.enter), -10]); })
+	.style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
       rects.enter().append('rect')
-	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), -10]); })
-	.attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
+	.attr('y', d => { return traveler.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	  d3.max([ravel.phys_scale(d.enter), -10]); })
-	.style('fill', d => { return ravel.parentcolor(layer); })
-	.style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	  d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
+	.attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	  d3.max([traveler.phys_scale(d.enter), -10]); })
+	.style('fill', d => { return traveler.parentcolor(layer); })
+	.style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
 	.attr('class', 'parent')
 	.append('svg:title')
-	  .text(d => { return ravel.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
+	  .text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
 
       rects.exit().remove();
 
-      if (ravel.traditional_font_metrics.height + 4 < barHeight) {
-	ravel.traditional_label_events = ravel.filter_traditional_labels(
-	  ravel.data.parent_events[layer]
+      if (traveler.traditional_font_metrics.height + 4 < barHeight) {
+	traveler.traditional_label_events = traveler.filter_traditional_labels(
+	  traveler.data.parent_events[layer]
 	);
       } else {
-	ravel.traditional_label_events = [];
+	traveler.traditional_label_events = [];
       }
       labels = current_depth.selectAll('.evtText')
-	.data(ravel.traditional_label_events, d => { return d.id; })
-	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
-	.attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; });
+	.data(traveler.traditional_label_events, d => { return d.id; })
+	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), 0]) + 5; })
+	.attr('y', d => { return traveler.yphys(d.entity + 0.1) + 2 + traveler.traditional_font_metrics.height; });
 
       labels.enter().append('text')
-	.attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
-	.attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; })
-	.attr('class', 'ravel evtText')
-	.text(d => { return ravel.data.functions[d.function]; });
+	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), 0]) + 5; })
+	.attr('y', d => { return traveler.yphys(d.entity + 0.1) + 2 + traveler.traditional_font_metrics.height; })
+	.attr('class', 'traveler evtText')
+	.text(d => { return traveler.data.functions[d.function]; });
 
       labels.exit().remove();
 
     }
 
     // Handle the communication calls differently
-    var traditional_comm_items = ravel.data.events.filter(d => { return !d.hasOwnProperty("coalesced"); });
-    rects = ravel.phys_comm_event_layer.selectAll('.event')
+    var traditional_comm_items = traveler.data.events.filter(d => { return !d.hasOwnProperty("coalesced"); });
+    rects = traveler.phys_comm_event_layer.selectAll('.event')
       .data(traditional_comm_items, d => { return d.id; })
-      .attr('x', d => { return ravel.phys_scale(d.enter); })
-      .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+      .attr('x', d => { return traveler.phys_scale(d.enter); })
+      .attr('y', d => { return traveler.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
-      .attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	d3.max([ravel.phys_scale(d.enter), -10]); })
-      .style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
+      .attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	d3.max([traveler.phys_scale(d.enter), -10]); })
+      .style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
     rects.enter().append('rect')
-      .attr('x', d => { return ravel.phys_scale(d.enter); })
-      .attr('y', d => { return ravel.yphys(d.entity + 0.1); })
+      .attr('x', d => { return traveler.phys_scale(d.enter); })
+      .attr('y', d => { return traveler.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
-      .attr('width', d => { return d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	d3.max([ravel.phys_scale(d.enter), -10]); })
-      .style('stroke-width', d => { return (d3.min([ravel.phys_scale(d.exit), ravel.gantt_width + 5]) -
-	d3.max([ravel.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
-      .attr('class', 'ravel event')
+      .attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	d3.max([traveler.phys_scale(d.enter), -10]); })
+      .style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
+      .attr('class', 'traveler event')
       .append('svg:title')
-	.text(d => { return ravel.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
+	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
 
     rects.exit().remove();
       
     // Draw the labels
-    if (ravel.traditional_font_metrics.height + 4 < barHeight) {
-      ravel.traditional_label_events = ravel.filter_traditional_labels(
+    if (traveler.traditional_font_metrics.height + 4 < barHeight) {
+      traveler.traditional_label_events = traveler.filter_traditional_labels(
         traditional_comm_items
       );
     } else {
-      ravel.traditional_label_events = [];
+      traveler.traditional_label_events = [];
     }
-    labels = ravel.phys_comm_event_layer.selectAll('.evtText')
-      .data(ravel.traditional_label_events, d => { return d.id; })
-      .attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
-      .attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; });
+    labels = traveler.phys_comm_event_layer.selectAll('.evtText')
+      .data(traveler.traditional_label_events, d => { return d.id; })
+      .attr('x', d => { return d3.max([traveler.phys_scale(d.enter), 0]) + 5; })
+      .attr('y', d => { return traveler.yphys(d.entity + 0.1) + 2 + traveler.traditional_font_metrics.height; });
 
     labels.enter().append('text')
-      .attr('x', d => { return d3.max([ravel.phys_scale(d.enter), 0]) + 5; })
-      .attr('y', d => { return ravel.yphys(d.entity + 0.1) + 2 + ravel.traditional_font_metrics.height; })
-      .attr('class', 'ravel evtText')
-      .text(d => { return ravel.data.functions[d.function]; });
+      .attr('x', d => { return d3.max([traveler.phys_scale(d.enter), 0]) + 5; })
+      .attr('y', d => { return traveler.yphys(d.entity + 0.1) + 2 + traveler.traditional_font_metrics.height; })
+      .attr('class', 'traveler evtText')
+      .text(d => { return traveler.data.functions[d.function]; });
 
     labels.exit().remove();
 
 
     // Draw the message lines
-    var traditional_messages = ravel.data.messages.filter(
+    var traditional_messages = traveler.data.messages.filter(
 	d => { 
-	    return d.sendtime >= ravel.data.starttime || d.recvtime <= ravel.data.stoptime; 
+	    return d.sendtime >= traveler.data.starttime || d.recvtime <= traveler.data.stoptime; 
 	}
     );   
     console.log(traditional_messages.length, "# messages drawn");
-    msgs = ravel.phys_comm_message_layer.selectAll('.message')
+    msgs = traveler.phys_comm_message_layer.selectAll('.message')
       .data(traditional_messages, d => { return d.id; })
-      .attr('x1', d => { return ravel.phys_scale(d.sendtime); })
-      .attr('x2', d => { return ravel.phys_scale(d.recvtime); })
-      .attr('y1', d => { return ravel.yphys(d.sender_entity + 0.5); })
-      .attr('y2', d => { return ravel.yphys(d.receiver_entity + 0.5); });
+      .attr('x1', d => { return traveler.phys_scale(d.sendtime); })
+      .attr('x2', d => { return traveler.phys_scale(d.recvtime); })
+      .attr('y1', d => { return traveler.yphys(d.sender_entity + 0.5); })
+      .attr('y2', d => { return traveler.yphys(d.receiver_entity + 0.5); });
 
     msgs.enter().append('line')
-      .attr('class', 'ravel message')
-      .attr('x1', d => { return ravel.phys_scale(d.sendtime); })
-      .attr('x2', d => { return ravel.phys_scale(d.recvtime); })
-      .attr('y1', d => { return ravel.yphys(d.sender_entity + 0.5); })
-      .attr('y2', d => { return ravel.yphys(d.receiver_entity + 0.5); });
+      .attr('class', 'traveler message')
+      .attr('x1', d => { return traveler.phys_scale(d.sendtime); })
+      .attr('x2', d => { return traveler.phys_scale(d.recvtime); })
+      .attr('y1', d => { return traveler.yphys(d.sender_entity + 0.5); })
+      .attr('y2', d => { return traveler.yphys(d.receiver_entity + 0.5); });
 
     msgs.exit().remove();
   };
 
 
   // Draw the overview plot.
-  ravel.draw_overview = function () {
+  traveler.draw_overview = function () {
     var rects;
 
-    rects = ravel.mini_bars.selectAll('.overviewBar')
-      .data(ravel.data.overview)
+    rects = traveler.mini_bars.selectAll('.overviewBar')
+      .data(traveler.data.overview)
       .attr('x', (d, i) => { return i; })
-      .attr('height', d => { return ravel.miniHeight - ravel.mini_y_scale(d); });
+      .attr('height', d => { return traveler.miniHeight - traveler.mini_y_scale(d); });
 
     rects.enter().append('rect')
       .attr('x', (d, i) => { return i; })
       .attr('width', 1)
-      .attr('y', d => { return ravel.miniHeight - ravel.mini_y_scale(d); })
-      .attr('height', d => { return ravel.mini_y_scale(d); })
+      .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
+      .attr('height', d => { return traveler.mini_y_scale(d); })
       .attr('class', 'overviewBar');
 
     rects.exit().remove();
@@ -831,7 +831,7 @@
 jQuery(function() {
 
   $(document).ready(function() {
-    init_ravel();
+    init_traveler();
     $.ajax({
       mimeType: 'text/json; charset=x-user-defined',
       url: '/data',
@@ -839,10 +839,10 @@ jQuery(function() {
       dataType: 'json',
       data: { 
 	"command" : 'load', 
-	"width" : ravel.gantt_width
+	"width" : traveler.gantt_width
       },
       success: function(json) {
-	ravel.init(json.traceinfo);
+	traveler.init(json.traceinfo);
       }
     });
   });
