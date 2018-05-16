@@ -42,7 +42,7 @@
       top: 20,
       right: 20,
       bottom: 10,
-      left: 20
+      left: 50
     },
     miniHeight: 60,
     scaleHeight: 20,
@@ -193,6 +193,12 @@
 
     // See: http://bl.ocks.org/jgbos/9752277
     // See: https://jsfiddle.net/DaWa/dLmp8zk8/2/
+    traveler.y_zoom_function = function () {
+      var t = d3.event.transform;
+      console.log('call y zoom', t, traveler.yphys.domain(), traveler.yphys.range());
+      //traveler.yphys = t.rescaleY(traveler.yphys);
+      traveler.draw_traditional();
+    }
 
     traveler.zoom_function = function () {
       // ignore zoom-by-brush
@@ -200,86 +206,13 @@
       if (traveler.init_in_process) return;
 
       var t = d3.event.transform;
-      /*
-      if (d3.event.sourceEvent.metaKey) {
-	console.log('meta key', traveler.yphys.domain(), t);
-	//traveler.yphys.domain(t.rescaleY(traveler.total_y_scale).domain());
-
-	// scale bigger = zoom in
-	// scale smaller = zoom out
-	// traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
-	var old_domain = traveler.yphys.domain();
-	var old_x_domain = traveler.phys_scale.domain();
-	console.log('k is', t.k, traveler.current_k_scale, traveler.y_k_factor, (traveler.current_k_scale / traveler.y_k_factor));
-	if (Math.abs(t.k - traveler.current_k_scale) > 1e-6) {
-	    var y_zoom = t.k / traveler.y_k_factor;
-
-	    // Now with y zoom...
-	    // Rescale
-	    var show_lanes = traveler.lanes.length / y_zoom;
-
-	    // Translate
-	    var old_lanes = old_domain[1] - old_domain[0];
-	    var lane_offset = (old_lanes - show_lanes) / 2;
-
-	    console.log('y_zoom', y_zoom, 'show_lanes', show_lanes, 'old_lanes', old_lanes, 'lane_offset', lane_offset);
-	    console.log('old_domain', traveler.yphys.domain(), 'current_y_offset', traveler.current_y_offset);
-	    traveler.current_y_offset += lane_offset;
-	    traveler.init_in_process = true;
-	    traveler.zoom.scaleTo(traveler.traditional, traveler.current_k_scale);
-	    traveler.zoom.translateTo(traveler.traditional, traveler.current_x_offset, old_domain[0] + lane_offset);
-	    traveler.yphys.domain([old_domain[0] + lane_offset, old_domain[1] - lane_offset]);
-	    traveler.init_in_process = false;
-	    console.log('old_domain', traveler.yphys.domain(), 'current_y_offset', traveler.current_y_offset);
-	    traveler.current_k_scale = t.k;
-	    traveler.current_y_offset += lane_offset * traveler.yphys.range()[1];
-	} else {
-
-	    // current_y_offset is the last offset
-	    // current_k_scale is the last scale
-	    // y is in the range field, the space of the gantt height
-	    // Negative means pulling up. Rows should increase.
-	    // Positive means pulling down. Rows should decrease.
-	    var total_screen_y = traveler.yphys.range()[1];
-	    var screen_frac = (t.y - traveler.current_y_offset) / total_screen_y;
-	    var row_frac = screen_frac * (old_domain[1] - old_domain[0]);
-
-	    // Clamp to edges
-	    if ((old_domain[0] - row_frac) < traveler.total_y_scale.domain()[0]) {
-		row_frac = old_domain[0] - traveler.total_y_scale.domain()[0];
-		traveler.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
-		console.log('y offset clamped', traveler.current_y_offset);
-	    }
-	    else if ((old_domain[1] - row_frac) > traveler.total_y_scale.domain()[1]) {
-		row_frac = old_domain[1] - traveler.total_y_scale.domain()[1];
-		traveler.current_y_offset = t.y - total_screen_y * row_frac / (old_domain[1] - old_domain[0]);
-		console.log('y offset clamped 2', traveler.current_y_offset);
-	    }
-	    else {
-		traveler.current_y_offset = t.y;
-		console.log('y offset is t.y', traveler.current_y_offset);
-	    }
-
-	    traveler.yphys.domain([old_domain[0] - row_frac, old_domain[1] - row_frac]);
-	    //traveler.init_in_process = true;
-	    traveler.zoom.translateTo(traveler.traditional, traveler.current_x_offset, traveler.current_y_offset);
-	    //traveler.init_in_process = false;
-	}
-	 
-	traveler.draw_traditional();
-      } else {
-      */
-	console.log('t in x is', t);
-	//traveler.current_y_offset = t.y;
-	//traveler.current_x_offset = t.x;
-	//traveler.current_k_scale = t.k;
-	traveler.phys_scale.domain(t.rescaleX(traveler.mini_scale).domain());
-	traveler.gantt_brush_group.call(traveler.gantt_brush.move, 
-	  traveler.phys_scale.range().map(t.invertX, t));
-	  
-	traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
-	  Math.round(traveler.phys_scale.domain()[1]));
-      //}
+      console.log('zoom', t);
+      traveler.phys_scale.domain(t.rescaleX(traveler.mini_scale).domain());
+      traveler.gantt_brush_group.call(traveler.gantt_brush.move, 
+        traveler.phys_scale.range().map(t.invertX, t));
+      
+      traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
+        Math.round(traveler.phys_scale.domain()[1]));
     }; // End zoom_function();
 
 
@@ -288,6 +221,12 @@
       .translateExtent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]])
       .extent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]])
       .on('zoom', traveler.zoom_function);
+
+    traveler.zoomY = d3.zoom()
+      .scaleExtent([1, Infinity])
+      .translateExtent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
+      .extent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
+      .on('zoom', traveler.y_zoom_function);
 
     traveler.gantt_brush = d3.brushX()
       .extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
@@ -306,6 +245,15 @@
       .attr('width', traveler.gantt_width)
       .attr('height', traveler.traditional_gantt_height + traveler.scaleHeight)
       .attr('class', 'phys');
+   
+    traveler.overlayY = traveler.traditional
+      .append('rect')
+      .attr('fill', 'white') //'rgb(255, 0, 255, 0.25')
+      .attr('width', traveler.margin.left)
+      .attr('height', '100%')
+      .attr('y', 0)
+      .on('wheel', function () { d3.event.stopPropagation(); })
+      .call(traveler.zoomY);
     
     traveler.traditional_clip = traveler.phys.append('defs').append('clipPath')
       .attr('id', 'clip')
