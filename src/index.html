@@ -52,10 +52,10 @@
     max_time: 1,
     max_step: 0,
     current_span: 1,
-    current_k_scale: 1,
-    current_y_offset: 0,
-    current_x_offset: 0,
-    y_k_factor: 1
+    //current_k_scale: 1,
+    //current_y_offset: 0,
+    //current_x_offset: 0,
+    //y_k_factor: 1
   };
 
   // Figure out width and height of Gantt chart from the window size
@@ -200,13 +200,14 @@
       if (traveler.init_in_process) return;
 
       var t = d3.event.transform;
+      /*
       if (d3.event.sourceEvent.metaKey) {
 	console.log('meta key', traveler.yphys.domain(), t);
 	//traveler.yphys.domain(t.rescaleY(traveler.total_y_scale).domain());
 
 	// scale bigger = zoom in
 	// scale smaller = zoom out
-	traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
+	// traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
 	var old_domain = traveler.yphys.domain();
 	var old_x_domain = traveler.phys_scale.domain();
 	console.log('k is', t.k, traveler.current_k_scale, traveler.y_k_factor, (traveler.current_k_scale / traveler.y_k_factor));
@@ -267,17 +268,18 @@
 	 
 	traveler.draw_traditional();
       } else {
+      */
 	console.log('t in x is', t);
-	traveler.current_y_offset = t.y;
-	traveler.current_x_offset = t.x;
-	traveler.current_k_scale = t.k;
+	//traveler.current_y_offset = t.y;
+	//traveler.current_x_offset = t.x;
+	//traveler.current_k_scale = t.k;
 	traveler.phys_scale.domain(t.rescaleX(traveler.mini_scale).domain());
 	traveler.gantt_brush_group.call(traveler.gantt_brush.move, 
 	  traveler.phys_scale.range().map(t.invertX, t));
 	  
 	traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
 	  Math.round(traveler.phys_scale.domain()[1]));
-      }
+      //}
     }; // End zoom_function();
 
 
@@ -419,8 +421,8 @@
 
     traveler.init_in_process = true;
     traveler.zoom.scaleTo(traveler.traditional, (traveler.max_time - traveler.min_time) / traveler.current_span);
-    traveler.current_k_scale = (traveler.max_time - traveler.min_time) / traveler.current_span;
-    traveler.current_y_offset = 0;
+    //traveler.current_k_scale = (traveler.max_time - traveler.min_time) / traveler.current_span;
+    //traveler.current_y_offset = 0;
     traveler.zoom.translateTo(traveler.traditional, 0, 0);
     traveler.init_in_process = false;
 
@@ -428,7 +430,7 @@
     traveler.total_y_scale.domain([traveler.rows[0], traveler.rows[1] + 1]);
     traveler.show_rows = [traveler.rows[0], d3.min([traveler.rows[1] + 1, 17])];
     traveler.yphys.domain([traveler.show_rows[0], traveler.show_rows[1]]);
-    traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
+    //traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
     traveler.saved_xmain = [0, 0];
     traveler.saved_yphys = traveler.yphys.domain();
     traveler.saved_stepscale = 1;
