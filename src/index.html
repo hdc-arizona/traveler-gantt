@@ -196,6 +196,7 @@
     traveler.y_zoom_function = function () {
       var t = d3.event.transform;
       console.log('call y zoom', t, traveler.yphys.domain(), traveler.yphys.range());
+      traveler.yphys.domain(t.rescaleY(traveler.total_y_scale).domain());
       //traveler.yphys = t.rescaleY(traveler.yphys);
       traveler.draw_traditional();
     }
@@ -224,8 +225,8 @@
 
     traveler.zoomY = d3.zoom()
       .scaleExtent([1, Infinity])
-      .translateExtent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
-      .extent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
+      //.translateExtent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
+      //.extent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
       .on('zoom', traveler.y_zoom_function);
 
     traveler.gantt_brush = d3.brushX()
