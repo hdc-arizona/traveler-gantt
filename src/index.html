@@ -186,15 +186,12 @@
       .domain([traveler.rows[0], traveler.rows[1] + 1])
       .range([0, traveler.traditional_gantt_height]);
 
-    traveler.saved_xmain = [0, 0];
-    traveler.saved_yphys = traveler.yphys.domain();
-    traveler.saved_stepscale = 1;
-    traveler.saved_lanescale = 1;
 
     // See: http://bl.ocks.org/jgbos/9752277
     // See: https://jsfiddle.net/DaWa/dLmp8zk8/2/
     traveler.y_zoom_function = function () {
       var t = d3.event.transform;
+      if (traveler.init_in_process) return;
       console.log('call y zoom', t, traveler.yphys.domain(), traveler.yphys.range());
       traveler.yphys.domain(t.rescaleY(traveler.total_y_scale).domain());
       //traveler.yphys = t.rescaleY(traveler.yphys);
@@ -225,8 +222,8 @@
 
     traveler.zoomY = d3.zoom()
       .scaleExtent([1, Infinity])
-      //.translateExtent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
-      //.extent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
+      .translateExtent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
+      .extent([[0, 0], [traveler.margin.left, traveler.traditional_gantt_height]])
       .on('zoom', traveler.y_zoom_function);
 
     traveler.gantt_brush = d3.brushX()
@@ -368,22 +365,18 @@
       .call(traveler.gantt_brush)
       .call(traveler.gantt_brush.move, traveler.mini_scale.range());
 
-    traveler.init_in_process = true;
-    traveler.zoom.scaleTo(traveler.traditional, (traveler.max_time - traveler.min_time) / traveler.current_span);
-    //traveler.current_k_scale = (traveler.max_time - traveler.min_time) / traveler.current_span;
-    //traveler.current_y_offset = 0;
-    traveler.zoom.translateTo(traveler.traditional, 0, 0);
-    traveler.init_in_process = false;
-
     traveler.rows = d3.extent(traveler.lanes);
     traveler.total_y_scale.domain([traveler.rows[0], traveler.rows[1] + 1]);
     traveler.show_rows = [traveler.rows[0], d3.min([traveler.rows[1] + 1, 17])];
     traveler.yphys.domain([traveler.show_rows[0], traveler.show_rows[1]]);
-    //traveler.y_k_factor = (traveler.show_rows[1] - traveler.show_rows[0] + 1) * traveler.current_k_scale / traveler.lanes.length;
-    traveler.saved_xmain = [0, 0];
-    traveler.saved_yphys = traveler.yphys.domain();
-    traveler.saved_stepscale = 1;
-    traveler.saved_lanescale = 1;
+
+    traveler.init_in_process = true;
+    traveler.zoom.scaleTo(traveler.traditional, (traveler.max_time - traveler.min_time) / traveler.current_span);
+    traveler.zoom.translateTo(traveler.traditional, 0, 0);
+    traveler.zoomY.scaleTo(traveler.overlayY, (traveler.rows[1] + 1 - traveler.rows[0]) / 
+	(traveler.show_rows[1] - traveler.show_rows[0]));
+    traveler.zoomY.translateTo(traveler.overlayY, 0, 0);
+    traveler.init_in_process = false;
 
     for (var layer = 0; layer < traveler.data.max_depth; layer++) {
       traveler.phys_layers[layer] = traveler.physRects.append('g');
