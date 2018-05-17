@@ -58,6 +58,12 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
     j["traceinfo"] = trace->initJSON(std::stoul(width));
   }
+  else if (strncmp(command, "overview", 8) == 0)
+  {
+    char width[100];
+    mg_get_http_var(&hm->body, "width", width, sizeof(width));
+    j["traceinfo"] = trace->timeOverview(std::stoul(width));
+  }
   else
   {
       j["debug"] = 0;

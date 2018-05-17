@@ -19,6 +19,7 @@
   <script type="text/javascript">
   var traveler = {
     get_data_state: false,
+    get_overview_state: false,
     data: null,
     items: null,
     lanes: null,
@@ -86,7 +87,7 @@
     traveler.phys_scale
       .range([0, traveler.gantt_width]);
 
-    traveler.phys_scaleDateAxis.scale(traveler.phys_scale);
+    traveler.phys_x_axis.scale(traveler.phys_scale);
     traveler.xAxis.scale(traveler.mini_scale);
     
     traveler.yphys
@@ -121,7 +122,7 @@
 
     traveler.phys_axis
       .attr('transform', 'translate(0,' + traveler.traditional_gantt_height + ')')
-      .call(traveler.phys_scaleDateAxis);
+      .call(traveler.phys_x_axis);
 
     traveler.mini_axis
       .call(traveler.xAxis);
@@ -131,6 +132,7 @@
       .attr("width", traveler.gantt_width);
 
     traveler.draw_traditional();
+    traveler.get_overview();
   } // end traveler.resize
 
 
@@ -311,7 +313,7 @@
       .range(['lightblue', 'khaki', 'firebrick']);
      
     // draw the x axes on the charts
-    traveler.phys_scaleDateAxis = d3.axisBottom(traveler.phys_scale);
+    traveler.phys_x_axis = d3.axisBottom(traveler.phys_scale);
     traveler.xAxis = d3.axisBottom(traveler.mini_scale);
     
     traveler.phys_layers = [];
@@ -333,14 +335,14 @@
     traveler.mini_scale.domain([traveler.min_time, traveler.max_time]);
     traveler.phys_scale.domain([traveler.data.starttime, traveler.data.stoptime]);
     traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
-    traveler.phys_scaleDateAxis.scale(traveler.phys_scale);
+    traveler.phys_x_axis.scale(traveler.phys_scale);
     traveler.xAxis.scale(traveler.mini_scale);
 
 
     traveler.phys_axis = traveler.physScale.append('g')
       .attr('transform', 'translate(0,' + traveler.traditional_gantt_height + ')')
       .attr('class', 'phys axis date')
-      .call(traveler.phys_scaleDateAxis);
+      .call(traveler.phys_x_axis);
 
     traveler.mini_axis = traveler.mini.append('g')
       .attr('transform', 'translate(0, ' + traveler.miniHeight + ')')
@@ -463,6 +465,30 @@
   };
 
 
+
+  traveler.get_overview = function () {
+    if (traveler.get_overview_state) {  // quickie perf hack
+      return;
+    }
+    traveler.get_overview_state = true;
+    $.ajax({
+      mimeType: 'text/json; charset=x-user-defined',
+      url: '/data',
+      method: 'POST',
+      dataType: 'json',
+      data: { 
+	"command" : 'overview',
+	"width" : traveler.gantt_width
+      },
+      success: function(json) {
+	traveler.data.overview = json.traceinfo;
+	traveler.draw_overview();
+	traveler.get_overview_state = false;
+      }
+    });
+  };
+
+
   traveler.get_data = function (start, stop) {
     if (traveler.get_data_state) {  // quickie perf hack
       return;
@@ -550,7 +576,7 @@
   traveler.update = function (json) {
     traveler.data = json;
     console.log(traveler.data);
-    d3.select('.axis').call(traveler.phys_scaleDateAxis);
+    d3.select('.axis').call(traveler.phys_x_axis);
     traveler.draw_traditional();
   };
 
@@ -754,17 +780,21 @@
   // Draw the overview plot.
   traveler.draw_overview = function () {
     var rects;
+    traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
 
     rects = traveler.mini_bars.selectAll('.overviewBar')
       .data(traveler.data.overview)
+      .attr('fill', 'black')
       .attr('x', (d, i) => { return i; })
-      .attr('height', d => { return traveler.miniHeight - traveler.mini_y_scale(d); });
+      .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
+      .attr('height', d => { return traveler.mini_y_scale(d); });
 
     rects.enter().append('rect')
       .attr('x', (d, i) => { return i; })
       .attr('width', 1)
       .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
       .attr('height', d => { return traveler.mini_y_scale(d); })
+      .attr('fill', 'blue')
       .attr('class', 'overviewBar');
 
     rects.exit().remove();

@@ -34,6 +34,7 @@ public:
                     unsigned long long entities,
                     unsigned long width);
     json initJSON(unsigned long width);
+    json timeOverview(unsigned long width);
     std::string name;
     std::string fullpath;
     int num_entities;
@@ -79,7 +80,6 @@ private:
                          std::vector<json>& collective_slice,
                          std::vector<std::vector<json> >& parent_slice,
                          std::map<std::string, std::string>& function_names);
-    json timeOverview(unsigned long width);
     static const bool debug = false;
     static const int partition_portion = 25;
     static const int lateness_portion = 45;
