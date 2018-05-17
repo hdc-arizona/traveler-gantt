@@ -605,7 +605,6 @@
 	labels.push(evt);
       }
     }
-
     return labels;
   }
 
@@ -671,7 +670,7 @@
 	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return traveler.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	.attr('width', d => { console.log(traveler.phys_scale(d.exit)); return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	  d3.max([traveler.phys_scale(d.enter), -10]); })
 	.style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
@@ -717,7 +716,8 @@
     var traditional_comm_items = traveler.data.events.filter(d => { return !d.hasOwnProperty("coalesced"); });
     rects = traveler.phys_comm_event_layer.selectAll('.event')
       .data(traditional_comm_items, d => { return d.id; })
-      .attr('x', d => { return traveler.phys_scale(d.enter); })
+      //.attr('x', d => { return traveler.phys_scale(d.enter); })
+      .attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
       .attr('y', d => { return traveler.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
       .attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
@@ -726,7 +726,8 @@
 	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
     rects.enter().append('rect')
-      .attr('x', d => { return traveler.phys_scale(d.enter); })
+      //.attr('x', d => { return traveler.phys_scale(d.enter); })
+      .attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
       .attr('y', d => { return traveler.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
       .attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
