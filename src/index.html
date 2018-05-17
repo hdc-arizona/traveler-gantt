@@ -82,6 +82,7 @@
 
 
   traveler.resize = function () {
+    var old_brush_selection = d3.brushSelection(d3.select(".brush").node());
     traveler.mini_scale
       .range([0, traveler.gantt_width]);
     traveler.phys_scale
@@ -133,6 +134,12 @@
 
     traveler.draw_traditional();
     traveler.get_overview();
+
+    // Move the brush accordingly to the resize
+    var gantt_stretch = traveler.gantt_width / traveler.old_gantt_width;
+    var new_x_0 = old_brush_selection[0] * gantt_stretch;
+    var new_x_1 = old_brush_selection[1] * gantt_stretch;
+    traveler.gantt_brush.move(traveler.gantt_brush_group, [new_x_0, new_x_1]); 
   } // end traveler.resize
 
 
@@ -143,6 +150,7 @@
 
 
   window.onresize = function(event) {
+    traveler.old_gantt_width = traveler.gantt_width;
     traveler.calc_window_sizes();
     traveler.resize();
   }
@@ -150,6 +158,7 @@
 
   var init_traveler = function() {
     traveler.calc_window_sizes();
+    traveler.old_gantt_width = traveler.gantt_width;
     var overview_per = ( (traveler.full_mini_height + 5) / traveler.full_height) * 100;
     var trad_per = 100 - overview_per;
     Split(['#traditional-div', '#overview-div'], {
