@@ -37,7 +37,8 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   /* Check for trace info */
   if (strncmp(command, "time", 4) == 0)
   {
-    char start[100], stop[100], entity_start[100], entities[100], width[100], task[100];
+    char start[100], stop[100], entity_start[100], entities[100], 
+         width[100], task[100], task_time[100];
 
     mg_get_http_var(&hm->body, "start", start, sizeof(start));
     mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
@@ -45,10 +46,11 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
     mg_get_http_var(&hm->body, "focus_task", task, sizeof(task));
+    mg_get_http_var(&hm->body, "focus_time", task_time, sizeof(task_time));
     if (logging) {
       std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
       std::cout << "entity_start/entities/width " << entity_start << ", " << entities;
-      std::cout << ", " << width << " and task " << task << std::endl;
+      std::cout << ", " << width << " and task/time " << task << "/" << task_time << std::endl;
 
     }
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
@@ -57,6 +59,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
                                        std::stoull(entities),
                                        std::stoul(width),
                                        std::stoull(task),
+                                       std::stoull(task_time),
                                        logging);
   }
   else if (strncmp(command, "load", 4) == 0)

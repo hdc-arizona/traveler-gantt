@@ -34,6 +34,7 @@ public:
                     unsigned long long entities,
                     unsigned long width,
                     unsigned long long taskid,
+                    unsigned long long task_time,
                     bool logging);
     json initJSON(unsigned long width, bool logging);
     json timeOverview(unsigned long width, bool logging);
@@ -77,11 +78,23 @@ private:
                          unsigned long long entity_start,
                          unsigned long long entities,
                          unsigned long long min_span,
+                         unsigned long long taskid,
                          std::vector<json>& slice,
                          std::vector<json>& msg_slice,
                          std::vector<json>& collective_slice,
                          std::vector<std::vector<json> >& parent_slice,
                          std::map<std::string, std::string>& function_names);
+    void eventTraceBackJSON(Event * evt, unsigned long long start,
+                            unsigned long long stop, 
+                            unsigned long long entity_start, unsigned long long entities,
+                            unsigned long long min_span, 
+                            unsigned long long taskid, unsigned long long task_time,
+                            std::vector<json>& msg_slice);
+    void msgTraceBackJSON(CommEvent * evt, unsigned long long start,
+                          unsigned long long stop, 
+                          unsigned long long entity_start, unsigned long long entities,
+                          unsigned long long min_span, 
+                          std::vector<json>&msg_slice);
     static const bool debug = false;
     static const int partition_portion = 25;
     static const int lateness_portion = 45;
