@@ -23,6 +23,7 @@ static struct mg_serve_http_opts s_http_server_opts;
 
 Trace * trace = NULL;
 json j;
+bool logging = false;
 
 static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
   char command[100];
@@ -36,33 +37,39 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   /* Check for trace info */
   if (strncmp(command, "time", 4) == 0)
   {
-    char start[100], stop[100], entity_start[100], entities[100], width[100];
+    char start[100], stop[100], entity_start[100], entities[100], width[100], task[100];
 
     mg_get_http_var(&hm->body, "start", start, sizeof(start));
     mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
     mg_get_http_var(&hm->body, "entity_start", entity_start, sizeof(entity_start));
     mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
-    std::cout << "entity_start/entities/width " << entity_start << ", " << entities << ", " << width << std::endl;
+    mg_get_http_var(&hm->body, "focus_task", task, sizeof(task));
+    if (logging) {
+      std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
+      std::cout << "entity_start/entities/width " << entity_start << ", " << entities;
+      std::cout << ", " << width << " and task " << task << std::endl;
 
+    }
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
                                        std::stoull(stop), 
                                        std::stoull(entity_start),
                                        std::stoull(entities),
-                                       std::stoul(width));
+                                       std::stoul(width),
+                                       std::stoull(task),
+                                       logging);
   }
   else if (strncmp(command, "load", 4) == 0)
   {
     char width[100];
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    j["traceinfo"] = trace->initJSON(std::stoul(width));
+    j["traceinfo"] = trace->initJSON(std::stoul(width), logging);
   }
   else if (strncmp(command, "overview", 8) == 0)
   {
     char width[100];
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    j["traceinfo"] = trace->timeOverview(std::stoul(width));
+    j["traceinfo"] = trace->timeOverview(std::stoul(width), logging);
   }
   else
   {
@@ -106,11 +113,11 @@ static void setTrace(std::string dataFileName) {
 
     if (dataFileName.compare(dataFileName.length() - 4, 3, "otf"))
     {
-        trace = importWorker->doImportOTF(dataFileName);
+        trace = importWorker->doImportOTF(dataFileName, logging);
     }
     else if (dataFileName.compare(dataFileName.length() - 5, 4, "otf2"))
     {
-        trace = importWorker->doImportOTF2(dataFileName);
+        trace = importWorker->doImportOTF2(dataFileName, logging);
     }
     else
     {
@@ -172,6 +179,8 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
         filename = argv[++i];
         setTrace(filename);
+    } else if (strcmp(argv[i], "-l") == 0 && i + 1 < argc) {
+        logging = true;
     } else {
       fprintf(stderr, "Unknown option: [%s]\n", argv[i]);
       exit(1);

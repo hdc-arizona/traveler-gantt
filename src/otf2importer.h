@@ -24,7 +24,7 @@ class OTF2Importer
 public:
     OTF2Importer();
     ~OTF2Importer();
-    RawTrace * importOTF2(const char* otf_file);
+    RawTrace * importOTF2(const char* otf_file, bool _logging);
 
     class OTF2Attribute {
     public:
@@ -387,6 +387,8 @@ private:
     uint64_t phylanx_Parent_GUID;
     std::map<uint64_t, std::vector<GUIDRecord *> *> * unmatched_guids;
     std::map<uint64_t, EventRecord *> * parent_guids;
+
+    bool logging;
 
     const std::string PHYLANX_GUID_STRING = "GUID";
     const std::string PHYLANX_PARENT_GUID_STRING = "Parent GUID";

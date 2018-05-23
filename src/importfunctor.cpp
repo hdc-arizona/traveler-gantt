@@ -11,13 +11,13 @@ ImportFunctor::ImportFunctor()
 {
 }
 
-Trace * ImportFunctor::doImportOTF2(std::string dataFileName)
+Trace * ImportFunctor::doImportOTF2(std::string dataFileName, bool logging)
 {
     std::cout << "Processing " << dataFileName.c_str() << std::endl;
     clock_t start = clock();
 
     OTFConverter * importer = new OTFConverter();
-    Trace* trace = importer->importOTF2(dataFileName);
+    Trace* trace = importer->importOTF2(dataFileName, logging);
     delete importer;
 
     if (trace)
@@ -32,7 +32,7 @@ Trace * ImportFunctor::doImportOTF2(std::string dataFileName)
     return trace;
 }
 
-Trace *ImportFunctor::doImportOTF(std::string dataFileName)
+Trace *ImportFunctor::doImportOTF(std::string dataFileName, bool logging)
 {
     #ifdef OTF1LIB
     std::cout << "Processing " << dataFileName.c_str() << std::endl;
@@ -40,7 +40,7 @@ Trace *ImportFunctor::doImportOTF(std::string dataFileName)
 
 
     OTFConverter * importer = new OTFConverter();
-    Trace* trace = importer->importOTF(dataFileName);
+    Trace* trace = importer->importOTF(dataFileName, logging);
     delete importer;
 
     if (trace)

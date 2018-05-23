@@ -64,7 +64,8 @@ OTF2Importer::OTF2Importer()
       phylanx_GUID(0),
       phylanx_Parent_GUID(0),
       unmatched_guids(new std::map<uint64_t, std::vector<GUIDRecord *> *>()),
-      parent_guids(new std::map<uint64_t, EventRecord *>())
+      parent_guids(new std::map<uint64_t, EventRecord *>()),
+      logging(false)
 {
     collective_definitions->insert(std::pair<int, OTFCollective*>(0, new OTFCollective(0, 1, "Barrier")));
     collective_definitions->insert(std::pair<int, OTFCollective*>(1, new OTFCollective(1, 2, "Bcast")));
@@ -224,8 +225,10 @@ OTF2Importer::~OTF2Importer()
     delete commMap;
 }
 
-RawTrace * OTF2Importer::importOTF2(const char* otf_file)
+RawTrace * OTF2Importer::importOTF2(const char* otf_file, bool _logging)
 {
+    logging = _logging;
+
     entercount = 0;
     exitcount = 0;
     sendcount = 0;
@@ -296,7 +299,11 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file)
          = attributeMap->begin();
          eitr != attributeMap->end(); ++eitr)
     {
-        std::cout << "Looking up: " << eitr->second->name << std::endl << " is " << stringMap->count(eitr->second->name) << std::endl;;
+        if (logging)
+        {
+          std::cout << "Looking up: " << eitr->second->name << " is ";
+          std::cout << stringMap->count(eitr->second->name) << std::endl;
+        }
         if (stringMap->at(eitr->second->name) == PHYLANX_GUID_STRING) {
             phylanx_GUID = eitr->first;
         } else if (stringMap->at(eitr->second->name) == PHYLANX_PARENT_GUID_STRING) {
@@ -808,7 +815,7 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                                      &m2);
         er->setParentGUID(m2);
         if (m2 != 0) {
-            std::cout << "m2 is " << m2 << std::endl;
+            //std::cout << "m2 is " << m2 << std::endl;
             if (parent_guids->count(m2) == 1) {
                 // My parent already exists
                 EventRecord * pr = parent_guids->at(m2);
@@ -871,7 +878,7 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
-                std::cout << "Orphan found: " << m1 << " to " << cr->child << std::endl;
+                //std::cout << "Orphan found: " << m1 << " to " << cr->child << std::endl;
             }
             delete guids->at(m1);
             guids->erase(m1);

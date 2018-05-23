@@ -24,8 +24,8 @@ public:
     OTFConverter();
     ~OTFConverter();
 
-    Trace * importOTF(std::string filename);
-    Trace * importOTF2(std::string filename);
+    Trace * importOTF(std::string filename, bool _logging);
+    Trace * importOTF2(std::string filename, bool _logging);
 
 private:
     void convert();
@@ -47,6 +47,7 @@ private:
     unsigned long long last_finalize;
     int initFunction;
     int finalizeFunction;
+    bool logging;
 
     static const int event_match_portion = 24;
     static const int message_match_portion = 0;

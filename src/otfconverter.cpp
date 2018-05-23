@@ -45,7 +45,8 @@ OTFConverter::OTFConverter()
       last_init(0),
       last_finalize(0),
       initFunction(-1),
-      finalizeFunction(-1)
+      finalizeFunction(-1),
+      logging(false)
 {
 }
 
@@ -54,13 +55,14 @@ OTFConverter::~OTFConverter()
 }
 
 
-Trace * OTFConverter::importOTF(std::string filename)
+Trace * OTFConverter::importOTF(std::string filename, bool _logging)
 {
     #ifdef OTF1LIB
+    logging = _logging;
 
     // Start with the rawtrace similar to what we got from PARAVER
     OTFImporter * importer = new OTFImporter();
-    rawtrace = importer->importOTF(filename.c_str());
+    rawtrace = importer->importOTF(filename.c_str(), logging);
 
     convert();
 
@@ -71,11 +73,13 @@ Trace * OTFConverter::importOTF(std::string filename)
 }
 
 
-Trace * OTFConverter::importOTF2(std::string filename)
+Trace * OTFConverter::importOTF2(std::string filename, bool _logging)
 {
+    logging = _logging;
+
     // Start with the rawtrace similar to what we got from PARAVER
     OTF2Importer * importer = new OTF2Importer();
-    rawtrace = importer->importOTF2(filename.c_str());
+    rawtrace = importer->importOTF2(filename.c_str(), logging);
 
     convert();
 
@@ -289,11 +293,19 @@ void OTFConverter::matchEvents()
                                 }
                                 (*gitr)->message->sender = p;
                                 msgs->push_back((*gitr)->message);
-                                std::cout << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << std::endl;
+                                if (logging) {
+                                  std::cout << (*gitr)->parent << " to " << (*gitr)->child;
+                                  std::cout << " at " << (*gitr)->parent_time << " to ";
+                                  std::cout << (*gitr)->child_time << std::endl;
+                                }
                             }
                             else
                             {
-                                std::cout << "Unmatched record: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                if (logging) {
+                                  std::cout << "Unmatched record: " << (*gitr)->parent << " to ";
+                                  std::cout << (*gitr)->child << " at " << (*gitr)->parent_time;
+                                  std::cout << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                }
                                 /*
                                 if (!(*gitr)->message)
                                 {
@@ -330,14 +342,24 @@ void OTFConverter::matchEvents()
                                                                    (*gitr)->child_time,
                                                                    0);
                                     (*gitr)->message->setID(globalMessageID++);
-                                    std::cout << "Creating bgn-evt message: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                    if (logging) 
+                                    {
+                                      std::cout << "Creating bgn-evt message: " << (*gitr)->parent;
+                                      std::cout << " to " << (*gitr)->child << " at " << (*gitr)->parent_time;
+                                      std::cout << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                    }
                                 }
                                 (*gitr)->message->sender = p;
                                 msgs->push_back((*gitr)->message);
                             }
                             else
                             {
-                                std::cout << "Unmatched record: " << (*gitr)->parent << " to " << (*gitr)->child << " at " << (*gitr)->parent_time << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                if (logging)
+                                {
+                                  std::cout << "Unmatched record: " << (*gitr)->parent;
+                                  std::cout << " to " << (*gitr)->child << " at " << (*gitr)->parent_time;
+                                  std::cout << " to " << (*gitr)->child_time << " : " << (*gitr)->matched << std::endl;
+                                }
                             }
                         }
                     }
@@ -349,7 +371,12 @@ void OTFConverter::matchEvents()
                                                                     bgn->from_cr->child_time,
                                                                     0);
                                 bgn->from_cr->message->setID(globalMessageID++);
-                                std::cout << bgn->from_cr->parent << " to " << bgn->from_cr->child << " at " << bgn->from_cr->parent_time << " to " << bgn->from_cr->child_time <<  std::endl;
+                                if (logging) 
+                                {
+                                  std::cout << bgn->from_cr->parent << " to " << bgn->from_cr->child;
+                                  std::cout << " at " << bgn->from_cr->parent_time << " to ";
+                                  std::cout << bgn->from_cr->child_time <<  std::endl;
+                                }
                             }
                             bgn->from_cr->message->receiver = p;
                             msgs->push_back(bgn->from_cr->message);

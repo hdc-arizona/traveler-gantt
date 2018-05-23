@@ -53,10 +53,8 @@
     max_time: 1,
     max_step: 0,
     current_span: 1,
-    //current_k_scale: 1,
-    //current_y_offset: 0,
-    //current_x_offset: 0,
-    //y_k_factor: 1
+
+    focus_task: 0
   };
 
   // Figure out width and height of Gantt chart from the window size
@@ -474,6 +472,15 @@
   };
 
 
+  traveler.handle_task_click = function (task) {
+    if (traveler.focus_task === task.id) {
+	traveler.focus_task = 0;
+    } else {
+	traveler.focus_task = task.id;
+    }
+    
+    traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
+  }
 
   traveler.get_overview = function () {
     if (traveler.get_overview_state) {  // quickie perf hack
@@ -514,7 +521,8 @@
 	"stop" : stop,
 	"entity_start" : traveler.data.entity_start,
 	"entities" : traveler.data.entities,
-	"width" : traveler.gantt_width
+	"width" : traveler.gantt_width,
+	"focus_task" : traveler.focus_task
       },
       success: function(json) {
 	traveler.update(json.traceinfo);
@@ -661,6 +669,7 @@
     var barHeight = 0.8 * (traveler.yphys(2.0) - traveler.yphys(1.0));
 
     // Draw the nested parent function bars
+    // note hpx does not have depth
     for (var layer = 0; layer < traveler.data.parent_events.length; layer++) {
       // TODO: Base this on a max depth
       var current_depth = traveler.phys_layers[layer];
@@ -735,6 +744,7 @@
       .style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
       .attr('class', 'traveler event')
+      .on('click', d => { return traveler.handle_task_click(d); })
       .append('svg:title')
 	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
 

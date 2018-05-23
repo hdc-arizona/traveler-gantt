@@ -23,7 +23,7 @@ class OTFImporter
 public:
     OTFImporter();
     ~OTFImporter();
-    RawTrace * importOTF(const char* otf_file);
+    RawTrace * importOTF(const char* otf_file, bool _logging);
 
     // Handlers per OTF
     static int handleDefTimerResolution(void * userData, uint32_t stream,
@@ -118,6 +118,8 @@ private:
 
     std::map<unsigned long long, CollectiveRecord *> * collectives;
     std::vector<std::map<unsigned long long, CollectiveRecord *> *> * collectiveMap;
+
+    bool logging
 
 };
 

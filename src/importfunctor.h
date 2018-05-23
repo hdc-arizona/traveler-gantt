@@ -12,8 +12,8 @@ public:
     ImportFunctor();
     Trace * getTrace() { return trace; }
 
-    Trace * doImportOTF(std::string dataFileName);
-    Trace *doImportOTF2(std::string dataFileName);
+    Trace * doImportOTF(std::string dataFileName, bool logging);
+    Trace *doImportOTF2(std::string dataFileName, bool logging);
 
 private:
     Trace * trace;

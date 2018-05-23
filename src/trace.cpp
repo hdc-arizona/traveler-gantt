@@ -158,7 +158,9 @@ Event * Trace::findEvent(int entity, unsigned long long time)
 json Trace::timeToJSON(unsigned long long start, unsigned long long stop, 
                        unsigned long long entity_start,
                        unsigned long long entities,
-                       unsigned long width)
+                       unsigned long width, 
+                       unsigned long long taskid,
+                       bool logging)
 {
     json jo;
 
@@ -257,7 +259,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
                         && (*msg)->sender != NULL && (*msg)->receiver != NULL)
                     //if ((*msg)->sendtime < start || !(evt == (*msg)->receiver)) 
                     {
-                        std::cout << "Attempting to write a message" << std::endl;
+                        //std::cout << "Attempting to write a message" << std::endl;
                         json jmsg(*msg);
                         msg_slice.push_back(jmsg);
                     }
@@ -290,7 +292,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 
 }
 
-json Trace::timeOverview(unsigned long width)
+json Trace::timeOverview(unsigned long width, bool logging)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
     std::vector<unsigned long long> pixels = std::vector<unsigned long long>();
@@ -328,7 +330,7 @@ json Trace::timeOverview(unsigned long width)
     return jo;
 }
 
-json Trace::initJSON(unsigned long width)
+json Trace::initJSON(unsigned long width, bool logging)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
     unsigned long long span = 1000000;
@@ -336,8 +338,8 @@ json Trace::initJSON(unsigned long width)
     {
         span = a_pixel * 5;
     }
-    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width);
-    jo["overview"] = timeOverview(width);
+    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, logging);
+    jo["overview"] = timeOverview(width, logging);
 
     return jo;
 }

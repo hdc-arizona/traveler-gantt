@@ -38,7 +38,8 @@ OTFImporter::OTFImporter()
       collective_definitions(NULL),
       counters(NULL),
       collectives(NULL),
-      collectiveMap(NULL)
+      collectiveMap(NULL),
+      logging(false)
 {
 
 }
@@ -77,8 +78,10 @@ OTFImporter::~OTFImporter()
     delete unmatched_sends;
 }
 
-RawTrace * OTFImporter::importOTF(const char* otf_file)
+RawTrace * OTFImporter::importOTF(const char* otf_file, bool _logging)
 {
+    logging = _logging;
+
     entercount = 0;
     exitcount = 0;
     sendcount = 0;

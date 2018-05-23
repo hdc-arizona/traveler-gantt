@@ -32,9 +32,11 @@ public:
     json timeToJSON(unsigned long long start, unsigned long long stop,
                     unsigned long long entity_start,
                     unsigned long long entities,
-                    unsigned long width);
-    json initJSON(unsigned long width);
-    json timeOverview(unsigned long width);
+                    unsigned long width,
+                    unsigned long long taskid,
+                    bool logging);
+    json initJSON(unsigned long width, bool logging);
+    json timeOverview(unsigned long width, bool logging);
     std::string name;
     std::string fullpath;
     int num_entities;
