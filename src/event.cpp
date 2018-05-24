@@ -132,7 +132,7 @@ void Event::addMetric(std::string name, double event_value)
 void to_json(json& j, const Event& e)
 {
     j = json{
-        {"id", e.id},
+        {"id", std::to_string(e.id)},
         {"guid", std::to_string(e.guid)},
         {"parent_guid", std::to_string(e.parent_guid)},
         {"enter", e.enter},
@@ -144,7 +144,7 @@ void to_json(json& j, const Event& e)
 
 void from_json(const json& j, Event& e)
 {
-    e.id = j.at("id").get<unsigned long long>();
+    e.id = std::stoull(j.at("id").get<std::string>());
     e.guid = std::stoull(j.at("guid").get<std::string>());
     e.parent_guid = std::stoull(j.at("parent_guid").get<std::string>());
     e.enter = j.at("enter").get<unsigned long long>();
@@ -156,7 +156,7 @@ void from_json(const json& j, Event& e)
 void to_json(json& j, const Event * e)
 {
     j = json{
-        {"id", e->id},
+        {"id", std::to_string(e->id)},
         {"guid", std::to_string(e->guid)},
         {"parent_guid", std::to_string(e->parent_guid)},
         {"enter", e->enter},
@@ -168,7 +168,7 @@ void to_json(json& j, const Event * e)
 
 void from_json(const json& j, Event * e)
 {
-    e->id = j.at("id").get<unsigned long long>();
+    e->id = std::stoull(j.at("id").get<std::string>());
     e->guid = std::stoull(j.at("guid").get<std::string>());
     e->parent_guid = std::stoull(j.at("parent_guid").get<std::string>());
     e->enter = j.at("enter").get<unsigned long long>();
