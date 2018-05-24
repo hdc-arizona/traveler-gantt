@@ -133,8 +133,8 @@ void to_json(json& j, const Event& e)
 {
     j = json{
         {"id", e.id},
-        {"guid", e.guid},
-        {"parent_guid", e.parent_guid},
+        {"guid", std::to_string(e.guid)},
+        {"parent_guid", std::to_string(e.parent_guid)},
         {"enter", e.enter},
         {"exit", e.exit},
         {"function", e.function},
@@ -145,8 +145,8 @@ void to_json(json& j, const Event& e)
 void from_json(const json& j, Event& e)
 {
     e.id = j.at("id").get<unsigned long long>();
-    e.guid = j.at("guid").get<unsigned long long>();
-    e.parent_guid = j.at("parent_guid").get<unsigned long long>();
+    e.guid = std::stoull(j.at("guid").get<std::string>());
+    e.parent_guid = std::stoull(j.at("parent_guid").get<std::string>());
     e.enter = j.at("enter").get<unsigned long long>();
     e.exit = j.at("exit").get<unsigned long long>();
     e.function = j.at("function").get<int>();
@@ -157,8 +157,8 @@ void to_json(json& j, const Event * e)
 {
     j = json{
         {"id", e->id},
-        {"guid", e->guid},
-        {"parent_guid", e->parent_guid},
+        {"guid", std::to_string(e->guid)},
+        {"parent_guid", std::to_string(e->parent_guid)},
         {"enter", e->enter},
         {"exit", e->exit},
         {"function", e->function},
@@ -169,8 +169,8 @@ void to_json(json& j, const Event * e)
 void from_json(const json& j, Event * e)
 {
     e->id = j.at("id").get<unsigned long long>();
-    e->guid = j.at("guid").get<unsigned long long>();
-    e->parent_guid = j.at("parent_guid").get<unsigned long long>();
+    e->guid = std::stoull(j.at("guid").get<std::string>());
+    e->parent_guid = std::stoull(j.at("parent_guid").get<std::string>());
     e->enter = j.at("enter").get<unsigned long long>();
     e->exit = j.at("exit").get<unsigned long long>();
     e->function = j.at("function").get<int>();

@@ -54,8 +54,8 @@
     max_step: 0,
     current_span: 1,
 
-    focus_task: 0,
-    focus_time: 0
+    focus_task: "0",
+    focus_time: "0"
   };
 
   // Figure out width and height of Gantt chart from the window size
@@ -474,11 +474,11 @@
 
 
   traveler.handle_task_click = function (task) {
-    if (traveler.focus_task === task.id) {
-	traveler.focus_task = 0;
-	traveler.focus_time = 0;
+    if (traveler.focus_task === task.guid) {
+	traveler.focus_task = "0";
+	traveler.focus_time = "0";
     } else {
-	traveler.focus_task = task.id;
+	traveler.focus_task = task.guid;
 	traveler.focus_time = task.enter;
     }
     
@@ -699,7 +699,8 @@
 	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
 	.attr('class', 'parent')
 	.append('svg:title')
-	  .text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
+	  .text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
+		  ", Enter: " + d.enter + ", Exit: " + d.exit; });
 
       rects.exit().remove();
 
@@ -750,7 +751,8 @@
       .attr('class', 'traveler event')
       .on('click', d => { return traveler.handle_task_click(d); })
       .append('svg:title')
-	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid; });
+	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
+		  ", Enter: " + d.enter + ", Exit: " + d.exit; });
 
     rects.exit().remove();
       

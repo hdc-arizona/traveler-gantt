@@ -199,6 +199,11 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
             timeEventToJSON(*root, 0, start, stop, entity_start, entities,
                             a_pixel, taskid, event_slice, msg_slice, collective_slice,
                             parent_slice, function_names);
+            if (taskid != 0)
+            {
+                eventTraceBackJSON(*root, start, stop, entity_start, entities,
+                                   a_pixel, taskid, task_time, msg_slice, logging);
+            }
         }
     }
 
@@ -215,15 +220,24 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
 
 void Trace::msgTraceBackJSON(CommEvent * evt, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
-    unsigned long long min_span, std::vector<json>&msg_slice)
+    unsigned long long min_span, std::vector<json>&msg_slice, bool logging)
 {
     std::vector<Message *> * messages = evt->getMessages();
     if (messages != NULL) {
         for (std::vector<Message *>::iterator msg = messages->begin();
             msg != messages->end(); ++msg)
         {
+            if (logging) 
+            {
+                std::cout << "On message " << (*msg)->sendtime << " to " << (*msg)->recvtime;
+                std::cout << " received by " << (*msg)->receiver->getGUID() << std::endl;
+            }
             // Note we only add if the event is the receive and if the
             // message is actually in the time frame we're looking for
+            if (logging && ((*msg)->sender == NULL || (*msg)->receiver == NULL))
+            {
+                std::cout << "     Null message." << std::endl;
+            }
             if (((*msg)->recvtime > stop || !(evt == (*msg)->sender)) 
                 && (*msg)->sender != NULL && (*msg)->receiver != NULL
                 && (*msg)->receiver == evt)
@@ -233,9 +247,11 @@ void Trace::msgTraceBackJSON(CommEvent * evt, unsigned long long start,
             }
             if ((*msg)->receiver == evt && evt->exit > start && (*msg)->sender) 
             {
+                if (logging) 
+                    std::cout << "     Tracing back to sender " << (*msg)->sender->getGUID() << std::endl;
                 msgTraceBackJSON((*msg)->sender, start, stop,
                                  entity_start, entities, min_span, 
-                                 msg_slice);
+                                 msg_slice, logging);
             }
         }
     }
@@ -244,8 +260,13 @@ void Trace::msgTraceBackJSON(CommEvent * evt, unsigned long long start,
 void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, unsigned long long taskid, unsigned long long task_time,
-    std::vector<json>& msg_slice)
+    std::vector<json>& msg_slice, bool logging)
 {
+    if (logging && evt->getGUID() == taskid)
+    {
+        std::cout << "GUID match at: " << task_time << " in " << evt->enter << " and " << evt->exit << std::endl;
+        std::cout << "      Task ID is " << taskid << " and event GUID is " << evt->getGUID() << std::endl;
+    }
 
     // Make sure the event is in range
     if (!(evt->enter <= task_time && evt->exit >= task_time))
@@ -256,10 +277,15 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
     // Search for focus event
     if (evt->getGUID() == taskid)
     {
+        if (logging)
+            std::cout << ">>>Event Found!<<<" << std::endl;
         if (evt->isCommEvent()) 
         {
+            if (logging)
+                std::cout << "   is Comm, starting traceback" << std::endl;
             msgTraceBackJSON(static_cast<CommEvent *>(evt), start, stop,
-                             entity_start, entities, min_span, msg_slice);
+                             entity_start, entities, min_span, msg_slice,
+                             logging);
         } 
     }
     else
@@ -269,10 +295,14 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
             child != evt->callees->end(); ++child)
         {
             if ((*child)->enter > stop)
-                break;
+            {
+                if (logging)
+                    std::cout << "Child enters after stop, ignore." << std::endl; 
+                continue;
+            }
             eventTraceBackJSON(*child, start, stop, entity_start,
                                entities, min_span, taskid, task_time, 
-                               msg_slice); 
+                               msg_slice, logging); 
         }
     }
 }
