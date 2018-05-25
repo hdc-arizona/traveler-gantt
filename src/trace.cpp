@@ -218,7 +218,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     return jo;
 }
 
-void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, unsigned long long start,
+void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message * last, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, std::vector<json>&msg_slice, bool logging)
 {
@@ -238,6 +238,8 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, unsigned 
             {
                 std::cout << "     Null message." << std::endl;
             }
+
+            // If we're the receiver, write out the traceback message
             if ((*msg)->recvtime > start 
                 && (*msg)->sender != NULL && (*msg)->receiver != NULL
                 && (*msg)->receiver == evt)
@@ -247,14 +249,31 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, unsigned 
                 jmsg["sibling"] = false;
                 msg_slice.push_back(jmsg);
             }
-            if ((*msg)->receiver == evt && evt->exit > start && (*msg)->sender) 
+
+            // If we're the sender and on the main path (!sibling), add
+            // forward messages as well
+            else if (!sibling && (*msg)->sender == evt && (*msg) != last
+                     && (*msg)->sender != NULL && (*msg)->receiver != NULL
+                     && (*msg)->recvtime > start)
+            {
+                json jmsg(*msg);
+                jmsg["depth"] = depth - 1;
+                jmsg["sibling"] = true;
+                msg_slice.push_back(jmsg);
+            }
+
+
+            // If we're not on a sibling line and we're still in the time
+            // window, continue tracing back.
+            if (!sibling && (*msg)->receiver == evt && evt->exit > start && (*msg)->sender) 
             {
                 if (logging) 
                     std::cout << "     Tracing back to sender " << (*msg)->sender->getGUID() << std::endl;
-                msgTraceBackJSON((*msg)->sender, depth + 1, false, start, stop,
+                msgTraceBackJSON((*msg)->sender, depth + 1, false, *msg, start, stop,
                                  entity_start, entities, min_span, 
                                  msg_slice, logging);
             }
+
         }
     }
 }
@@ -285,7 +304,7 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
         {
             if (logging)
                 std::cout << "   is Comm, starting traceback" << std::endl;
-            msgTraceBackJSON(static_cast<CommEvent *>(evt), 0, false, start, stop,
+            msgTraceBackJSON(static_cast<CommEvent *>(evt), 0, false, NULL, start, stop,
                              entity_start, entities, min_span, msg_slice,
                              logging);
         } 
