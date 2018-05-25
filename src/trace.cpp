@@ -218,7 +218,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     return jo;
 }
 
-void Trace::msgTraceBackJSON(CommEvent * evt, unsigned long long start,
+void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, std::vector<json>&msg_slice, bool logging)
 {
@@ -238,18 +238,20 @@ void Trace::msgTraceBackJSON(CommEvent * evt, unsigned long long start,
             {
                 std::cout << "     Null message." << std::endl;
             }
-            if (((*msg)->recvtime > stop || !(evt == (*msg)->sender)) 
+            if ((*msg)->recvtime > start 
                 && (*msg)->sender != NULL && (*msg)->receiver != NULL
                 && (*msg)->receiver == evt)
             {
                 json jmsg(*msg);
+                jmsg["depth"] = depth;
+                jmsg["sibling"] = false;
                 msg_slice.push_back(jmsg);
             }
             if ((*msg)->receiver == evt && evt->exit > start && (*msg)->sender) 
             {
                 if (logging) 
                     std::cout << "     Tracing back to sender " << (*msg)->sender->getGUID() << std::endl;
-                msgTraceBackJSON((*msg)->sender, start, stop,
+                msgTraceBackJSON((*msg)->sender, depth + 1, false, start, stop,
                                  entity_start, entities, min_span, 
                                  msg_slice, logging);
             }
@@ -283,7 +285,7 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
         {
             if (logging)
                 std::cout << "   is Comm, starting traceback" << std::endl;
-            msgTraceBackJSON(static_cast<CommEvent *>(evt), start, stop,
+            msgTraceBackJSON(static_cast<CommEvent *>(evt), 0, false, start, stop,
                              entity_start, entities, min_span, msg_slice,
                              logging);
         } 
@@ -358,6 +360,8 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
                         {
                             //std::cout << "Attempting to write a message" << std::endl;
                             json jmsg(*msg);
+                            jmsg["depth"] = 0;
+                            jmsg["sibling"] = false;
                             msg_slice.push_back(jmsg);
                         }
                     }

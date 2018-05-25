@@ -91,8 +91,8 @@ private:
                             unsigned long long taskid, unsigned long long task_time,
                             std::vector<json>& msg_slice, 
                             bool logging);
-    void msgTraceBackJSON(CommEvent * evt, unsigned long long start,
-                          unsigned long long stop, 
+    void msgTraceBackJSON(CommEvent * evt, int depth, bool sibling,
+                          unsigned long long start, unsigned long long stop, 
                           unsigned long long entity_start, unsigned long long entities,
                           unsigned long long min_span, 
                           std::vector<json>&msg_slice,

@@ -787,6 +787,7 @@
     console.log(traditional_messages.length, "# messages drawn");
     msgs = traveler.phys_comm_message_layer.selectAll('.message')
       .data(traditional_messages, d => { return d.id; })
+      .style('stroke-width', d => { return d.depth + 1; })
       .attr('x1', d => { return traveler.phys_scale(d.sendtime); })
       .attr('x2', d => { return traveler.phys_scale(d.recvtime); })
       .attr('y1', d => { return traveler.yphys(d.sender_entity + 0.5); })
@@ -794,6 +795,7 @@
 
     msgs.enter().append('line')
       .attr('class', 'traveler message')
+      .style('stroke-width', d => { return d.depth + 1; })
       .attr('x1', d => { return traveler.phys_scale(d.sendtime); })
       .attr('x2', d => { return traveler.phys_scale(d.recvtime); })
       .attr('y1', d => { return traveler.yphys(d.sender_entity + 0.5); })
