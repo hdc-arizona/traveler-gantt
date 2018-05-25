@@ -182,6 +182,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     // Determine min_span of half a pixel in width
     unsigned long long a_pixel = (stop - start) / width / 2;
 
+    std::set<uint64_t> event_set = std::set<uint64_t>();
     std::vector<json> event_slice = std::vector<json>();
     std::vector<json> msg_slice = std::vector<json>();
     std::vector<json> collective_slice = std::vector<json>();
@@ -191,19 +192,31 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     std::map<std::string, std::string> function_names = std::map<std::string, std::string>();
 
     unsigned long long entity_stop = entity_start + entities;
+   
+    // Trace back events
+    if (taskid != 0) 
+    {
+        for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
+        {
+            for (std::vector<Event *>::iterator root = roots->at(entity)->begin();
+                 root != roots->at(entity)->end(); ++root)
+            {
+                eventTraceBackJSON(*root, start, stop, entity_start, entities,
+                                   a_pixel, taskid, task_time, msg_slice, 
+                                   event_slice, event_set, function_names, logging);
+            }
+        }
+    }
+
+    // All events
     for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
     {
         for (std::vector<Event *>::iterator root = roots->at(entity)->begin();
              root != roots->at(entity)->end(); ++root)
         {
             timeEventToJSON(*root, 0, start, stop, entity_start, entities,
-                            a_pixel, taskid, event_slice, msg_slice, collective_slice,
+                            a_pixel, taskid, event_slice, event_set, msg_slice, collective_slice,
                             parent_slice, function_names);
-            if (taskid != 0)
-            {
-                eventTraceBackJSON(*root, start, stop, entity_start, entities,
-                                   a_pixel, taskid, task_time, msg_slice, logging);
-            }
         }
     }
 
@@ -220,8 +233,21 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
 
 void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message * last, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
-    unsigned long long min_span, std::vector<json>&msg_slice, bool logging)
+    unsigned long long min_span, std::vector<json>& msg_slice, std::vector<json>& evt_slice, 
+    std::set<uint64_t>& evt_set, std::map<std::string, std::string>& function_names, bool logging)
 {
+    if ((evt_set.find(evt->id) == evt_set.end()) && ((evt->exit - evt->enter) > min_span))
+    {
+        json jevt(evt);
+        jevt["depth"] = depth;
+        jevt["sibling"] = sibling;
+        evt_slice.push_back(jevt);
+        evt_set.insert(evt->id);
+
+        function_names.insert(std::pair<std::string, std::string>(std::to_string(evt->function), 
+                                                                  functions->at(evt->function)->name));
+    }
+
     std::vector<Message *> * messages = evt->getMessages();
     if (messages != NULL) {
         for (std::vector<Message *>::iterator msg = messages->begin();
@@ -260,6 +286,18 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message *
                 jmsg["depth"] = depth - 1;
                 jmsg["sibling"] = true;
                 msg_slice.push_back(jmsg);
+                CommEvent * rcv = (*msg)->receiver;
+                if ((evt_set.find(rcv->id) == evt_set.end()) && ((rcv->exit - rcv->enter) > min_span))
+                {
+                    json revt(rcv);
+                    revt["depth"] = depth - 1;
+                    revt["sibling"] = true;
+                    evt_slice.push_back(revt);
+                    evt_set.insert(rcv->id);
+
+                    function_names.insert(std::pair<std::string, std::string>(std::to_string(rcv->function), 
+                                                                              functions->at(rcv->function)->name));
+                }
             }
 
 
@@ -271,7 +309,7 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message *
                     std::cout << "     Tracing back to sender " << (*msg)->sender->getGUID() << std::endl;
                 msgTraceBackJSON((*msg)->sender, depth + 1, false, *msg, start, stop,
                                  entity_start, entities, min_span, 
-                                 msg_slice, logging);
+                                 msg_slice, evt_slice, evt_set, function_names, logging);
             }
 
         }
@@ -281,7 +319,8 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message *
 void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, unsigned long long taskid, unsigned long long task_time,
-    std::vector<json>& msg_slice, bool logging)
+    std::vector<json>& msg_slice, std::vector<json>& evt_slice, std::set<uint64_t>& evt_set,
+    std::map<std::string, std::string>& function_names, bool logging)
 {
     if (logging && evt->getGUID() == taskid)
     {
@@ -305,8 +344,8 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
             if (logging)
                 std::cout << "   is Comm, starting traceback" << std::endl;
             msgTraceBackJSON(static_cast<CommEvent *>(evt), 0, false, NULL, start, stop,
-                             entity_start, entities, min_span, msg_slice,
-                             logging);
+                             entity_start, entities, min_span, msg_slice, evt_slice, evt_set,
+                             function_names, logging);
         } 
     }
     else
@@ -323,7 +362,7 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
             }
             eventTraceBackJSON(*child, start, stop, entity_start,
                                entities, min_span, taskid, task_time, 
-                               msg_slice, logging); 
+                               msg_slice, evt_slice, evt_set, function_names, logging); 
         }
     }
 }
@@ -332,6 +371,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, unsigned long long taskid, 
     std::vector<json>& slice,
+    std::set<uint64_t>& slice_set, 
     std::vector<json>& msg_slice,
     std::vector<json>& collective_slice,
     std::vector<std::vector<json> >& parent_slice,
@@ -346,7 +386,6 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     // Add the event
     if ((evt->exit - evt->enter) > min_span)
     {
-        json jevt(evt);
         function_names.insert(std::pair<std::string, std::string>(std::to_string(evt->function), 
                                                                   functions->at(evt->function)->name));
         if (evt->isCommEvent()) 
@@ -365,7 +404,8 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
            //         jevt["coalesced"] = 1;
            //     }
            // }
-            slice.push_back(jevt);
+            if (slice_set.find(evt->id) == slice_set.end())
+                slice.push_back(jevt);
             if (taskid == 0) 
             {
                 std::vector<Message *> * messages = cevt->getMessages();
@@ -395,6 +435,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
                 parent_slice.push_back(std::vector<json>());
             }
 
+            json jevt(evt);
             parent_slice.at(depth).push_back(jevt);
         }
 
@@ -405,7 +446,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
             if ((*child)->enter > stop)
                 break;
             timeEventToJSON(*child, depth + 1, start, stop, entity_start,
-                            entities, min_span, taskid, slice, msg_slice, 
+                            entities, min_span, taskid, slice, slice_set, msg_slice, 
                             collective_slice, parent_slice, 
                             function_names);
         }

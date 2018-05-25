@@ -6,6 +6,7 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <set>
 #include <memory>
 #include <ctime>
 #include <stdint.h>
@@ -81,6 +82,7 @@ private:
                          unsigned long long min_span,
                          unsigned long long taskid,
                          std::vector<json>& slice,
+                         std::set<uint64_t>& slice_set,
                          std::vector<json>& msg_slice,
                          std::vector<json>& collective_slice,
                          std::vector<std::vector<json> >& parent_slice,
@@ -91,12 +93,18 @@ private:
                             unsigned long long min_span, 
                             unsigned long long taskid, unsigned long long task_time,
                             std::vector<json>& msg_slice, 
+                            std::vector<json>& evt_slice,
+                            std::set<uint64_t>& evt_set,
+                            std::map<std::string, std::string>& function_names,
                             bool logging);
     void msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message * last,
                           unsigned long long start, unsigned long long stop, 
                           unsigned long long entity_start, unsigned long long entities,
                           unsigned long long min_span, 
                           std::vector<json>&msg_slice,
+                          std::vector<json>& evt_slice,
+                          std::set<uint64_t>& evt_set,
+                          std::map<std::string, std::string>& function_names,
                           bool logging);
     static const bool debug = false;
     static const int partition_portion = 25;
