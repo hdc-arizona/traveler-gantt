@@ -66,6 +66,8 @@ public:
     std::vector<std::vector<Event *> *> * events; // This is going to be by entities
     std::vector<std::vector<Event *> *> * roots; // Roots of call trees per pe
 
+    std::map<uint64_t, std::vector<unsigned long long> *> * guidMap;
+
     int mpi_group; // functionGroup index of "MPI" functions
 
     unsigned long long max_time; // largest time

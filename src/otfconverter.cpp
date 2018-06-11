@@ -276,8 +276,21 @@ void OTFConverter::matchEvents()
                     P2PEvent * p = new P2PEvent(bgn->time, (*evt)->time,
                                                 bgn->value, bgn->entity,
                                                 bgn->entity, phase, msgs);
-                    p->setGUID((*evt)->guid);
+                    p->setID(globalID++);
+                    //p->setGUID((*evt)->guid);
+                    p->setGUID(bgn->guid);
                     p->setParentGUID(bgn->parent_guid);
+                    if (trace->guidMap->find(p->getGUID()) == trace->guidMap->end())
+                    {
+                        trace->guidMap->insert(
+                            std::pair<uint64_t, 
+                                      std::vector<unsigned long long> *>(p->getGUID(),
+                                                                         new std::vector<unsigned long long>()
+                                                                        )
+                                              );
+                                                
+                    }
+                    trace->guidMap->at(p->getGUID())->push_back(p->id);
                     //std::cout << "guid " << p->guid << " parent_guid " << p->parent_guid << std::endl;
                     if ((*evt)->to_crs) {  // to_crs are collected by the leave
                         for (std::vector<GUIDRecord *>::iterator gitr = (*evt)->to_crs->begin();
@@ -506,14 +519,22 @@ void OTFConverter::matchEvents()
                     e = new Event(bgn->time, (*evt)->time, bgn->value,
                                   bgn->entity, bgn->entity);
 
-                    if (!rawtrace->phylanx)
-                    {
-                        e->setID(globalID++);
-                    }
-                    else
+                    e->setID(globalID++);
+                    if (rawtrace->phylanx)
                     {
                         e->setGUID(bgn->guid);
                         e->setParentGUID(bgn->parent_guid);
+                        if (trace->guidMap->find(e->getGUID()) == trace->guidMap->end())
+                        {
+                            trace->guidMap->insert(
+                                std::pair<uint64_t, 
+                                          std::vector<unsigned long long> *>(
+                                              e->getGUID(),
+                                              new std::vector<unsigned long long>())
+                                                  );
+                                                    
+                        }
+                        trace->guidMap->at(e->getGUID())->push_back(e->id);
                     }
 
 
@@ -620,7 +641,25 @@ void OTFConverter::matchEvents()
             stack->pop();
     }
     delete stack;
-}
+
+    // DEBUG: Print out continued GUIDs
+    /*
+    for (std::map<uint64_t, std::vector<unsigned long long> *>::iterator itr 
+        = trace->guidMap->begin(); itr != trace->guidMap->end(); ++itr)
+    {
+        if (itr->second->size() > 1)
+        {
+            std::cout << "GUID: " << itr->first << ", IDs: ";
+            for (std::vector<unsigned long long>::iterator eitr
+                = itr->second->begin(); eitr != itr->second->end(); ++eitr)
+            {
+                std::cout << (*eitr) << ", ";
+            }
+            std::cout << std::endl;
+        }
+    }
+    */
+}    
 
 // We only do this with comm events right now, so we know we won't have nesting
 int OTFConverter::advanceCounters(CommEvent * evt, std::stack<CounterRecord *> * counterstack,

@@ -703,7 +703,7 @@
 	.attr('class', 'parent')
 	.append('svg:title')
 	  .text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
-		  ", Enter: " + d.enter + ", Exit: " + d.exit; });
+		  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
 
       rects.exit().remove();
 
@@ -757,7 +757,7 @@
       .on('click', d => { return traveler.handle_task_click(d); })
       .append('svg:title')
 	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
-		  ", Enter: " + d.enter + ", Exit: " + d.exit; });
+		  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
 
     rects.exit().remove();
       

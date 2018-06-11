@@ -42,7 +42,6 @@ public:
     void setID(unsigned long long i) { id = i; }
     void setGUID(uint64_t g) { 
         guid = g; 
-        id = g;
     }
     uint64_t getGUID() { return guid; }
     void setParentGUID(uint64_t g) { parent_guid = g; }

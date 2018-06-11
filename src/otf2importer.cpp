@@ -793,6 +793,7 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
         er->setGUID(m1);
+        //std::cout << m1 << std::endl;
         //std::cout << "   Entering " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;

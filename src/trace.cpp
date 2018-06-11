@@ -40,6 +40,7 @@ Trace::Trace(int nt, int np)
       collectiveMap(NULL),
       events(new std::vector<std::vector<Event *> *>(std::max(nt, np))),
       roots(new std::vector<std::vector<Event *> *>(std::max(nt, np))),
+      guidMap(new std::map<uint64_t, std::vector<unsigned long long> *>()),
       mpi_group(-1),
       max_time(0),
       min_time(ULLONG_MAX),
@@ -130,6 +131,14 @@ Trace::~Trace()
         delete primary->second;
     }
     delete primaries;
+    
+    for (std::map<uint64_t, std::vector<unsigned long long> *>::iterator itr 
+        = guidMap->begin(); itr != guidMap->end(); ++itr)
+    {
+        delete (itr->second);
+        itr->second = NULL;
+    }
+    delete guidMap;
 }
 
 void Trace::preprocess()
