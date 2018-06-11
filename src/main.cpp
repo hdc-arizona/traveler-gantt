@@ -38,7 +38,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   if (strncmp(command, "time", 4) == 0)
   {
     char start[100], stop[100], entity_start[100], entities[100], 
-         width[100], task[100], task_time[100];
+         width[100], task[100], task_time[100], hover[100];
 
     mg_get_http_var(&hm->body, "start", start, sizeof(start));
     mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
@@ -47,10 +47,12 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     mg_get_http_var(&hm->body, "width", width, sizeof(width));
     mg_get_http_var(&hm->body, "focus_task", task, sizeof(task));
     mg_get_http_var(&hm->body, "focus_time", task_time, sizeof(task_time));
+    mg_get_http_var(&hm->body, "hover_task", hover, sizeof(hover));
     if (logging) {
       std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
       std::cout << "entity_start/entities/width " << entity_start << ", " << entities;
-      std::cout << ", " << width << " and task/time " << task << "/" << task_time << std::endl;
+      std::cout << ", " << width << " and task/time " << task << "/" << task_time;
+      std::cout << ", hover: " << hover << std::endl;
 
     }
     j["traceinfo"] = trace->timeToJSON(std::stoull(start),
@@ -60,6 +62,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
                                        std::stoul(width),
                                        std::stoull(task),
                                        std::stoull(task_time),
+                                       std::stoull(hover),
                                        logging);
   }
   else if (strncmp(command, "load", 4) == 0)

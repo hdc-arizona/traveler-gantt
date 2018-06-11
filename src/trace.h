@@ -37,6 +37,7 @@ public:
                     unsigned long width,
                     unsigned long long taskid,
                     unsigned long long task_time,
+                    unsigned long long hover,
                     bool logging);
     json initJSON(unsigned long width, bool logging);
     json timeOverview(unsigned long width, bool logging);

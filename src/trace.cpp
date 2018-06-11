@@ -170,6 +170,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
                        unsigned long width, 
                        unsigned long long taskid,
                        unsigned long long task_time,
+                       unsigned long long hover,
                        bool logging)
 {
     json jo;
@@ -236,6 +237,18 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     jo["messages"] = msg_slice;
     jo["collectives"] = collective_slice;
     jo["functions"] = function_names;
+
+    std::vector<std::string> hover_strings = std::vector<std::string>();
+    if (hover)
+    {
+        std::vector<unsigned long long> * hover_ids = guidMap->at(hover);
+        for (std::vector<unsigned long long>::iterator itr = hover_ids->begin();
+            itr != hover_ids->end(); ++itr)
+        {
+            hover_strings.push_back(std::to_string(*itr));
+        }
+    }
+    jo["hover_ids"] = hover_strings;
 
     return jo;
 }
@@ -509,7 +522,7 @@ json Trace::initJSON(unsigned long width, bool logging)
     {
         span = a_pixel * 5;
     }
-    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, logging);
+    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, logging);
     jo["overview"] = timeOverview(width, logging);
 
     return jo;

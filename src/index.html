@@ -55,7 +55,8 @@
     current_span: 1,
 
     focus_task: "0",
-    focus_time: "0"
+    focus_time: "0",
+    hover_task: "0"
   };
 
   // Figure out width and height of Gantt chart from the window size
@@ -476,6 +477,8 @@
   };
 
 
+  // TODO: change this to ID and then have the GUID work backwards to 
+  // find which GUID really creates things.
   traveler.handle_task_click = function (task) {
     if (traveler.focus_task === task.guid) {
 	traveler.focus_task = "0";
@@ -483,6 +486,19 @@
     } else {
 	traveler.focus_task = task.guid;
 	traveler.focus_time = task.enter;
+    }
+    
+    traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
+  }
+
+  traveler.handle_task_mouseover = function(task, over) {
+    // if the hover hasn't changed, do nothing
+    if (over && task.guid === traveler.hover_task) return;
+
+    if (over) {
+      traveler.hover_task = task.guid;
+    } else {
+      traveler.hover_task = "0";
     }
     
     traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
@@ -529,9 +545,11 @@
 	"entities" : traveler.data.entities,
 	"width" : traveler.gantt_width,
 	"focus_task" : traveler.focus_task,
-	"focus_time" : traveler.focus_time
+	"focus_time" : traveler.focus_time,
+	"hover_task" : traveler.hover_task
       },
       success: function(json) {
+	//console.log(json.traceinfo);
 	traveler.update(json.traceinfo);
 	traveler.get_data_state = false;
       }
@@ -701,6 +719,9 @@
 	.style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
 	.attr('class', 'parent')
+        .on('click', d => { return traveler.handle_task_click(d); })
+        .on('mouseover', d => { return travel.handle_task_mouseover(d, true); })
+        .on('mouseout', d => { return travel.handle_task_mouseover(d, false); })
 	.append('svg:title')
 	  .text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
 		  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
@@ -739,7 +760,14 @@
       .attr('height', barHeight)
       .attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	d3.max([traveler.phys_scale(d.enter), -10]); })
-      .style('fill', d => { return (d.sibling) ? traveler.path_back_color(d.depth) : 'lightblue'; })
+      //.style('fill', d => { return (d.sibling) ? traveler.path_back_color(d.depth) : 'lightblue'; })
+      .style('fill', d => { 
+	  return (traveler.data.hover_ids.includes(d.id))?
+	      'goldenrod' :
+	      (d.sibling) ? 
+		traveler.path_back_color(d.depth) : 
+		'lightblue'; 
+      })
       .style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
@@ -752,9 +780,18 @@
 	d3.max([traveler.phys_scale(d.enter), -10]); })
       .style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
-      .style('fill', d => { return (d.sibling) ? traveler.path_back_color(d.depth) : 'lightblue'; })
+      //.style('fill', d => { return (d.sibling) ? traveler.path_back_color(d.depth) : 'lightblue'; })
+      .style('fill', d => { 
+	  return (traveler.data.hover_ids.includes(d.id))?
+	      'goldenrod' :
+	      (d.sibling) ? 
+		traveler.path_back_color(d.depth) : 
+		'lightblue'; 
+      })
       .attr('class', 'traveler event')
       .on('click', d => { return traveler.handle_task_click(d); })
+      .on('mouseover', d => { return traveler.handle_task_mouseover(d, true); })
+      .on('mouseout', d => { return traveler.handle_task_mouseover(d, false); })
       .append('svg:title')
 	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
 		  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
