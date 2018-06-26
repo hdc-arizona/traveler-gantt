@@ -7,8 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="traveler.css" />
-  <script src="d3.v4.min.js"></script>
-  <script src="jquery-1.11.0.min.js"></script>
+  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/d3.v4.min.js"></script>
+  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/jquery-1.11.0.min.js"></script>
   <script src="split.js"></script>
 </head>
 <body>
@@ -511,7 +511,7 @@
     traveler.get_overview_state = true;
     $.ajax({
       mimeType: 'text/json; charset=x-user-defined',
-      url: '/data',
+      url: '/playground/kisaacs/traveler/data',
       method: 'POST',
       dataType: 'json',
       data: { 
@@ -534,7 +534,7 @@
     traveler.get_data_state = true;
     $.ajax({
       mimeType: 'text/json; charset=x-user-defined',
-      url: '/data',
+      url: '/playground/kisaacs/traveler/data',
       method: 'POST',
       dataType: 'json',
       data: { 
@@ -881,7 +881,7 @@ jQuery(function() {
     init_traveler();
     $.ajax({
       mimeType: 'text/json; charset=x-user-defined',
-      url: '/data',
+      url: 'playground/kisaacs/traveler/data',
       method: 'POST',
       dataType: 'json',
       data: { 

@@ -18,7 +18,7 @@
 
 using json = nlohmann::json;
 
-static const char *s_http_port = "8001";
+static const char *s_http_port = "10005";
 static struct mg_serve_http_opts s_http_server_opts;
 
 Trace * trace = NULL;
@@ -92,7 +92,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 
   switch (ev) {
     case MG_EV_HTTP_REQUEST:
-      if (mg_vcmp(&hm->uri, "/data") == 0) {
+      if (mg_vcmp(&hm->uri, "/playground/kisaacs/traveler/data") == 0) {
         handle_data_call(nc, hm); // Handle RESTful call 
       } else if (mg_vcmp(&hm->uri, "/printcontent") == 0) {
         char buf[100] = {0};
