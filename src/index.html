@@ -7,8 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="traveler.css" />
-  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/d3.v4.min.js"></script>
-  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/jquery-1.11.0.min.js"></script>
+<!--  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/d3.v4.min.js"></script>
+  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/jquery-1.11.0.min.js"></script> -->
+  <script src="d3.v4.min.js"></script>
+  <script src="jquery-1.11.0.min.js"></script>
   <script src="split.js"></script>
 </head>
 <body>
@@ -509,15 +511,17 @@
       return;
     }
     traveler.get_overview_state = true;
+    console.log('overview call');
     $.ajax({
-      mimeType: 'text/json; charset=x-user-defined',
-      url: '/playground/kisaacs/traveler/data',
+      //mimeType: 'text/json; charset=x-user-defined',
+      url: 'data', //'/playground/kisaacs/traveler/data',
       method: 'POST',
       dataType: 'json',
-      data: { 
+      contentType: 'application/json',
+      data: JSON.stringify({ 
 	"command" : 'overview',
 	"width" : traveler.gantt_width
-      },
+      }),
       success: function(json) {
 	traveler.data.overview = json.traceinfo;
 	traveler.draw_overview();
@@ -532,22 +536,24 @@
       return;
     }
     traveler.get_data_state = true;
+    console.log('data call');
     $.ajax({
-      mimeType: 'text/json; charset=x-user-defined',
-      url: '/playground/kisaacs/traveler/data',
+      //mimeType: 'text/json; charset=x-user-defined',
+      url: 'data', //'/playground/kisaacs/traveler/data',
       method: 'POST',
       dataType: 'json',
-      data: { 
+      contentType: 'application/json',
+      data: JSON.stringify({ 
 	"command" : 'time',
-	"start" : start,
-	"stop" : stop,
-	"entity_start" : traveler.data.entity_start,
-	"entities" : traveler.data.entities,
+	"start" : start.toString(),
+	"stop" : stop.toString(),
+	"entity_start" : traveler.data.entity_start.toString(),
+	"entities" : traveler.data.entities.toString(),
 	"width" : traveler.gantt_width,
-	"focus_task" : traveler.focus_task,
-	"focus_time" : traveler.focus_time,
-	"hover_task" : traveler.hover_task
-      },
+	"focus_task" : traveler.focus_task.toString(),
+	"focus_time" : traveler.focus_time.toString(),
+	"hover_task" : traveler.hover_task.toString()
+      }),
       success: function(json) {
 	//console.log(json.traceinfo);
 	traveler.update(json.traceinfo);
@@ -879,15 +885,17 @@ jQuery(function() {
 
   $(document).ready(function() {
     init_traveler();
+    console.log('first ajax call');
     $.ajax({
-      mimeType: 'text/json; charset=x-user-defined',
-      url: 'playground/kisaacs/traveler/data',
+      //mimeType: 'text/json; charset=x-user-defined',
+      url: 'data', //'playground/kisaacs/traveler/data',
       method: 'POST',
       dataType: 'json',
-      data: { 
+      contentType: 'application/json',
+      data: JSON.stringify({ 
 	"command" : 'load', 
 	"width" : traveler.gantt_width
-      },
+      }),
       success: function(json) {
 	traveler.init(json.traceinfo);
       }

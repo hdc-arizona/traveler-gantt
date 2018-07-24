@@ -24,66 +24,85 @@ static struct mg_serve_http_opts s_http_server_opts;
 Trace * trace = NULL;
 json j;
 bool logging = false;
+bool server_logging = true;
 
 static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
-  char command[100];
+  const std::string sep = "\r\n";
+
+  std::stringstream ss;
+  ss << "HTTP/1.1 200 OK"             << sep
+    << "Content-Type: application/json" << sep
+    << "Access-Control-Allow-Origin: *" << sep
+    << "Content-Length: %d"             << sep << sep
+    << "%s";
+
+  json j = json::parse(std::string(hm->body.p, hm->body.len));
 
   /* Get command variables */
-  mg_get_http_var(&hm->body, "command", command, sizeof(command));
+  std::string cmd;
+  cmd = j["command"];
 
-  /* Send headers */
-  mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
+  std::cout << "And the dump is... " << j.dump().c_str() << std::endl;
 
   /* Check for trace info */
-  if (strncmp(command, "time", 4) == 0)
+  if (cmd.compare("time") == 0)
   {
-    char start[100], stop[100], entity_start[100], entities[100], 
-         width[100], task[100], task_time[100], hover[100];
-
-    mg_get_http_var(&hm->body, "start", start, sizeof(start));
-    mg_get_http_var(&hm->body, "stop", stop, sizeof(stop));
-    mg_get_http_var(&hm->body, "entity_start", entity_start, sizeof(entity_start));
-    mg_get_http_var(&hm->body, "entities", entities, sizeof(entities));
-    mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    mg_get_http_var(&hm->body, "focus_task", task, sizeof(task));
-    mg_get_http_var(&hm->body, "focus_time", task_time, sizeof(task_time));
-    mg_get_http_var(&hm->body, "hover_task", hover, sizeof(hover));
-    if (logging) {
+    std::string start, stop, entity_start, entities, task,
+                task_time, hover;
+    long width;
+    start = j["start"];
+    stop = j["stop"];
+    entity_start = j["entity_start"];
+    entities = j["entities"];
+    width = j["width"];
+    task = j["focus_task"];
+    task_time = j["focus_time"];
+    hover = j["hover_task"];
+    
+    if (logging || server_logging) {
       std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
       std::cout << "entity_start/entities/width " << entity_start << ", " << entities;
       std::cout << ", " << width << " and task/time " << task << "/" << task_time;
       std::cout << ", hover: " << hover << std::endl;
 
     }
-    j["traceinfo"] = trace->timeToJSON(std::stoull(start),
-                                       std::stoull(stop), 
-                                       std::stoull(entity_start),
-                                       std::stoull(entities),
-                                       std::stoul(width),
-                                       std::stoull(task),
-                                       std::stoull(task_time),
-                                       std::stoull(hover),
+    j["traceinfo"] = trace->timeToJSON(std::stoull(start.c_str()),
+                                       std::stoull(stop.c_str()), 
+                                       std::stoull(entity_start.c_str()),
+                                       std::stoull(entities.c_str()),
+                                       width,
+                                       std::stoull(task.c_str()),
+                                       std::stoull(task_time.c_str()),
+                                       std::stoull(hover.c_str()),
                                        logging);
   }
-  else if (strncmp(command, "load", 4) == 0)
+  else if (cmd.compare("load") == 0)
   {
-    char width[100];
-    mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    j["traceinfo"] = trace->initJSON(std::stoul(width), logging);
+    long width;
+    width = j["width"];
+    j["traceinfo"] = trace->initJSON(width, logging);
+    if (server_logging) {
+      std::cout << "initJSON called." << std::endl;
+    }
   }
-  else if (strncmp(command, "overview", 8) == 0)
+  else if (cmd.compare("overview") == 0)
   {
-    char width[100];
-    mg_get_http_var(&hm->body, "width", width, sizeof(width));
-    j["traceinfo"] = trace->timeOverview(std::stoul(width), logging);
+    long width;
+    width = j["width"];
+    j["traceinfo"] = trace->timeOverview(width, logging);
+    if (server_logging) {
+      std::cout << "overview called." << std::endl;
+    }
   }
   else
   {
-      j["debug"] = 0;
+    j["debug"] = 0;
+    if (server_logging) {
+      std::cout << "NO COMMAND called." << std::endl;
+    }
   }
 
-  mg_printf_http_chunk(nc, j.dump().c_str());
-  mg_send_http_chunk(nc, "", 0); /* Send empty chunk, the end of response */
+  mg_printf(nc, ss.str().c_str(), (int) j.dump().size(), j.dump().c_str());
 }
 
 
@@ -92,7 +111,12 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 
   switch (ev) {
     case MG_EV_HTTP_REQUEST:
-      if (mg_vcmp(&hm->uri, "/playground/kisaacs/traveler/data") == 0) {
+      std::cout << "HM->URI.P IS: " << hm->uri.p << std::endl;
+      if (mg_vcmp(&hm->uri, "/playground/kisaacs/traveler/data") == 0
+	|| mg_vcmp(&hm->uri, "/data") == 0
+        || mg_vcmp(&hm->uri, "https://hdc.cs.arizona.edu/playground/kisaacs/traveler/data") == 0) {
+        std::cout << "Serving DATA CONTENT." << std::endl;
+        std::cout << "DATA CONTENT HM->body is " << hm->body.p << std::endl;
         handle_data_call(nc, hm); // Handle RESTful call 
       } else if (mg_vcmp(&hm->uri, "/printcontent") == 0) {
         char buf[100] = {0};
@@ -100,7 +124,9 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
                sizeof(buf) - 1 < hm->body.len ? sizeof(buf) - 1 : hm->body.len);
         printf("%s\n", buf);
       } else {
+        std::cout << "HM->MESSAGE is " << hm->message.p << std::endl;
         mg_serve_http(nc, hm, s_http_server_opts); // Serve static content 
+        std::cout << "Serving STATIC: " << std::endl;
       }
       break;
     default:
