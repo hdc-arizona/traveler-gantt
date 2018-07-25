@@ -92,6 +92,9 @@
 
     traveler.phys_x_axis.scale(traveler.phys_scale);
     traveler.xAxis.scale(traveler.mini_scale);
+    traveler.traditional
+      .attr('width', '100%')
+      .attr('height', '97%'); // Hack to get around overhang issue fighting with inline block
     
     traveler.yphys
       .range([0, traveler.traditional_gantt_height]);
@@ -105,6 +108,18 @@
     traveler.mini 
       .attr('width', traveler.gantt_width) 
       .attr('height', traveler.miniHeight);
+
+    d3.select('.brush').remove(); 
+    traveler.gantt_brush = d3.brushX()
+      .extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
+      .on("brush end", traveler.gantt_brush_function);
+    
+    traveler.gantt_brush_group = traveler.mini.append('g')
+      .attr("class", "traveler brush")
+      .call(traveler.gantt_brush)
+      .call(traveler.gantt_brush.move, traveler.mini_scale.range());
+
+    //traveler.gantt_brush.extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
 
     traveler.traditional_clip
 	.attr('width', traveler.gantt_width)
@@ -133,6 +148,10 @@
     // Draw a white background for the overview
     traveler.mini_background
       .attr("width", traveler.gantt_width);
+    
+    traveler.zoom 
+      .translateExtent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]])
+      .extent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]]);
 
     traveler.draw_traditional();
     traveler.get_overview();
@@ -208,7 +227,7 @@
     traveler.y_zoom_function = function () {
       var t = d3.event.transform;
       if (traveler.init_in_process) return;
-      console.log('call y zoom', t, traveler.yphys.domain(), traveler.yphys.range());
+      //console.log('call y zoom', t, traveler.yphys.domain(), traveler.yphys.range());
       traveler.yphys.domain(t.rescaleY(traveler.total_y_scale).domain());
       //traveler.yphys = t.rescaleY(traveler.yphys);
       traveler.draw_traditional();
@@ -220,10 +239,11 @@
       if (traveler.init_in_process) return;
 
       var t = d3.event.transform;
-      console.log('zoom', t);
+      //console.log('zoom', t);
       traveler.phys_scale.domain(t.rescaleX(traveler.mini_scale).domain());
       traveler.gantt_brush_group.call(traveler.gantt_brush.move, 
         traveler.phys_scale.range().map(t.invertX, t));
+      //console.log('gantt brush call from zoom');
       
       traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
         Math.round(traveler.phys_scale.domain()[1]));
@@ -443,12 +463,15 @@
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return;
     if (traveler.gantt_brush_group === undefined) return;
   
+    //console.log('old sel is ', traveler.brush_selection);
     var s = d3.event.selection || traveler.brush_selection;
     if (s) {
       traveler.phys_scale.domain(s.map(traveler.mini_scale.invert, traveler.mini_scale));
+      //console.log('gantt brush fxn domain is', traveler.phys_scale.domain(), traveler.mini_scale.domain());
       traveler.traditional.call(traveler.zoom.transform, d3.zoomIdentity
         .scale(traveler.gantt_width / (s[1] - s[0]))
         .translate(-s[0], 0));
+      //console.log('trying to scale traditional', traveler.zoom.transform, s[1], s[0], traveler.gantt_width);
       traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
         Math.round(traveler.phys_scale.domain()[1]));
     }
@@ -516,7 +539,7 @@
       return;
     }
     traveler.get_overview_state = true;
-    console.log('overview call');
+    //console.log('overview call');
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
       url: 'data', //'/playground/kisaacs/traveler/data',
@@ -541,7 +564,7 @@
       return;
     }
     traveler.get_data_state = true;
-    console.log('data call');
+    //console.log('data call');
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
       url: 'data', //'/playground/kisaacs/traveler/data',
@@ -628,7 +651,7 @@
 
   traveler.update = function (json) {
     traveler.data = json;
-    console.log(traveler.data);
+    //console.log(traveler.data);
     d3.select('.axis').call(traveler.phys_x_axis);
     traveler.draw_traditional();
   };
@@ -715,7 +738,7 @@
 	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return traveler.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
-	.attr('width', d => { console.log(traveler.phys_scale(d.exit)); return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
+	.attr('width', d => { return d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	  d3.max([traveler.phys_scale(d.enter), -10]); })
 	.style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
@@ -837,7 +860,7 @@
 	    return d.sendtime >= traveler.data.starttime || d.recvtime <= traveler.data.stoptime; 
 	}
     );   
-    console.log(traditional_messages.length, "# messages drawn");
+    //console.log(traditional_messages.length, "# messages drawn");
     msgs = traveler.phys_comm_message_layer.selectAll('.message')
       .data(traditional_messages, d => { return d.id; })
       .style('stroke-width', d => { return d.depth + 1; })
@@ -890,7 +913,7 @@ jQuery(function() {
 
   $(document).ready(function() {
     init_traveler();
-    console.log('first ajax call');
+    //console.log('first ajax call');
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
       url: 'data', //'playground/kisaacs/traveler/data',
