@@ -7,8 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="traveler.css" />
-<!--  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/d3.v4.min.js"></script>
-  <script src="http://hdc.cs.arizona.edu/playground/kisaacs/traveler/jquery-1.11.0.min.js"></script> -->
   <script src="d3.v4.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
   <script src="split.js"></script>
@@ -58,7 +56,9 @@
 
     focus_task: "0",
     focus_time: "0",
-    hover_task: "0"
+    hover_task: "0",
+
+    brush_selection: [0,0]
   };
 
   // Figure out width and height of Gantt chart from the window size
@@ -227,6 +227,7 @@
       
       traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
         Math.round(traveler.phys_scale.domain()[1]));
+      traveler.brush_selection = d3.brushSelection(d3.select(".brush").node());
     }; // End zoom_function();
 
 
@@ -441,14 +442,18 @@
     // ignore brush-by-zoom
     if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return;
     if (traveler.gantt_brush_group === undefined) return;
-    
-    var s = d3.event.selection || traveler.mini_scale.range();
-    traveler.phys_scale.domain(s.map(traveler.mini_scale.invert, traveler.mini_scale));
-    traveler.traditional.call(traveler.zoom.transform, d3.zoomIdentity
-      .scale(traveler.gantt_width / (s[1] - s[0]))
-      .translate(-s[0], 0));
-    traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
-      Math.round(traveler.phys_scale.domain()[1]));
+  
+    var s = d3.event.selection || traveler.brush_selection;
+    if (s) {
+      traveler.phys_scale.domain(s.map(traveler.mini_scale.invert, traveler.mini_scale));
+      traveler.traditional.call(traveler.zoom.transform, d3.zoomIdentity
+        .scale(traveler.gantt_width / (s[1] - s[0]))
+        .translate(-s[0], 0));
+      traveler.get_data(d3.max([0, Math.round(traveler.phys_scale.domain()[0])]), 
+        Math.round(traveler.phys_scale.domain()[1]));
+    }
+
+    traveler.brush_selection = d3.brushSelection(d3.select(".brush").node());
   };
    
 
