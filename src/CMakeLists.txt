@@ -87,6 +87,10 @@ set(Ravel_HEADERS
 set(Ravel_STATIC_FILES
     index.html
     traveler.css
+    jslib/d3.tip.v0.6.3.js
+    jslib/jquery-1.11.0.min.js
+    jslib/d3.v4.min.js
+    jslib/d3-tip.js
     jslib/split.js
     jslib/horizontal.png
     jslib/vertical.png

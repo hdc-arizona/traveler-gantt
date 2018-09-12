@@ -9,6 +9,8 @@
   <link rel="stylesheet" type="text/css" href="traveler.css" />
   <script src="d3.v4.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
+  <!-- <script src="d3.tip.v0.6.3.js"></script> -->
+  <script src="d3-tip.js"></script>
   <script src="split.js"></script>
 </head>
 <body>
@@ -57,6 +59,8 @@
     focus_task: "0",
     focus_time: "0",
     hover_task: "0",
+    hover_id: "0",
+    hover_data: null,
 
     brush_selection: [0,0]
   };
@@ -273,7 +277,8 @@
       .attr('width', '100%')
       .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
       .attr('class', 'traditional')
-      .call(traveler.zoom);
+      .call(traveler.zoom)
+      .call(traveler.event_tip);
 
     traveler.phys = traveler.traditional.append('g')
       .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
@@ -517,21 +522,32 @@
 	traveler.focus_task = task.guid;
 	traveler.focus_time = task.enter;
     }
+    traveler.draw_traditional();
     
-    traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
+    // Calculate hover ids
+    //traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
   }
 
   traveler.handle_task_mouseover = function(task, over) {
     // if the hover hasn't changed, do nothing
-    if (over && task.guid === traveler.hover_task) return;
+    if (over && task.id === traveler.hover_id) return;
 
     if (over) {
+      traveler.hover_id = task.id;
       traveler.hover_task = task.guid;
+      traveler.hover_data = task;
+      traveler.event_tip.hide(task);
+      traveler.event_tip.show(task);
     } else {
+      traveler.hover_id = "0";
       traveler.hover_task = "0";
+      traveler.hover_data = null;
+      traveler.event_tip.hide(task);
     }
+    traveler.draw_traditional();
     
-    traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
+    // Calculate hover ids;
+    //traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
   }
 
   traveler.get_overview = function () {
@@ -676,6 +692,21 @@
   }
 
 
+  traveler.event_tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(d => {
+	if (traveler.debug) {
+	  return "<p class='event-tip d3-tip'>" + traveler.data.functions[d.function] + "</p>" +
+	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + d.exit + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + d.id + "</p>"; 
+	} else {
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>";
+	}
+    });
 
   traveler.draw_traditional = function () {
     var rects, msgs, labels,
@@ -755,10 +786,12 @@
 	.attr('class', 'parent')
         .on('click', d => { return traveler.handle_task_click(d); })
         .on('mouseover', d => { return travel.handle_task_mouseover(d, true); })
-        .on('mouseout', d => { return travel.handle_task_mouseover(d, false); })
+        .on('mouseout', d => { return travel.handle_task_mouseover(d, false); });
+	/*
 	.append('svg:title')
 	  .text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
 		  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
+	*/
 
       rects.exit().remove();
 
@@ -804,7 +837,8 @@
       })
       //.style('fill', d => { return (d.sibling) ? traveler.path_back_color(d.depth) : 'lightblue'; })
       .style('fill', d => { 
-	  return (traveler.data.hover_ids.includes(d.id))?
+	  return (traveler.hover_task === d.guid)?
+	  //return (traveler.data.hover_ids.includes(d.id))?
 	      'goldenrod' :
 	      (d.sibling) ? 
 		traveler.path_back_color(d.depth) : 
@@ -826,7 +860,8 @@
 	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
       //.style('fill', d => { return (d.sibling) ? traveler.path_back_color(d.depth) : 'lightblue'; })
       .style('fill', d => { 
-	  return (traveler.data.hover_ids.includes(d.id))?
+	  return (traveler.hover_task === d.guid)?
+	  //return (traveler.data.hover_ids.includes(d.id))?
 	      'goldenrod' :
 	      (d.sibling) ? 
 		traveler.path_back_color(d.depth) : 
@@ -835,10 +870,10 @@
       .attr('class', 'traveler event')
       .on('click', d => { return traveler.handle_task_click(d); })
       .on('mouseover', d => { return traveler.handle_task_mouseover(d, true); })
-      .on('mouseout', d => { return traveler.handle_task_mouseover(d, false); })
-      .append('svg:title')
-	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
-		  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
+      .on('mouseout', d => { return traveler.handle_task_mouseover(d, false); });
+      //.append('svg:title')
+     //	.text(d => { return traveler.data.functions[d.function] + ", GUID: " + d.guid + ", Parent: " + d.parent_guid +
+    //	  ", Enter: " + d.enter + ", Exit: " + d.exit + ", ID: " + d.id; });
 
     rects.exit().remove();
       
