@@ -61,6 +61,7 @@
     hover_task: "0",
     hover_id: "0",
     hover_data: null,
+    extended_tips: false,
 
     brush_selection: [0,0]
   };
@@ -696,8 +697,8 @@
     .attr('class', 'd3-tip')
     .offset([-10, 0])
     .html(d => {
-	if (traveler.debug) {
-	  return "<p class='event-tip d3-tip'>" + traveler.data.functions[d.function] + "</p>" +
+	if (traveler.extended_tips) {
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>" +
 	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
@@ -970,6 +971,8 @@ jQuery(function() {
 	"width" : traveler.gantt_width
       }),
       success: function(json) {
+	console.log('extended tips is', json.tips);
+	traveler.extended_tips = json.tips;
 	traveler.init(json.traceinfo);
       }
     });

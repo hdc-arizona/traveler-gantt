@@ -24,7 +24,9 @@ static struct mg_serve_http_opts s_http_server_opts;
 Trace * trace = NULL;
 json j;
 bool logging = false;
+bool extended_tips = false;
 bool server_logging = true;
+bool trace_set = false;
 
 static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
   const std::string sep = "\r\n";
@@ -81,6 +83,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     long width;
     width = j["width"];
     j["traceinfo"] = trace->initJSON(width, logging);
+    j["tips"] = extended_tips;
     if (server_logging) {
       std::cout << "initJSON called." << std::endl;
     }
@@ -143,19 +146,27 @@ static void setTrace(std::string dataFileName) {
 
     ImportFunctor * importWorker = new ImportFunctor();
 
-    if (dataFileName.compare(dataFileName.length() - 4, 3, "otf"))
+    if (dataFileName.compare(dataFileName.length() - 3, 3, "otf") == 0)
     {
         trace = importWorker->doImportOTF(dataFileName, logging);
+        trace_set = true;
     }
-    else if (dataFileName.compare(dataFileName.length() - 5, 4, "otf2"))
+    else if (dataFileName.compare(dataFileName.length() - 4, 4, "otf2") == 0)
     {
         trace = importWorker->doImportOTF2(dataFileName, logging);
+        trace_set = true;
     }
     else
     {
-        std::cout << "Unrecognized trace format!" << std::endl;
+        std::cout << "Unrecognized trace format. Please enter a .OTF or .OTF2 file." << std::endl;
     }
     delete importWorker;
+}
+
+static void printUsage() {
+  fprintf(stderr, "Usage: Ravel [options] -t /path/to/file.OTF2\n");
+  fprintf(stderr, "    -l : Ravel internal logging\n");
+  fprintf(stderr, "    -e : Extended tooltips in Gantt viewer\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -181,6 +192,7 @@ int main(int argc, char *argv[]) {
   std::string filename = "";
   /* Process command line options to customize HTTP server */
   for (i = 1; i < argc; i++) {
+    /*
     if (strcmp(argv[i], "-D") == 0 && i + 1 < argc) {
       mgr.hexdump_file = argv[++i];
     } else if (strcmp(argv[i], "-d") == 0 && i + 1 < argc) {
@@ -208,18 +220,31 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) {
       ssl_cert = argv[++i];
 #endif
-    } else if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
+    
+    } else
+    */
+    if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
         filename = argv[++i];
         setTrace(filename);
-    } else if (strcmp(argv[i], "-l") == 0 && i + 1 < argc) {
+    } else if (strcmp(argv[i], "-l") == 0 && i + 1 < argc) { // Logging in Ravel C++
         logging = true;
+    } else if (strcmp(argv[i], "-e") == 0 && i + 1 < argc) { // Extended tool tips
+        extended_tips = true;
     } else {
+      fprintf(stderr, "%d %s\n", strcmp(argv[i], "-e"), argv[i]);
       fprintf(stderr, "Unknown option: [%s]\n", argv[i]);
+      printUsage();
       exit(1);
     }
   }
 
   /* Set HTTP server options */
+
+  if (!trace_set) {
+    fprintf(stderr, "No trace set. Exiting.\n");
+    printUsage();
+    exit(1);
+  }
 
   memset(&bind_opts, 0, sizeof(bind_opts));
   bind_opts.error_string = &err_str;
