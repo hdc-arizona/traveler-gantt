@@ -3,7 +3,7 @@
 
 class Message;
 
-// Holder of OTF Comm Info
+// For message matching.
 class GUIDRecord
 {
 public:

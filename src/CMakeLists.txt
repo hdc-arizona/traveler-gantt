@@ -44,6 +44,7 @@ set(Ravel_SOURCES
     main.cpp
     message.cpp
     metrics.cpp
+    multievent.cpp
     otf2importer.cpp
     otfcollective.cpp
     otfconverter.cpp
@@ -71,6 +72,7 @@ set(Ravel_HEADERS
     importfunctor.h
     message.h
     metrics.h
+    multievent.h
     otf2importer.h
     otfcollective.h
     otfconverter.h

@@ -51,6 +51,8 @@ SOURCES  += main.cpp \
     primaryentitygroup.cpp \
     entitygroup.cpp \
     importfunctor.cpp \
+    multievent.cpp \
+    guidevent.cpp \
     external/mongoose.cpp
 
 HEADERS += \
@@ -76,6 +78,8 @@ HEADERS += \
     entitygroup.h \
     ravelutils.h \
     importfunctor.h \
+    multievent.h \
+    guidevent.h \
     external/mongoose.h
 
 
