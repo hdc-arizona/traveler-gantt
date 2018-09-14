@@ -279,7 +279,8 @@
       .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
       .attr('class', 'traditional')
       .call(traveler.zoom)
-      .call(traveler.event_tip);
+      .call(traveler.event_tip)
+      .call(traveler.event_tip_south);
 
     traveler.phys = traveler.traditional.append('g')
       .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
@@ -538,11 +539,19 @@
       traveler.hover_task = task.guid;
       traveler.hover_data = task;
       traveler.event_tip.hide(task);
-      traveler.event_tip.show(task);
+      traveler.event_tip_south.hide(task);
+
+      var tip_height = traveler.extended_tips ? 25 * 5 + 20 : 25 * 1 + 20;
+      if (traveler.yphys(task.entity) < tip_height ) {
+        traveler.event_tip_south.show(task);
+      } else {
+        traveler.event_tip.show(task);
+      }
     } else {
       traveler.hover_id = "0";
       traveler.hover_task = "0";
       traveler.hover_data = null;
+      traveler.event_tip_south.hide(task);
       traveler.event_tip.hide(task);
     }
     traveler.draw_traditional();
@@ -693,6 +702,25 @@
   }
 
 
+  traveler.event_tip_south = d3.tip()
+    .attr('class', 'd3-tip-s')
+    .offset(d => {
+	var tip_height = traveler.extended_tips ? 25 * 5 + 20 : 25 * 1 + 30;
+	return [20 + tip_height, 0];
+    })
+    .html(d => {
+	if (traveler.extended_tips) {
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>" +
+	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + d.exit + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + d.id + "</p>"; 
+	} else {
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>";
+	}
+    });
+
   traveler.event_tip = d3.tip()
     .attr('class', 'd3-tip')
     .offset([-10, 0])
@@ -708,7 +736,7 @@
 	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>";
 	}
     });
-
+	
   traveler.draw_traditional = function () {
     var rects, msgs, labels,
       minExtent = traveler.phys_scale.domain()[0],

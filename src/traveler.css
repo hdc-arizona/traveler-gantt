@@ -95,7 +95,8 @@ rect {
 }
 
 .event-tip {
-
+    padding: 0px;
+    margin: 5px;
 }
 
 .event-bold {
@@ -128,10 +129,38 @@ rect {
 }
 
 
+.d3-tip-s {
+  line-height: 1;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip-s:before {
+  box-sizing: border-box;
+  display: inline-block;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25B2";
+  top: -245px;
+  position: absolute;
+  text-align: center;
+}
+
+/* Style southward tooltips differently */
+.d3-tip-s.n:before {
+  margin: -1px 0 0 0;
+  top: -7px;
+  left: 0;
+}
+
 .d3-tip {
   line-height: 1;
-  font-weight: bold;
-  padding: 12px;
+  padding: 10px;
   background: rgba(0, 0, 0, 0.8);
   color: #fff;
   border-radius: 2px;
