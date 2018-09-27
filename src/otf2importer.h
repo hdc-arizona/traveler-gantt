@@ -18,6 +18,7 @@ class OTFCollective;
 class Counter;
 class CollectiveRecord;
 class PrimaryEntityGroup;
+class MultiRecord;
 
 class OTF2Importer
 {
@@ -387,6 +388,7 @@ private:
     uint64_t phylanx_Parent_GUID;
     std::map<uint64_t, std::vector<GUIDRecord *> *> * unmatched_guids;
     std::map<uint64_t, EventRecord *> * parent_guids;
+    std::map<uint64_t, MultiRecord *> * multi_map;
 
     bool logging;
 

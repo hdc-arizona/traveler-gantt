@@ -7,6 +7,7 @@
 #include "rawtrace.h"
 #include "commrecord.h"
 #include "guidrecord.h"
+#include "multirecord.h"
 #include "eventrecord.h"
 #include "collectiverecord.h"
 #include "entitygroup.h"
@@ -65,6 +66,7 @@ OTF2Importer::OTF2Importer()
       phylanx_Parent_GUID(0),
       unmatched_guids(new std::map<uint64_t, std::vector<GUIDRecord *> *>()),
       parent_guids(new std::map<uint64_t, EventRecord *>()),
+      multi_map(new std::map<uint64_t, MultiRecord *>()),
       logging(false)
 {
     collective_definitions->insert(std::pair<int, OTFCollective*>(0, new OTFCollective(0, 1, "Barrier")));
@@ -355,10 +357,13 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file, bool _logging)
    
     if (phylanx) 
     {
+      // TODO: Properly destruct these
       delete unmatched_guids;
       unmatched_guids = new std::map<uint64_t, std::vector<GUIDRecord *> *>();
       delete parent_guids;
       parent_guids = new std::map<uint64_t, EventRecord *>();
+      delete multi_map;
+      multi_map = new std::map<uint64_t, MultiRecord *>();
     }
 
     for (int i = 0; i < num_processes; i++) {
@@ -786,52 +791,89 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
         && ((OTF2Importer * ) userData)->phylanx)
     {
         uint64_t m1, m2;
-        std::map<uint64_t, std::vector<GUIDRecord *> *> * guids = ((OTF2Importer *) userData)->unmatched_guids;
+        std::map<uint64_t, std::vector<GUIDRecord *> *> * unmatched_guids = ((OTF2Importer *) userData)->unmatched_guids;
         std::map<uint64_t, EventRecord *> * parent_guids = ((OTF2Importer *) userData)->parent_guids;
+        std::map<uint64_t, MultiRecord *> * multi_map = ((OTF2Importer *) userData)->multi_map;
         
+        // Overview:
+        //   The GUID Records exist to take care of individual GUID matches
+        //   Which can be one to many per Kevin... There will never be an
+        //   event with multiple parents.
+        //
+        //   The MultiEvent record exists to tie things with the same GUID
+        //   together.
+
+
         OTF2_AttributeList_GetUint64(attributeList,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
+
+        // My GUID is m1. I set it.
         er->setGUID(m1);
         //std::cout << m1 << std::endl;
         //std::cout << "   Entering " << m1 << std::endl;
+        
+        // Add record to the appropriate multievent
+        MultiRecord * mr = NULL;
+        if (multi_map->count(m1) == 0) {
+            mr = new MultiRecord(m1);
+            multi_map->insert(std::pair<uint64_t, MultiRecord *>(m1, mr));
+        } else {
+            mr = multi_map->at(m1);
+        }
+        mr->events->push_back(er);
+
+        // I add myself to the list of possible parents for future events with
+        // me as the parent
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;
-        if (guids->count(m1) == 1) {
+
+        // If my GUID is already in guids, I search for everyone I am the
+        // parent of and set myself as the parent.
+        if (unmatched_guids->count(m1) == 1) {
             // I have waiting children -- I need to set my own location and such
-            for (std::vector<GUIDRecord *>::iterator itr = guids->at(m1)->begin();
-                itr != guids->at(m1)->end(); ++itr) 
+            for (std::vector<GUIDRecord *>::iterator itr = unmatched_guids->at(m1)->begin();
+                itr != unmatched_guids->at(m1)->end(); ++itr) 
             {
                 cr = *itr;
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
             }
-            delete guids->at(m1);
-            guids->erase(m1);
+            delete unmatched_guids->at(m1);
+            unmatched_guids->erase(m1);
         }
 
+
+        // Now I grab my parent GUID and set it
         OTF2_AttributeList_GetUint64(attributeList,
                                      ((OTF2Importer *) userData)->phylanx_Parent_GUID,
                                      &m2);
         er->setParentGUID(m2);
+
+        // If I do have a valid parent GUID, I search for my parent in the
+        // list of parent_guids
         if (m2 != 0) {
             //std::cout << "m2 is " << m2 << std::endl;
+    
+            // Found the parent, set it.
             if (parent_guids->count(m2) == 1) {
                 // My parent already exists
                 EventRecord * pr = parent_guids->at(m2);
                 cr = new GUIDRecord(m2, pr->time, m1, converted_time);
                 er->setFromGUIDRecord(cr); // add to child
                 pr->to_crs->push_back(cr); // add to parent
+
+            // Waiting on parent, add myself to unmatched_guids 
             } else {
                 // Waiting on my parent
                 cr = new GUIDRecord(m2, 0, m1, converted_time);
                 er->setFromGUIDRecord(cr);
-                if (guids->count(m2) == 0) 
+                if (unmatched_guids->count(m2) == 0) 
                 {
-                    guids->insert(std::pair<uint64_t, std::vector<GUIDRecord *> *>(m2, new std::vector<GUIDRecord *>()));
+                    unmatched_guids->insert(std::pair<uint64_t, std::vector<GUIDRecord *> *>(m2, new std::vector<GUIDRecord *>()));
                 }
-                guids->at(m2)->push_back(cr);
+                unmatched_guids->at(m2)->push_back(cr);
             }
         }
 
@@ -860,20 +902,23 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
         && ((OTF2Importer * ) userData)->phylanx)
     {
         uint64_t m1;
-        std::map<uint64_t, std::vector<GUIDRecord *> *> * guids = ((OTF2Importer *) userData)->unmatched_guids;
+        std::map<uint64_t, std::vector<GUIDRecord *> *> * unmatched_guids = ((OTF2Importer *) userData)->unmatched_guids;
         std::map<uint64_t, EventRecord *> * parent_guids = ((OTF2Importer *) userData)->parent_guids;
         
         OTF2_AttributeList_GetUint64(attributeList,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
+
+        if (m1 != er->getGUID())
+           std::cout << "   Enter/Leave GUID Mistmatch: " << er->getGUID() << " vs " << m1 << std::endl;
         er->setGUID(m1);
         //std::cout << "   Leaving " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
         GUIDRecord * cr = NULL;
-        if (guids->count(m1) == 1) {
+        if (unmatched_guids->count(m1) == 1) {
             // I have waiting children -- I need to set my own location and such
-            for (std::vector<GUIDRecord *>::iterator itr = guids->at(m1)->begin();
-                itr != guids->at(m1)->end(); ++itr) 
+            for (std::vector<GUIDRecord *>::iterator itr = unmatched_guids->at(m1)->begin();
+                itr != unmatched_guids->at(m1)->end(); ++itr) 
             {
                 cr = *itr;
                 cr->parent_time = converted_time;
@@ -881,8 +926,8 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                 er->to_crs->push_back(cr); // add to parent, already in child
                 //std::cout << "Orphan found: " << m1 << " to " << cr->child << std::endl;
             }
-            delete guids->at(m1);
-            guids->erase(m1);
+            delete unmatched_guids->at(m1);
+            unmatched_guids->erase(m1);
         }
     }
 
