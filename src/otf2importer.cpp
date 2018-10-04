@@ -446,6 +446,7 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file, bool _logging)
 
     if (phylanx) 
     {
+        // Find and report on any orphan GUIDs
         int unmatched_guid_count = 0;
         for (std::map<uint64_t, std::vector<GUIDRecord *> *>::iterator eitr
              = unmatched_guids->begin();
@@ -462,6 +463,30 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file, bool _logging)
             }
         }
         std::cout << unmatched_guid_count << " orphan guids." << std::endl;
+
+        // sort all the events in the multi-event, by enter time (default), 
+        // this should work if clock skew isn't too terrible
+        for (std::map<uint64_t, MultiRecord *>::iterator eitr
+            = multi_map->begin(); eitr != multi_map->end(); ++eitr)
+        {
+            std::sort(eitr->second->events->begin(), eitr->second->events->end());
+
+            // Now we need to go fix the GUID Records based on this sorting
+            // Each event has a set of GUIDRecords known as to_crs which 
+            // were determined based on the waiting GUID, not on the proper order,
+            // so we should go through the to_crs using the multi_records to fix
+            // each guid_record and whose to_crs they belong to
+            for (std::vector<EventRecord *>::iterator itr
+                = eitr->second->events->begin(); itr != eitr->second->events->end();
+                ++itr)
+            {
+                // WORKING ON THIS
+                EventRecord * evt = (*itr);
+            }
+        }
+
+
+
     }
 
     defineEntities();
@@ -839,6 +864,7 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
+                //mr->to_crs->push_back(cr); // add to parent, already in child
             }
             delete unmatched_guids->at(m1);
             unmatched_guids->erase(m1);
@@ -857,12 +883,15 @@ OTF2_CallbackCode OTF2Importer::callbackEnter(OTF2_LocationRef locationID,
             //std::cout << "m2 is " << m2 << std::endl;
     
             // Found the parent, set it.
+            //if (multi_map->count(m2) == 1) {
             if (parent_guids->count(m2) == 1) {
                 // My parent already exists
+                //MultiRecord * mm = multi_map->at(m2);
                 EventRecord * pr = parent_guids->at(m2);
                 cr = new GUIDRecord(m2, pr->time, m1, converted_time);
                 er->setFromGUIDRecord(cr); // add to child
                 pr->to_crs->push_back(cr); // add to parent
+                //mm->to_crs->push_back(cr);
 
             // Waiting on parent, add myself to unmatched_guids 
             } else {
@@ -924,7 +953,7 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
-                //std::cout << "Orphan found: " << m1 << " to " << cr->child << std::endl;
+                std::cout << "Orphan found in leave: " << m1 << " to " << cr->child << std::endl;
             }
             delete unmatched_guids->at(m1);
             unmatched_guids->erase(m1);

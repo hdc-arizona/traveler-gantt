@@ -4,6 +4,7 @@
 #include <vector>
 
 class EventRecord;
+class GUIDRecord;
 
 // For message matching.
 class MultiRecord
@@ -15,6 +16,7 @@ public:
     uint64_t guid;
 
     std::vector<EventRecord *> * events;
+    std::vector<GUIDRecord *> * to_crs;
 
     bool operator<(const  MultiRecord &);
     bool operator>(const  MultiRecord &);
