@@ -517,17 +517,20 @@
   // TODO: change this to ID and then have the GUID work backwards to 
   // find which GUID really creates things.
   traveler.handle_task_click = function (task) {
+    console.log('handle task click');
     if (traveler.focus_task === task.guid) {
+	console.log('...clicked on the same');
 	traveler.focus_task = "0";
 	traveler.focus_time = "0";
     } else {
+	console.log('...clicked on diff');
 	traveler.focus_task = task.guid;
 	traveler.focus_time = task.enter;
     }
     traveler.draw_traditional();
     
     // Calculate hover ids
-    //traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
+    traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
   }
 
   traveler.handle_task_mouseover = function(task, over) {
