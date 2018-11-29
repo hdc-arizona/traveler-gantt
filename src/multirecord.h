@@ -10,10 +10,10 @@ class GUIDRecord;
 class MultiRecord
 {
 public:
-    MultiRecord(uint64_t _guid);
+    MultiRecord(unsigned long _guid);
     ~MultiRecord();      
 
-    uint64_t guid;
+    unsigned long guid;
 
     std::vector<EventRecord *> * events;
     std::vector<GUIDRecord *> * to_crs;

@@ -2,7 +2,7 @@
 #include "eventrecord.h"
 #include <cstdlib>
 
-MultiRecord::MultiRecord(uint64_t _guid) :
+MultiRecord::MultiRecord(unsigned long _guid) :
     guid(_guid),
     events(new std::vector<EventRecord *>())
 {
