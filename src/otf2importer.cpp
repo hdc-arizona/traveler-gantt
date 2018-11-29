@@ -511,10 +511,21 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file, bool _logging)
                     fixed_parents.insert(std::pair<GUIDRecord *, EventRecord *>((*gitr), best_match));
                 }
 
+                // Now that we've read all the to_crs, we can clear them for
+                // the next part
+                evt->to_crs->clear();
             }
 
 
             // Use fixed_parents to update the to_crs
+            for (std::map<GUIDRecord *, EventRecord *>::iterator pitr
+                = fixed_parents.begin(); pitr != fixed_parents.end(); ++pitr)
+            {
+                GUIDRecord * gr = (*pitr).first;
+                EventRecord * er = (*pitr).second;
+                gr->parent_time = er->time;
+                er->to_crs->push_back(gr);
+            }
         }
 
 
