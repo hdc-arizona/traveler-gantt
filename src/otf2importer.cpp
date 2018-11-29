@@ -470,19 +470,51 @@ RawTrace * OTF2Importer::importOTF2(const char* otf_file, bool _logging)
             = multi_map->begin(); eitr != multi_map->end(); ++eitr)
         {
             std::sort(eitr->second->events->begin(), eitr->second->events->end());
+            std::vector<EventRecord *> * record_list = eitr->second->events;
 
             // Now we need to go fix the GUID Records based on this sorting
             // Each event has a set of GUIDRecords known as to_crs which 
             // were determined based on the waiting GUID, not on the proper order,
             // so we should go through the to_crs using the multi_records to fix
             // each guid_record and whose to_crs they belong to
+            
+            std::map<GUIDRecord *, EventRecord *> fixed_parents = std::map<GUIDRecord *, EventRecord *>();
+
             for (std::vector<EventRecord *>::iterator itr
-                = eitr->second->events->begin(); itr != eitr->second->events->end();
-                ++itr)
+                =record_list->begin(); itr != record_list->end(); ++itr)
             {
                 // WORKING ON THIS
                 EventRecord * evt = (*itr);
+
+                // Go through each to_cr and calculate its correct parent into
+                // a temporary structure
+                for (std::vector<GUIDRecord *>::iterator gitr
+                    = evt->to_crs->begin(); gitr != evt->to_crs->end(); ++gitr)
+                {
+                    unsigned long long int ctime = (*gitr)->child_time;
+                    EventRecord * best_match = NULL;
+                    for (std::vector<EventRecord *>::iterator readonly
+                        =record_list->begin(); readonly != record_list->end(); ++readonly)
+                    {
+                        if (best_match == NULL)
+                        {
+                            best_match = (*readonly);
+                        }
+                        else
+                        {
+                            if ((*readonly)->time < ctime && (*readonly)->time > best_match->time)
+                            {
+                                best_match = (*readonly);
+                            }
+                        }
+                    }
+                    fixed_parents.insert(std::pair<GUIDRecord *, EventRecord *>((*gitr), best_match));
+                }
+
             }
+
+
+            // Use fixed_parents to update the to_crs
         }
 
 
