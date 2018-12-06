@@ -19,6 +19,12 @@
 </body>
 </html>
   <script type="text/javascript">
+  var tenum = {
+    OFF: "0",
+    SINGLE: "1",
+    FULL: "2"
+  };
+
   var traveler = {
     get_data_state: false,
     get_overview_state: false,
@@ -58,6 +64,7 @@
 
     focus_task: "0",
     focus_time: "0",
+    focus_state: tenum.OFF,
     hover_task: "0",
     hover_id: "0",
     hover_data: null,
@@ -519,13 +526,17 @@
   traveler.handle_task_click = function (task) {
     console.log('handle task click');
     if (traveler.focus_task === task.guid) {
-	console.log('...clicked on the same');
-	traveler.focus_task = "0";
-	traveler.focus_time = "0";
+	if (traveler.focus_state === tenum.FULL) {
+	    traveler.focus_task = "0";
+	    traveler.focus_time = "0";
+	    traveler.focus_state = tenum.OFF;
+	} else {
+	    traveler.focus_state = tenum.FULL;
+	}
     } else {
-	console.log('...clicked on diff');
 	traveler.focus_task = task.guid;
 	traveler.focus_time = task.enter;
+	traveler.focus_state = tenum.SINGLE;
     }
     traveler.draw_traditional();
     
@@ -609,6 +620,7 @@
 	"width" : traveler.gantt_width,
 	"focus_task" : traveler.focus_task.toString(),
 	"focus_time" : traveler.focus_time.toString(),
+	"focus_type" : traveler.focus_state.toString(),
 	"hover_task" : traveler.hover_task.toString()
       }),
       success: function(json) {

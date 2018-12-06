@@ -37,6 +37,7 @@ public:
                     unsigned long width,
                     unsigned long long taskid,
                     unsigned long long task_time,
+                    unsigned long traceback_state,
                     unsigned long long hover,
                     bool logging);
     json initJSON(unsigned long width, bool logging);
@@ -95,12 +96,14 @@ private:
                             unsigned long long entity_start, unsigned long long entities,
                             unsigned long long min_span, 
                             unsigned long long taskid, unsigned long long task_time,
+                            bool full_traceback,
                             std::vector<json>& msg_slice, 
                             std::vector<json>& evt_slice,
                             std::set<uint64_t>& evt_set,
                             std::map<std::string, std::string>& function_names,
                             bool logging);
-    void msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message * last,
+    void msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, bool full_tracekbac, 
+                          Message * last,
                           unsigned long long start, unsigned long long stop, 
                           unsigned long long entity_start, unsigned long long entities,
                           unsigned long long min_span, 
@@ -114,6 +117,10 @@ private:
     static const int lateness_portion = 45;
     static const int steps_portion = 30;
     static const std::string collectives_string;
+
+    static const unsigned long traceback_off = 0;
+    static const unsigned long traceback_single = 1;
+    static const unsigned long traceback_full = 2;
 };
 
 #endif // TRACE_H

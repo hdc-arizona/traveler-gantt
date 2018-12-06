@@ -50,7 +50,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   if (cmd.compare("time") == 0)
   {
     std::string start, stop, entity_start, entities, task,
-                task_time, hover;
+                task_time, focus_type, hover;
     long width;
     start = j["start"];
     stop = j["stop"];
@@ -59,13 +59,14 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
     width = j["width"];
     task = j["focus_task"];
     task_time = j["focus_time"];
+    focus_type = j["focus_type"];
     hover = j["hover_task"];
     
     if (logging || server_logging) {
       std::cout << "Request for start/stop (" << start << ", " << stop << ") and ";
       std::cout << "entity_start/entities/width " << entity_start << ", " << entities;
       std::cout << ", " << width << " and task/time " << task << "/" << task_time;
-      std::cout << ", hover: " << hover << std::endl;
+      std::cout << ", focus state" << focus_type << ", hover: " << hover << std::endl;
 
     }
     j["traceinfo"] = trace->timeToJSON(std::stoull(start.c_str()),
@@ -75,6 +76,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
                                        width,
                                        std::stoull(task.c_str()),
                                        std::stoull(task_time.c_str()),
+                                       std::stoul(focus_type.c_str()),
                                        std::stoull(hover.c_str()),
                                        logging);
   }

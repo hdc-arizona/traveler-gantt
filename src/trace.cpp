@@ -170,6 +170,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
                        unsigned long width, 
                        unsigned long long taskid,
                        unsigned long long task_time,
+                       unsigned long traceback_state,
                        unsigned long long hover,
                        bool logging)
 {
@@ -204,15 +205,19 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     unsigned long long entity_stop = entity_start + entities;
    
     // Trace back events
-    if (taskid != 0) 
+    if (taskid != 0)
     {
+        bool full_traceback = false;
+        if (traceback_state == traceback_full) {
+            full_traceback = true;
+        }
         for (unsigned long long entity = entity_start; entity < entity_stop; entity++)
         {
             for (std::vector<Event *>::iterator root = roots->at(entity)->begin();
                  root != roots->at(entity)->end(); ++root)
             {
                 eventTraceBackJSON(*root, start, stop, entity_start, entities,
-                                   a_pixel, taskid, task_time, msg_slice, 
+                                   a_pixel, taskid, task_time, full_traceback, msg_slice, 
                                    event_slice, event_set, function_names, logging);
             }
         }
@@ -225,7 +230,8 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
              root != roots->at(entity)->end(); ++root)
         {
             timeEventToJSON(*root, 0, start, stop, entity_start, entities,
-                            a_pixel, taskid, event_slice, event_set, msg_slice, collective_slice,
+                            a_pixel, taskid, event_slice, event_set, 
+                            msg_slice, collective_slice,
                             parent_slice, function_names);
         }
     }
@@ -253,12 +259,13 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     return jo;
 }
 
-void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message * last, unsigned long long start,
-    unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
+void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, bool full_traceback, Message * last, 
+    unsigned long long start, unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, std::vector<json>& msg_slice, std::vector<json>& evt_slice, 
     std::set<uint64_t>& evt_set, std::map<std::string, std::string>& function_names, bool logging)
 {
-    if ((evt_set.find(evt->id) == evt_set.end()) && ((evt->exit - evt->enter) > min_span))
+    if (((evt_set.find(evt->id) == evt_set.end()) && ((evt->exit - evt->enter) > min_span))
+        && (!sibling || full_traceback))
     {
         json jevt(evt);
         jevt["depth"] = depth;
@@ -298,9 +305,11 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message *
                 msg_slice.push_back(jmsg);
             }
 
-            // If we're the sender and on the main path (!sibling), add
-            // forward messages as well
-            else if (!sibling && (*msg)->sender == evt && (*msg) != last
+            // If we're the sender and on the main path (!sibling)
+            // AND we're doing a full traceback:
+            //   add forward messages as well
+            else if (!sibling && full_traceback
+                     && (*msg)->sender == evt && (*msg) != last
                      && (*msg)->sender != NULL && (*msg)->receiver != NULL
                      && (*msg)->recvtime > start)
             {
@@ -329,7 +338,7 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message *
             {
                 if (logging) 
                     std::cout << "     Tracing back to sender " << (*msg)->sender->getGUID() << std::endl;
-                msgTraceBackJSON((*msg)->sender, depth + 1, false, *msg, start, stop,
+                msgTraceBackJSON((*msg)->sender, depth + 1, false, full_traceback, *msg, start, stop,
                                  entity_start, entities, min_span, 
                                  msg_slice, evt_slice, evt_set, function_names, logging);
             }
@@ -341,6 +350,7 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, Message *
 void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
     unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, unsigned long long taskid, unsigned long long task_time,
+    bool full_traceback,
     std::vector<json>& msg_slice, std::vector<json>& evt_slice, std::set<uint64_t>& evt_set,
     std::map<std::string, std::string>& function_names, bool logging)
 {
@@ -365,7 +375,9 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
         {
             if (logging)
                 std::cout << "   is Comm, starting traceback" << std::endl;
-            msgTraceBackJSON(static_cast<CommEvent *>(evt), 0, false, NULL, start, stop,
+
+            // Traceback from that event
+            msgTraceBackJSON(static_cast<CommEvent *>(evt), 0, false, full_traceback, NULL, start, stop,
                              entity_start, entities, min_span, msg_slice, evt_slice, evt_set,
                              function_names, logging);
         } 
@@ -383,7 +395,7 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
                 continue;
             }
             eventTraceBackJSON(*child, start, stop, entity_start,
-                               entities, min_span, taskid, task_time, 
+                               entities, min_span, taskid, task_time, full_traceback,
                                msg_slice, evt_slice, evt_set, function_names, logging); 
         }
     }
@@ -522,7 +534,7 @@ json Trace::initJSON(unsigned long width, bool logging)
     {
         span = a_pixel * 5;
     }
-    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, logging);
+    json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, 0, logging);
     jo["overview"] = timeOverview(width, logging);
 
     return jo;
