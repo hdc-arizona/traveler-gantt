@@ -981,8 +981,8 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                                      ((OTF2Importer *) userData)->phylanx_GUID,
                                      &m1);
 
-        if (m1 != er->getGUID())
-           std::cout << "   Enter/Leave GUID Mistmatch: " << er->getGUID() << " vs " << m1 << std::endl;
+        if (((OTF2Importer *) userData)->logging && m1 != er->getGUID())
+           std::cout << "   Enter/Leave GUID Mismatch: " << er->getGUID() << " vs " << m1 << std::endl;
         er->setGUID(m1);
         //std::cout << "   Leaving " << m1 << std::endl;
         parent_guids->insert(std::pair<uint64_t, EventRecord *>(m1, er));
