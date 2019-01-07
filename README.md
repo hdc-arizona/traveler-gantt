@@ -28,16 +28,18 @@ If a dependency is not found, add its install directory to the
 Usage
 -----
 
-From the build directory:
+Navigate to your installation location (alternatively you can run it out of
+the build directory) and run Traveler. Use the `-t` option to specify the path
+to your `OTF2` file. The file should end in `.otf2`.
 
 ```./Traveler -t /path/to/your/OTF2/file```
 
-For tool tips with extra performance information, use the `-e` option
+For tool tips with extra performance information, use the `-e` option:
 
 ```./Traveler -e -t /path/to/your/OTF2/file```
 
-This will launch a webpage on `localhost`. Navigate there in a web browser to
-view the trace.
+This will launch a webpage on `http://localhost:10006`. Navigate there in a
+web browser to view the trace.
 
 Authors
 -------
