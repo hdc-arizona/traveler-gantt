@@ -1,13 +1,13 @@
-project(Ravel C CXX)
+project(Traveler C CXX)
 set(CMAKE_CXX_STANDARD 11)
 
 cmake_minimum_required(VERSION 2.8.9) # for Qt5
 
-set(Ravel_MAJOR_VERSION 1)
-set(Ravel_MINOR_VERSION 0)
-set(Ravel_PATCH_VERSION 0)
-set(Ravel_VERSION
-    "${Ravel_MAJOR_VERSION}.${Ravel_MINOR_VERSION}.${Ravel_PATCH_VERSION}")
+set(Traveler_MAJOR_VERSION 0)
+set(Traveler_MINOR_VERSION 1)
+set(Traveler_PATCH_VERSION 0)
+set(Traveler_VERSION
+    "${Traveler_MAJOR_VERSION}.${Traveler_MINOR_VERSION}.${Traveler_PATCH_VERSION}")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMake-Modules
     ${CMAKE_MODULE_PATH})

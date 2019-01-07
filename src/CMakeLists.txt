@@ -27,7 +27,7 @@ SET(ADDED_HEADERS "")
 #endif()
 
 # Sources and UI Files
-set(Ravel_SOURCES
+set(Traveler_SOURCES
     collectiveevent.cpp
     collectiverecord.cpp
     commevent.cpp
@@ -57,7 +57,7 @@ set(Ravel_SOURCES
     ${ADDED_SOURCES}
 )
 
-set(Ravel_HEADERS
+set(Traveler_HEADERS
     collectiveevent.h
     collectiverecord.h
     commevent.h
@@ -88,7 +88,7 @@ set(Ravel_HEADERS
     ${ADDED_HEADERS}
 )
 
-set(Ravel_STATIC_FILES
+set(Traveler_STATIC_FILES
     index.html
     traveler.css
     jslib/d3.tip.v0.6.3.js
@@ -101,11 +101,11 @@ set(Ravel_STATIC_FILES
 )
 
 # Build Target
-add_executable(Ravel MACOSX_BUNDLE ${Ravel_SOURCES} ${Ravel_STATIC_FILES})
-set_source_Files_properties(${Ravel_STATIC_FILES} PROPERTIES
+add_executable(Traveler MACOSX_BUNDLE ${Traveler_SOURCES} ${Traveler_STATIC_FILES})
+set_source_Files_properties(${Traveler_STATIC_FILES} PROPERTIES
     MACOSX_PACKAGE_LOCATION MacOS)
 
-target_link_libraries(Ravel
+target_link_libraries(Traveler
 		      m
 	              pthread
                       ${OTF2_LIBRARIES}
@@ -113,9 +113,9 @@ target_link_libraries(Ravel
                      )
 
 #if (OTF_FOUND)
-#    target_link_libraries(Ravel
+#    target_link_libraries(Traveler
 #                          ${OTF_LIBRARIES}
 #                         )
 #endif()
 
-install(TARGETS Ravel DESTINATION bin)
+install(TARGETS Traveler DESTINATION bin)
