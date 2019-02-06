@@ -8,8 +8,6 @@ find_package(OTF2 REQUIRED)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMG_ENABLE_THREADS -DMG_ENABLE_HTTP_WEBSOCKET=0 -pthread")
 
-set(CMAKE_AUTOMOC ON)
-
 # Includes, Definitions, Flags
 include_directories(${OTF2_INCLUDE_DIRS}
 #                    ${ZLIB_INCLUDE_DIRS}
