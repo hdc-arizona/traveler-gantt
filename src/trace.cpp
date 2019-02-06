@@ -41,6 +41,7 @@ Trace::Trace(int nt, int np)
       events(new std::vector<std::vector<Event *> *>(std::max(nt, np))),
       roots(new std::vector<std::vector<Event *> *>(std::max(nt, np))),
       guidMap(new std::map<uint64_t, std::vector<unsigned long long> *>()),
+      functionCounts(std::map<int, unsigned long long>()),
       mpi_group(-1),
       max_time(0),
       min_time(ULLONG_MAX),
