@@ -161,6 +161,13 @@ void OTFConverter::convert()
         trace->function_list->push_back(fx->second);
     }
     std::sort(trace->function_list->begin(), trace->function_list->end(), Function::functionCountGreaterThan);
+    int rank = 1;
+    for (std::vector<Function *>::iterator fx = trace->function_list->begin();
+            fx != trace->function_list->end(); ++fx)
+    {
+        (*fx)->rank = rank;
+        rank++;
+    }
 
     trace->last_init = (last_init != 0) ? last_init : trace->min_time;
     trace->last_finalize = (last_finalize != 0) ? last_finalize : trace->max_time;
