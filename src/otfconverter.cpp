@@ -160,7 +160,7 @@ void OTFConverter::convert()
     {
         trace->function_list->push_back(fx->second);
     }
-    std::sort(trace->function_list->begin(), trace->function_list->end(), Function::functionCountLessThan);
+    std::sort(trace->function_list->begin(), trace->function_list->end(), Function::functionCountGreaterThan);
 
     trace->last_init = (last_init != 0) ? last_init : trace->min_time;
     trace->last_finalize = (last_finalize != 0) ? last_finalize : trace->max_time;
