@@ -13,7 +13,9 @@ public:
     std::string shortname;
     int group;
     int comms; // max comms in a function
+    unsigned long long count; // number of times it appears in trace
     bool isMain;
+
 };
 
 #endif // FUNCTION_H

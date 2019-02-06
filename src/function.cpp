@@ -5,6 +5,7 @@ Function::Function(std::string _n, int _g, std::string _s, int _c)
       shortname(_s),
       group(_g),
       comms(_c),
+      count(0),
       isMain(false)
 {
 }

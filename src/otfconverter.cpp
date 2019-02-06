@@ -585,14 +585,8 @@ void OTFConverter::matchEvents()
                 e->addMetric("Function Count", 1);
                 (*(trace->events))[(*evt)->entity]->push_back(e);
 
-                if (trace->functionCounts.count(e->function) > 1) {
-                    fxnCount = trace->functionCounts.at(e->function);
-                    (trace->functionCounts)[e->function] = fxnCount + 1;
-                }
-                else
-                {
-                    trace->functionCounts.insert(std::pair<int, unsigned long long>(e->function, 1));
-                }
+                Function * fxn = trace->functions->at(e->function);
+                fxn->count += 1;
             }
             else // Begin a subroutine
             {

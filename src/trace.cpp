@@ -41,7 +41,7 @@ Trace::Trace(int nt, int np)
       events(new std::vector<std::vector<Event *> *>(std::max(nt, np))),
       roots(new std::vector<std::vector<Event *> *>(std::max(nt, np))),
       guidMap(new std::map<uint64_t, std::vector<unsigned long long> *>()),
-      functionCounts(std::map<int, unsigned long long>()),
+      function_list(std::vector<Function *>()),
       mpi_group(-1),
       max_time(0),
       min_time(ULLONG_MAX),
@@ -236,7 +236,6 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
                             parent_slice, function_names);
         }
     }
-
 
     // Should autoconvert from std::vector and std::map to json
     jo["events"] = event_slice;
