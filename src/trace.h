@@ -69,7 +69,7 @@ public:
     std::vector<std::vector<Event *> *> * roots; // Roots of call trees per pe
 
     std::map<uint64_t, std::vector<unsigned long long> *> * guidMap;
-    std::vector<Function *> function_list; // List of functions sorted by count executed
+    std::vector<Function *> * function_list; // List of functions sorted by count executed
 
     int mpi_group; // functionGroup index of "MPI" functions
 

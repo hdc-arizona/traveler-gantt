@@ -16,6 +16,12 @@ public:
     unsigned long long count; // number of times it appears in trace
     bool isMain;
 
+
+
+    static bool functionCountLessThan(const Function * f1, const Function * f2)
+    {
+        return f1->count < f2->count;
+    }
 };
 
 #endif // FUNCTION_H

@@ -154,6 +154,14 @@ void OTFConverter::convert()
         std::sort(cr->second->events->begin(), cr->second->events->end(), Event::eventEntityLessThan);
     }
 
+    // Populate and sort function list for counts
+    for (std::map<int, Function *>::iterator fx = trace->functions->begin();
+            fx != trace->functions->end(); ++fx)
+    {
+        trace->function_list->push_back(fx->second);
+    }
+    std::sort(trace->function_list->begin(), trace->function_list->end(), Function::functionCountLessThan);
+
     trace->last_init = (last_init != 0) ? last_init : trace->min_time;
     trace->last_finalize = (last_finalize != 0) ? last_finalize : trace->max_time;
 
