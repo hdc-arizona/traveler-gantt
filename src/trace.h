@@ -91,7 +91,7 @@ private:
                          std::vector<json>& msg_slice,
                          std::vector<json>& collective_slice,
                          std::vector<std::vector<json> >& parent_slice,
-                         std::map<std::string, std::string>& function_names);
+                         std::map<std::string, Function *>& function_names);
     void eventTraceBackJSON(Event * evt, unsigned long long start,
                             unsigned long long stop, 
                             unsigned long long entity_start, unsigned long long entities,
@@ -101,7 +101,7 @@ private:
                             std::vector<json>& msg_slice, 
                             std::vector<json>& evt_slice,
                             std::set<uint64_t>& evt_set,
-                            std::map<std::string, std::string>& function_names,
+                            std::map<std::string, Function *>& function_names,
                             bool logging);
     void msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, bool full_tracekbac, 
                           Message * last,
@@ -111,7 +111,7 @@ private:
                           std::vector<json>&msg_slice,
                           std::vector<json>& evt_slice,
                           std::set<uint64_t>& evt_set,
-                          std::map<std::string, std::string>& function_names,
+                          std::map<std::string, Function *>& function_names,
                           bool logging);
     static const bool debug = false;
     static const int partition_portion = 25;

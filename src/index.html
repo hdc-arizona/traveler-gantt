@@ -709,7 +709,7 @@
       var evt = events[i];
       var visible_width = d3.min([traveler.phys_scale(evt.exit), traveler.gantt_width]) -
 	d3.max([traveler.phys_scale(evt.enter), 0]);
-      if (visible_width > multiplier * traveler.data.functions[evt.function].length) {
+      if (visible_width > multiplier * traveler.data.functions[evt.function].name.length) {
 	labels.push(evt);
       }
     }
@@ -725,14 +725,14 @@
     })
     .html(d => {
 	if (traveler.extended_tips) {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>" +
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>" +
 	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + d.exit + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + d.id + "</p>"; 
 	} else {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>";
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>";
 	}
     });
 
@@ -741,14 +741,14 @@
     .offset([-10, 0])
     .html(d => {
 	if (traveler.extended_tips) {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>" +
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>" +
 	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + d.exit + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + d.id + "</p>"; 
 	} else {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function] + "</p>";
+	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>";
 	}
     });
 	
@@ -855,7 +855,7 @@
 	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), 0]) + 5; })
 	.attr('y', d => { return traveler.yphys(d.entity + 0.1) + 2 + traveler.traditional_font_metrics.height; })
 	.attr('class', 'traveler evtText')
-	.text(d => { return traveler.data.functions[d.function]; });
+	.text(d => { return traveler.data.functions[d.function].name; });
 
       labels.exit().remove();
 
@@ -938,7 +938,7 @@
       .attr('x', d => { return d3.max([traveler.phys_scale(d.enter), 0]) + 5; })
       .attr('y', d => { return traveler.yphys(d.entity + 0.1) + 2 + traveler.traditional_font_metrics.height; })
       .attr('class', 'traveler evtText')
-      .text(d => { return traveler.data.functions[d.function]; });
+      .text(d => { return traveler.data.functions[d.function].name; });
 
     labels.exit().remove();
 

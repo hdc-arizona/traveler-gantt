@@ -201,7 +201,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     std::vector<std::vector<json> >  parent_slice
         = std::vector<std::vector<json> >();
     parent_slice.push_back(std::vector<json>());
-    std::map<std::string, std::string> function_names = std::map<std::string, std::string>();
+    std::map<std::string, Function *> function_names = std::map<std::string, Function *>();
 
     unsigned long long entity_stop = entity_start + entities;
    
@@ -262,7 +262,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
 void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, bool full_traceback, Message * last, 
     unsigned long long start, unsigned long long stop, unsigned long long entity_start, unsigned long long entities,
     unsigned long long min_span, std::vector<json>& msg_slice, std::vector<json>& evt_slice, 
-    std::set<uint64_t>& evt_set, std::map<std::string, std::string>& function_names, bool logging)
+    std::set<uint64_t>& evt_set, std::map<std::string, Function *>& function_names, bool logging)
 {
     if (((evt_set.find(evt->id) == evt_set.end()) && ((evt->exit - evt->enter) > min_span))
         && (!sibling || full_traceback))
@@ -273,8 +273,8 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, bool full
         evt_slice.push_back(jevt);
         evt_set.insert(evt->id);
 
-        function_names.insert(std::pair<std::string, std::string>(std::to_string(evt->function), 
-                                                                  functions->at(evt->function)->name));
+        function_names.insert(std::pair<std::string, Function *>(std::to_string(evt->function), 
+                                                                 functions->at(evt->function)));
     }
 
     std::vector<Message *> * messages = evt->getMessages();
@@ -326,8 +326,8 @@ void Trace::msgTraceBackJSON(CommEvent * evt, int depth, bool sibling, bool full
                     evt_slice.push_back(revt);
                     evt_set.insert(rcv->id);
 
-                    function_names.insert(std::pair<std::string, std::string>(std::to_string(rcv->function), 
-                                                                              functions->at(rcv->function)->name));
+                    function_names.insert(std::pair<std::string, Function *>(std::to_string(rcv->function), 
+                                                                             functions->at(rcv->function)));
                 }
             }
 
@@ -352,7 +352,7 @@ void Trace::eventTraceBackJSON(Event * evt, unsigned long long start,
     unsigned long long min_span, unsigned long long taskid, unsigned long long task_time,
     bool full_traceback,
     std::vector<json>& msg_slice, std::vector<json>& evt_slice, std::set<uint64_t>& evt_set,
-    std::map<std::string, std::string>& function_names, bool logging)
+    std::map<std::string, Function *>& function_names, bool logging)
 {
     if (logging && evt->getGUID() == taskid)
     {
@@ -409,7 +409,7 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     std::vector<json>& msg_slice,
     std::vector<json>& collective_slice,
     std::vector<std::vector<json> >& parent_slice,
-    std::map<std::string, std::string>& function_names)
+    std::map<std::string, Function *>& function_names)
 {
     // Make sure the event is in range
     if (!(evt->enter < stop && evt->exit > start))
@@ -420,8 +420,8 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
     // Add the event
     if ((evt->exit - evt->enter) > min_span)
     {
-        function_names.insert(std::pair<std::string, std::string>(std::to_string(evt->function), 
-                                                                  functions->at(evt->function)->name));
+        function_names.insert(std::pair<std::string, Function *>(std::to_string(evt->function), 
+                                                                 functions->at(evt->function)));
         if (evt->isCommEvent()) 
         {
             CommEvent * cevt = static_cast<CommEvent *>(evt);
