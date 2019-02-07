@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="traveler.css" />
-  <script src="d3.v4.min.js"></script>
+  <script src="d3.v5.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
   <!-- <script src="d3.tip.v0.6.3.js"></script> -->
   <script src="d3-tip.js"></script>
@@ -202,9 +202,9 @@
     });
     traveler.calc_window_sizes();
   
-    traveler.typecolor = d3.scaleLinear()
-      .domain([1,2])
-      .range(["lightblue", "lightblue"]);
+    traveler.ranked_categorical_scale = d3.scaleOrdinal(d3.schemeSet3); // d3.scaleOrdinal()
+    //.domain([0, 8])
+    //.range(d3.schemeSet3);
     traveler.bordercolor = d3.scaleLinear()
       .domain([1,2])
       .range(["blue", "blue"]);
@@ -751,6 +751,16 @@
 	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>";
 	}
     });
+
+
+  traveler.ranked_function_color = function(fxn) {
+    var rank = traveler.data.functions[fxn].rank;
+    if (rank > 8) {
+	return traveler.ranked_categorical_scale(8);
+    } else {
+	return traveler.ranked_categorical_scale(rank);
+    }
+  }
 	
   traveler.draw_traditional = function () {
     var rects, msgs, labels,
@@ -886,8 +896,12 @@
 	      'goldenrod' :
 	      (d.sibling) ? 
 		traveler.path_back_color(d.depth) : 
-		'lightblue'; 
+		traveler.ranked_function_color(d.function); 
       })
+     .style('fill-opacity', d => {
+	return (traveler.hover_task !== "0" && traveler.hover_task !== d.guid) ?
+	      0.5 : 1;
+      }) 
       .style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
@@ -909,8 +923,12 @@
 	      'goldenrod' :
 	      (d.sibling) ? 
 		traveler.path_back_color(d.depth) : 
-		'lightblue'; 
+		traveler.ranked_function_color(d.function); 
       })
+      .style('fill-opacity', d => {
+	return (traveler.hover_task !== "0" && traveler.hover_task !== d.guid) ?
+	      0.5 : 1;
+      }) 
       .attr('class', 'traveler event')
       .on('click', d => { return traveler.handle_task_click(d); })
       .on('mouseover', d => { return traveler.handle_task_mouseover(d, true); })
