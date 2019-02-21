@@ -517,7 +517,7 @@ json Trace::utilOverview(unsigned long width, bool logging)
             {
                 pixel_end = ((*evt)->exit - last_init) / a_pixel;
                 // Add the amount of utilization over 
-                pixels[pixel_end] += (*evt)->exit - last_init - (pixel_end - 1) * a_pixel;
+                pixels[pixel_end] += (*evt)->exit - last_init - pixel_end * a_pixel;
             }
             for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
             {
