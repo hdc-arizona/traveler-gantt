@@ -521,13 +521,14 @@ json Trace::utilOverview(unsigned long width, bool logging)
             }
             for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
             {
-                pixels[i] += width;
+                pixels[i] += a_pixel;
             }
         }
     }
 
     // Normalize by the number of processors/entities
     unsigned long long all_time_per_pixel = a_pixel * events->size();
+    std::cout << "Events size is " << events->size() << std::endl;
     for (unsigned long i = 0; i <= width; i++) {
         pixels[i] /= all_time_per_pixel;
     }

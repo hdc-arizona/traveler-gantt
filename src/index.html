@@ -994,7 +994,8 @@
   traveler.draw_overview = function () {
     console.log(traveler.data.overview);
     var rects;
-    traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
+    traveler.mini_y_scale.domain([0, 1]);
+    //traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
 
     rects = traveler.mini_bars.selectAll('.overviewBar')
       .data(traveler.data.overview)
