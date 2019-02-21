@@ -42,6 +42,7 @@ public:
                     bool logging);
     json initJSON(unsigned long width, bool logging);
     json timeOverview(unsigned long width, bool logging);
+    json utilOverview(unsigned long width, bool logging);
     std::string name;
     std::string fullpath;
     int num_entities;

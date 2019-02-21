@@ -488,6 +488,53 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 
 }
 
+
+// Instead of how many functions, calculate how much utilization
+json Trace::utilOverview(unsigned long width, bool logging)
+{
+    unsigned long long a_pixel = (last_finalize - last_init) / width;
+    std::vector<unsigned long long> pixels = std::vector<unsigned long long>();
+    for (unsigned long i = 0; i <= width; i++)
+    {
+        pixels.push_back(0);
+    }
+    for (unsigned long long entity = 0; entity < events->size(); entity++)
+    {
+        for (std::vector<Event *>::iterator evt = events->at(entity)->begin();
+             evt != events->at(entity)->end(); ++evt)
+        {
+            unsigned long pixel_start = 0;
+            unsigned long pixel_end = width;
+            // Find the first pixel
+            if ((*evt)->enter > last_init)
+            {
+                pixel_start = ((*evt)->enter - last_init) / a_pixel;
+                // Add the portion of utilization before
+                pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter; 
+            }
+            // Find the last pixel;
+            if ((*evt)->exit < last_finalize)
+            {
+                pixel_end = ((*evt)->exit - last_init) / a_pixel;
+                // Add the amount of utilization over 
+                pixels[pixel_end] += (*evt)->exit - (pixel_end - 1) * a_pixel;
+            }
+            for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
+            {
+                pixels[i] += width;
+            }
+        }
+    }
+
+    // Normalize by the number of processors/entities
+    unsigned long long all_time_per_pixel = a_pixel * events->size();
+    for (unsigned long i = 0; i <= width; i++) {
+        pixels[i] /= all_time_per_pixel;
+    }
+    json jo(pixels);
+    return jo;
+}
+
 json Trace::timeOverview(unsigned long width, bool logging)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
