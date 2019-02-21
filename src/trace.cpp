@@ -582,7 +582,7 @@ json Trace::initJSON(unsigned long width, bool logging)
         span = a_pixel * 5;
     }
     json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, 0, logging);
-    jo["overview"] = timeOverview(width, logging);
+    jo["overview"] = utilOverview(width, logging);
 
     return jo;
 }

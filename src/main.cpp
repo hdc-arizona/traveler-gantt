@@ -94,7 +94,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   {
     long width;
     width = j["width"];
-    j["traceinfo"] = trace->timeOverview(width, logging);
+    j["traceinfo"] = trace->utilOverview(width, logging);
     if (server_logging) {
       std::cout << "overview called." << std::endl;
     }
