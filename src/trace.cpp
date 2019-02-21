@@ -492,11 +492,11 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 // Instead of how many functions, calculate how much utilization
 json Trace::utilOverview(unsigned long width, bool logging)
 {
-    unsigned long long a_pixel = (last_finalize - last_init) / width;
-    std::vector<unsigned long long> pixels = std::vector<unsigned long long>();
+    float a_pixel = (last_finalize - last_init) / width;
+    std::vector<float> pixels = std::vector<float>();
     for (unsigned long i = 0; i <= width; i++)
     {
-        pixels.push_back(0);
+        pixels.push_back(0.0);
     }
     for (unsigned long long entity = 0; entity < events->size(); entity++)
     {
@@ -510,14 +510,14 @@ json Trace::utilOverview(unsigned long width, bool logging)
             {
                 pixel_start = ((*evt)->enter - last_init) / a_pixel;
                 // Add the portion of utilization before
-                pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter; 
+                pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter + last_init;
             }
             // Find the last pixel;
             if ((*evt)->exit < last_finalize)
             {
                 pixel_end = ((*evt)->exit - last_init) / a_pixel;
                 // Add the amount of utilization over 
-                pixels[pixel_end] += (*evt)->exit - (pixel_end - 1) * a_pixel;
+                pixels[pixel_end] += (*evt)->exit - last_init - (pixel_end - 1) * a_pixel;
             }
             for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
             {
