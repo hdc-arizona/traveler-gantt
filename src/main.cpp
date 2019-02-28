@@ -25,7 +25,7 @@ Trace * trace = NULL;
 json j;
 bool logging = false;
 bool extended_tips = false;
-bool server_logging = true;
+bool server_logging = false;
 bool trace_set = false;
 
 static void handle_data_call(struct mg_connection *nc, struct http_message *hm) {
@@ -44,7 +44,9 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   std::string cmd;
   cmd = j["command"];
 
-  std::cout << "And the dump is... " << j.dump().c_str() << std::endl;
+  if (server_logging) {
+    std::cout << "And the dump is... " << j.dump().c_str() << std::endl;
+  }
 
   /* Check for trace info */
   if (cmd.compare("time") == 0)
@@ -116,12 +118,16 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 
   switch (ev) {
     case MG_EV_HTTP_REQUEST:
-      std::cout << "HM->URI.P IS: " << hm->uri.p << std::endl;
+      if (server_logging) {
+        std::cout << "HM->URI.P IS: " << hm->uri.p << std::endl;
+      }
       if (mg_vcmp(&hm->uri, "/playground/kisaacs/traveler/data") == 0
 	|| mg_vcmp(&hm->uri, "/data") == 0
         || mg_vcmp(&hm->uri, "https://hdc.cs.arizona.edu/playground/kisaacs/traveler/data") == 0) {
-        std::cout << "Serving DATA CONTENT." << std::endl;
-        std::cout << "DATA CONTENT HM->body is " << hm->body.p << std::endl;
+        if (server_logging) {
+            std::cout << "Serving DATA CONTENT." << std::endl;
+            std::cout << "DATA CONTENT HM->body is " << hm->body.p << std::endl;
+        }
         handle_data_call(nc, hm); // Handle RESTful call 
       } else if (mg_vcmp(&hm->uri, "/printcontent") == 0) {
         char buf[100] = {0};
@@ -129,9 +135,13 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
                sizeof(buf) - 1 < hm->body.len ? sizeof(buf) - 1 : hm->body.len);
         printf("%s\n", buf);
       } else {
-        std::cout << "HM->MESSAGE is " << hm->message.p << std::endl;
+        if (server_logging) {
+            std::cout << "HM->MESSAGE is " << hm->message.p << std::endl;
+        }
         mg_serve_http(nc, hm, s_http_server_opts); // Serve static content 
-        std::cout << "Serving STATIC: " << std::endl;
+        if (server_logging) {
+            std::cout << "Serving STATIC: " << std::endl;
+        }
       }
       break;
     default:
@@ -228,8 +238,10 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
         filename = argv[++i];
         setTrace(filename);
-    } else if (strcmp(argv[i], "-l") == 0 && i + 1 < argc) { // Logging in Ravel C++
+    } else if (strcmp(argv[i], "-l") == 0 && i + 1 < argc) { // Logging in Traveler C++
         logging = true;
+    } else if (strcmp(argv[i], "-s") == 0 && i + 1 < argc) { // Logging in Mongoose C++
+        server_logging = true;
     } else if (strcmp(argv[i], "-e") == 0 && i + 1 < argc) { // Extended tool tips
         extended_tips = true;
     } else {
