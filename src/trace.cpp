@@ -509,16 +509,37 @@ json Trace::utilOverview(unsigned long width, bool logging)
             if ((*evt)->enter > last_init)
             {
                 pixel_start = ((*evt)->enter - last_init) / a_pixel;
-                // Add the portion of utilization before
-                pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter + last_init;
+            } else {
+                pixel_start = 0;
             }
             // Find the last pixel;
             if ((*evt)->exit < last_finalize)
             {
                 pixel_end = ((*evt)->exit - last_init) / a_pixel;
-                // Add the amount of utilization over 
-                pixels[pixel_end] += (*evt)->exit - last_init - pixel_end * a_pixel;
+            } else {
+                pixel_end = (last_finalize - last_init) / a_pixel;
             }
+
+            if (pixel_start == pixel_end) {
+                // Add the portion of a pixel
+                pixels[pixel_start] += ((*evt)->exit - (*evt)->enter) / a_pixel;
+
+            } else {
+                // Add the portion of utilization the second pixel
+                pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter + last_init;
+                if ((pixel_start + 1) * a_pixel - (*evt)->enter + last_init > a_pixel) {
+                    std::cout << "start error " << pixel_start << ", " << ((pixel_start + 1) * a_pixel) << ", " << ((*evt)->enter) << ", " << ((*evt)->enter + last_init) << std::endl; 
+                }
+                
+                // Add the amount of utilization over the last pixel
+                pixels[pixel_end] += (*evt)->exit - last_init - pixel_end * a_pixel;
+                if ((*evt)->exit - last_init - pixel_end * a_pixel > a_pixel) {
+                    std::cout << "end error " << std::endl;
+                }
+
+            }
+
+
             for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
             {
                 pixels[i] += a_pixel;

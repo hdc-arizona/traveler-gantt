@@ -996,7 +996,7 @@ OTF2_CallbackCode OTF2Importer::callbackLeave(OTF2_LocationRef locationID,
                 cr->parent_time = converted_time;
                 cr->parent = m1;
                 er->to_crs->push_back(cr); // add to parent, already in child
-                std::cout << "Orphan found in leave: " << m1 << " to " << cr->child << std::endl;
+                //std::cout << "Orphan found in leave: " << m1 << " to " << cr->child << std::endl;
             }
             delete unmatched_guids->at(m1);
             unmatched_guids->erase(m1);
