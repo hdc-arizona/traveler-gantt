@@ -96,6 +96,9 @@ set(Traveler_STATIC_FILES
     jslib/split.js
     jslib/horizontal.png
     jslib/vertical.png
+    jslib/goldenlayout.min.js
+    jslib/goldenlayout-base.css
+    jslib/goldenlayout-light-theme.css
 )
 
 # Build Target

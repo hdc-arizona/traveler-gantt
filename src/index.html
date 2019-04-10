@@ -7,11 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="traveler.css" />
+  <link rel="stylesheet" type="text/css" href="goldenlayout-base.css" />
+  <link rel="stylesheet" type="text/css" href="goldenlayout-light-theme.css" />
   <script src="d3.v5.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
   <!-- <script src="d3.tip.v0.6.3.js"></script> -->
   <script src="d3-tip.js"></script>
-  <script src="split.js"></script>
+  <!-- <script src="split.js"></script> -->
+  <script src="goldenlayout.min.js"></script>
 </head>
 <body>
   <div id="traditional-div" class="traditional split split-vertical"></div>
@@ -24,6 +27,23 @@
     SINGLE: "1",
     FULL: "2"
   };
+
+  var traveler_gl_config = {
+      content: [{
+	type: 'column',
+	content: [{
+	    type: 'component',
+	    componentName: 'Gantt Chart',
+	    componentState: { label: 'Gantt' }
+	},{
+	    type: 'component',
+	    componentName: 'Utilization',
+	    componenentState: { label: 'Utilization' }
+	}]
+    }]
+  };
+
+  var travelerLayout = new GoldenLayout(traveler_gl_config);
 
   var traveler = {
     get_data_state: false,
@@ -74,13 +94,13 @@
   };
 
   // Figure out width and height of Gantt chart from the window size
-  traveler.calc_window_sizes = function () {
+  traveler.calc_window_sizes = function (container) {
     traveler.full_mini_height = traveler.miniHeight + traveler.scaleHeight + traveler.margin.top;
-    traveler.width = d3.select('#traditional-div').node().offsetWidth - 5;
+    traveler.width = container.getElement().node().offsetWidth - 5;
 
     traveler.gantt_width = traveler.width - traveler.margin.left - traveler.margin.right;
     traveler.full_height = $(document).height() - $('body').offset().top;
-    traveler.traditional_height = d3.select('#traditional-div').node().offsetHeight;
+    traveler.traditional_height = container.getElement().node().offsetHeight;
 
     if (traveler.traditional_height <= 0) {
       traveler.traditional_gantt_height = traveler.full_height - traveler.full_mini_height -
@@ -176,12 +196,6 @@
   } // end traveler.resize
 
 
-  traveler.splitter_change = function () {
-    traveler.calc_window_sizes();
-    traveler.resize();
-  };
-
-
   window.onresize = function(event) {
     traveler.old_gantt_width = traveler.gantt_width;
     traveler.calc_window_sizes();
@@ -189,18 +203,13 @@
   }
 
 
-  var init_traveler = function() {
-    traveler.calc_window_sizes();
+  var init_traveler_gantt = function(container) {
+    traveler.calc_window_sizes(container);
     traveler.old_gantt_width = traveler.gantt_width;
-    var overview_per = ( (traveler.full_mini_height + 5) / traveler.full_height) * 100;
     var trad_per = 100 - overview_per;
-    Split(['#traditional-div', '#overview-div'], {
-      direction: 'vertical',
-      sizes: [trad_per, overview_per],
-      minSize: [0, 0],
-      onDrag: traveler.splitter_change
-    });
-    traveler.calc_window_sizes();
+    traveler.calc_window_sizes(container);
+    container.setSize(container.getElement().node().offsetWidth,
+	traveler.traditional_gantt_height);
   
     traveler.ranked_categorical_scale = d3.scaleOrdinal(d3.schemeSet3); // d3.scaleOrdinal()
     //.domain([0, 8])
@@ -214,12 +223,6 @@
     traveler.parentcolor = d3.scaleLinear()
       .domain([0, 2])
       .range(['gray', 'lightgray']);
-    traveler.mini_scale = d3.scaleLinear()
-      .domain([traveler.min_time, traveler.max_time])
-      .range([0, traveler.gantt_width])
-    traveler.mini_y_scale = d3.scaleLinear()
-      .domain([0, 1])
-      .range([0, traveler.miniHeight]);
     traveler.phys_scale = d3.scaleLinear()
       .domain([traveler.min_time, traveler.min_time + traveler.current_span])
       .range([0, traveler.gantt_width]);
@@ -279,7 +282,8 @@
       .extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
       .on("brush end", traveler.gantt_brush_function);
 
-    traveler.traditional = d3.select('#traditional-div')
+    console.log(container.getElement());
+    traveler.traditional = container.getElement() //d3.select('#traditional-div')
       .append('svg:svg')
       .attr('id', 'traditional')
       .attr('width', '100%')
@@ -342,7 +346,32 @@
     traveler.physScale = traveler.phys.append('g')
       .attr('clip-path', 'url(#scaleclip)')
 
-    traveler.overview = d3.select('#overview-div')
+    traveler.counter_scale = d3.scaleLinear()
+      .interpolate(d3.interpolateLab)
+      .domain([1, 50, 100])
+      .range(['lightblue', 'khaki', 'firebrick']);
+     
+    // draw the x axes on the charts
+    traveler.phys_x_axis = d3.axisBottom(traveler.phys_scale);
+    
+    traveler.phys_layers = [];
+    traveler.phys_comm_event_layer = null;
+    traveler.phys_comm_message_layer = null;
+    
+  };  // traveler vars
+
+  var init_traveler_overview = function(container) {
+    container.setSize(container.getElement().node().offsetWidth,
+	traveler.mini_height + traveler.scale_height);
+  
+    traveler.mini_scale = d3.scaleLinear()
+      .domain([traveler.min_time, traveler.max_time])
+      .range([0, traveler.gantt_width])
+    traveler.mini_y_scale = d3.scaleLinear()
+      .domain([0, 1])
+      .range([0, traveler.miniHeight]);
+
+    traveler.overview = container.getElement() //d3.select('#overview-div')
       .append('svg:svg')
       .attr('id', 'overview')
       .attr('height', traveler.full_mini_height)
@@ -356,18 +385,7 @@
       .attr('class', 'mini')
       .on('click', traveler.handle_click);
 
-    traveler.counter_scale = d3.scaleLinear()
-      .interpolate(d3.interpolateLab)
-      .domain([1, 50, 100])
-      .range(['lightblue', 'khaki', 'firebrick']);
-     
-    // draw the x axes on the charts
-    traveler.phys_x_axis = d3.axisBottom(traveler.phys_scale);
     traveler.xAxis = d3.axisBottom(traveler.mini_scale);
-    
-    traveler.phys_layers = [];
-    traveler.phys_comm_event_layer = null;
-    traveler.phys_comm_message_layer = null;
     
   };  // traveler vars
 
@@ -1016,12 +1034,26 @@
   };
 
 
+travelerLayout.registerComponent('Gantt Chart', 
+    function(container, componentState) {
+	init_traveler_gantt(container);
+    }
+);
+
+
+travelerLayout.registerComponent('Overview', 
+    function(container, componentState) {
+	init_traveler_overview(container);
+    }
+);
+
+travelerLayout.init();
 
 // Get the initial data
 jQuery(function() {
 
   $(document).ready(function() {
-    init_traveler();
+    init_traveler_gantt();
     //console.log('first ajax call');
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
