@@ -34,11 +34,13 @@
 	content: [{
 	    type: 'component',
 	    componentName: 'Gantt Chart',
-	    componentState: { label: 'Gantt' }
+	    componentState: { label: 'Gantt' },
+	    height: 80
 	},{
 	    type: 'component',
-	    componentName: 'Utilization',
-	    componenentState: { label: 'Utilization' }
+	    componentName: 'Overview',
+	    componenentState: { label: 'Utilization' },
+	    height: 20
 	}]
     }]
   };
@@ -59,6 +61,9 @@
     scroll_y: false,
     all_lanes: false,
     even_change: false,
+
+    traditional_container: null,
+    overview_container: null,
 
     clicked: false,
     cursor: {
@@ -96,11 +101,14 @@
   // Figure out width and height of Gantt chart from the window size
   traveler.calc_window_sizes = function (container) {
     traveler.full_mini_height = traveler.miniHeight + traveler.scaleHeight + traveler.margin.top;
-    traveler.width = container.getElement().node().offsetWidth - 5;
+    //console.log(container.getElement());
+    traveler.width = container.width - 5;
+    //traveler.width = container.getElement().node().offsetWidth - 5;
 
     traveler.gantt_width = traveler.width - traveler.margin.left - traveler.margin.right;
     traveler.full_height = $(document).height() - $('body').offset().top;
-    traveler.traditional_height = container.getElement().node().offsetHeight;
+    traveler.traditional_height = container.height;
+    //traveler.traditional_height = container.getElement().node().offsetHeight;
 
     if (traveler.traditional_height <= 0) {
       traveler.traditional_gantt_height = traveler.full_height - traveler.full_mini_height -
@@ -206,10 +214,9 @@
   var init_traveler_gantt = function(container) {
     traveler.calc_window_sizes(container);
     traveler.old_gantt_width = traveler.gantt_width;
-    var trad_per = 100 - overview_per;
     traveler.calc_window_sizes(container);
-    container.setSize(container.getElement().node().offsetWidth,
-	traveler.traditional_gantt_height);
+    //container.setSize(container.width, //container.getElement().node().offsetWidth,
+    //	traveler.traditional_gantt_height);
   
     traveler.ranked_categorical_scale = d3.scaleOrdinal(d3.schemeSet3); // d3.scaleOrdinal()
     //.domain([0, 8])
@@ -282,14 +289,15 @@
       .extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
       .on("brush end", traveler.gantt_brush_function);
 
-    console.log(container.getElement());
-    traveler.traditional = container.getElement() //d3.select('#traditional-div')
+    traveler.traditional = d3.select('#traditionalContainer')
       .append('svg:svg')
       .attr('id', 'traditional')
       .attr('width', '100%')
       .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
       .attr('class', 'traditional')
-      .call(traveler.zoom)
+      .call(traveler.zoom);
+
+    traveler.traditional
       .call(traveler.event_tip)
       .call(traveler.event_tip_south);
 
@@ -361,9 +369,6 @@
   };  // traveler vars
 
   var init_traveler_overview = function(container) {
-    container.setSize(container.getElement().node().offsetWidth,
-	traveler.mini_height + traveler.scale_height);
-  
     traveler.mini_scale = d3.scaleLinear()
       .domain([traveler.min_time, traveler.max_time])
       .range([0, traveler.gantt_width])
@@ -371,7 +376,7 @@
       .domain([0, 1])
       .range([0, traveler.miniHeight]);
 
-    traveler.overview = container.getElement() //d3.select('#overview-div')
+    traveler.overview = d3.select('#utilizationContainer')
       .append('svg:svg')
       .attr('id', 'overview')
       .attr('height', traveler.full_mini_height)
@@ -1036,6 +1041,7 @@
 
 travelerLayout.registerComponent('Gantt Chart', 
     function(container, componentState) {
+	container.getElement().html('<div class="traditionalContainer"></div>');
 	init_traveler_gantt(container);
     }
 );
@@ -1043,6 +1049,7 @@ travelerLayout.registerComponent('Gantt Chart',
 
 travelerLayout.registerComponent('Overview', 
     function(container, componentState) {
+	container.getElement().html('<div class="utilizationContainer></div>');
 	init_traveler_overview(container);
     }
 );
@@ -1053,7 +1060,7 @@ travelerLayout.init();
 jQuery(function() {
 
   $(document).ready(function() {
-    init_traveler_gantt();
+    //init_traveler_gantt();
     //console.log('first ajax call');
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
