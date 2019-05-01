@@ -205,11 +205,12 @@
   } // end traveler.resize
 
 
-  /*window.onresize = function(event) {
+  window.onresize = function(event) {
+    var elm = document.getElementById('traditionalContainer');
     traveler.old_gantt_width = traveler.gantt_width;
-    traveler.calc_window_sizes();
+    traveler.calc_window_sizes(elm);
     traveler.resize();
-  }*/
+  }
 
 
   var init_traveler_gantt = function(container) {
@@ -1050,7 +1051,7 @@
 
 travelerLayout.registerComponent('Gantt Chart', 
     function(container, componentState) {
-	container.getElement().html('<div id="traditionalContainer" height="100%" class="travelerContainer">test</div>');
+	container.getElement().html('<div id="traditionalContainer" height="100%" class="travelerContainer"></div>');
 	console.log('set container gantt', container);
 	traveler.traditonal_container = container;
     }
