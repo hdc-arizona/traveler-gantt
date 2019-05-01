@@ -583,18 +583,22 @@
       traveler.event_tip.hide(task);
       traveler.event_tip_south.hide(task);
 
+    /*
       var tip_height = traveler.extended_tips ? 25 * 5 + 20 : 25 * 1 + 20;
       if (traveler.yphys(task.entity) < tip_height ) {
         traveler.event_tip_south.show(task);
       } else {
         traveler.event_tip.show(task);
       }
+      */
     } else {
       traveler.hover_id = "0";
       traveler.hover_task = "0";
       traveler.hover_data = null;
+	/*
       traveler.event_tip_south.hide(task);
       traveler.event_tip.hide(task);
+      */
     }
     traveler.draw_traditional();
     
@@ -1046,7 +1050,7 @@
 
 travelerLayout.registerComponent('Gantt Chart', 
     function(container, componentState) {
-	container.getElement().html('<div id="traditionalContainer" height="100%">test</div>');
+	container.getElement().html('<div id="traditionalContainer" height="100%" class="travelerContainer">test</div>');
 	console.log('set container gantt', container);
 	traveler.traditonal_container = container;
     }
@@ -1055,7 +1059,7 @@ travelerLayout.registerComponent('Gantt Chart',
 
 travelerLayout.registerComponent('Overview', 
     function(container, componentState) {
-	container.getElement().html('<div id="overviewContainer"></div>');
+	container.getElement().html('<div id="overviewContainer" class="travelerContainer"></div>');
 	console.log('set container overview');
 	traveler.overview_container = container;
     }

@@ -5,6 +5,10 @@ html, body {
     font: 10pt sans-serif;
 }
 
+.travelerContainer {
+    background: white;
+}
+
 rect {
     shape-rendering: crispEdges;
 }
