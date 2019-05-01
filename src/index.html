@@ -373,6 +373,7 @@
   };  // traveler vars
 
   var init_traveler_overview = function(container) {
+    var elm = document.getElementById('overviewContainer');
     traveler.mini_scale = d3.scaleLinear()
       .domain([traveler.min_time, traveler.max_time])
       .range([0, traveler.gantt_width])
@@ -380,7 +381,7 @@
       .domain([0, 1])
       .range([0, traveler.miniHeight]);
 
-    traveler.overview = d3.select('#utilizationContainer')
+    traveler.overview = d3.select('#overviewContainer')
       .append('svg:svg')
       .attr('id', 'overview')
       .attr('height', traveler.full_mini_height)
@@ -1054,7 +1055,7 @@ travelerLayout.registerComponent('Gantt Chart',
 
 travelerLayout.registerComponent('Overview', 
     function(container, componentState) {
-	container.getElement().html('<div id="utilizationContainer></div>');
+	container.getElement().html('<div id="overviewContainer"></div>');
 	console.log('set container overview');
 	traveler.overview_container = container;
     }
