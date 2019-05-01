@@ -17,8 +17,6 @@
   <script src="goldenlayout.min.js"></script>
 </head>
 <body>
-  <div id="traditional-div" class="traditional split split-vertical"></div>
-  <div id="overview-div" class="overview split split-vertical"></div>
 </body>
 </html>
   <script type="text/javascript">
@@ -99,16 +97,18 @@
   };
 
   // Figure out width and height of Gantt chart from the window size
-  traveler.calc_window_sizes = function (container) {
+  traveler.calc_window_sizes = function (elm) {
     traveler.full_mini_height = traveler.miniHeight + traveler.scaleHeight + traveler.margin.top;
     //console.log(container.getElement());
-    traveler.width = container.width - 5;
-    //traveler.width = container.getElement().node().offsetWidth - 5;
+    //traveler.width = container.width - 5;
+    console.log(elm);
+    traveler.width = elm.offsetWidth - 5;
 
     traveler.gantt_width = traveler.width - traveler.margin.left - traveler.margin.right;
     traveler.full_height = $(document).height() - $('body').offset().top;
-    traveler.traditional_height = container.height;
-    //traveler.traditional_height = container.getElement().node().offsetHeight;
+    //traveler.traditional_height = container.height;
+    traveler.traditional_height = elm.parentNode.offsetHeight;
+    elm.setAttribute('style', 'height: ' + traveler.traditional_height + 'px;');
 
     if (traveler.traditional_height <= 0) {
       traveler.traditional_gantt_height = traveler.full_height - traveler.full_mini_height -
@@ -119,6 +119,7 @@
 	2 * traveler.margin.top - traveler.margin.bottom -
 	traveler.colorBarHeight - traveler.scaleHeight;
     }
+    console.log(traveler.width, traveler.traditional_height, traveler.full_height);
 
   }; // end traveler.calc_window_sizes
 
@@ -204,17 +205,18 @@
   } // end traveler.resize
 
 
-  window.onresize = function(event) {
+  /*window.onresize = function(event) {
     traveler.old_gantt_width = traveler.gantt_width;
     traveler.calc_window_sizes();
     traveler.resize();
-  }
+  }*/
 
 
   var init_traveler_gantt = function(container) {
-    traveler.calc_window_sizes(container);
+    var elm = document.getElementById('traditionalContainer');
+    traveler.calc_window_sizes(elm);
     traveler.old_gantt_width = traveler.gantt_width;
-    traveler.calc_window_sizes(container);
+    traveler.calc_window_sizes(elm);
     //container.setSize(container.width, //container.getElement().node().offsetWidth,
     //	traveler.traditional_gantt_height);
   
@@ -297,9 +299,11 @@
       .attr('class', 'traditional')
       .call(traveler.zoom);
 
+      /*
     traveler.traditional
       .call(traveler.event_tip)
       .call(traveler.event_tip_south);
+      */
 
     traveler.phys = traveler.traditional.append('g')
       .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
@@ -1041,27 +1045,32 @@
 
 travelerLayout.registerComponent('Gantt Chart', 
     function(container, componentState) {
-	container.getElement().html('<div class="traditionalContainer"></div>');
-	init_traveler_gantt(container);
+	container.getElement().html('<div id="traditionalContainer" height="100%">test</div>');
+	console.log('set container gantt', container);
+	traveler.traditonal_container = container;
     }
 );
 
 
 travelerLayout.registerComponent('Overview', 
     function(container, componentState) {
-	container.getElement().html('<div class="utilizationContainer></div>');
-	init_traveler_overview(container);
+	container.getElement().html('<div id="utilizationContainer></div>');
+	console.log('set container overview');
+	traveler.overview_container = container;
     }
 );
 
 travelerLayout.init();
+console.log('init layout');
 
 // Get the initial data
 jQuery(function() {
 
   $(document).ready(function() {
     //init_traveler_gantt();
-    //console.log('first ajax call');
+    console.log('first ajax call', traveler.traditional_container);
+    init_traveler_gantt(traveler.traditional_container);
+    init_traveler_overview(traveler.overview_container);
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
       url: 'data', //'playground/kisaacs/traveler/data',
