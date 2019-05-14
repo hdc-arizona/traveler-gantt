@@ -27,18 +27,23 @@
   };
 
   var traveler_gl_config = {
+      settings: {
+	  showPopoutIcon: false
+      },
       content: [{
 	type: 'column',
 	content: [{
 	    type: 'component',
 	    componentName: 'Gantt Chart',
 	    componentState: { label: 'Gantt' },
-	    height: 80
+	    height: 80,
+	    isClosable: false
 	},{
 	    type: 'component',
-	    componentName: 'Overview',
+	    componentName: 'Utilization',
 	    componenentState: { label: 'Utilization' },
-	    height: 20
+	    height: 20,
+	    isClosable: false
 	}]
     }]
   };
@@ -1063,7 +1068,7 @@ travelerLayout.registerComponent('Gantt Chart',
 );
 
 
-travelerLayout.registerComponent('Overview', 
+travelerLayout.registerComponent('Utilization', 
     function(container, componentState) {
 	container.getElement().html('<div id="overviewContainer" class="travelerContainer"></div>');
 	console.log('set container overview');
