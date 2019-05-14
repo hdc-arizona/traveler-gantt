@@ -83,7 +83,7 @@
       left: 50
     },
     miniHeight: 60,
-    scaleHeight: 20,
+    scale_height: 20,
     colorBarHeight: 30,
 
     min_time: 0,
@@ -104,7 +104,7 @@
 
   // Figure out width and height of Gantt chart from the window size
   traveler.calc_window_sizes = function (elm) {
-    traveler.full_mini_height = traveler.miniHeight + traveler.scaleHeight + traveler.margin.top;
+    traveler.full_mini_height = traveler.miniHeight + traveler.scale_height + traveler.margin.top;
     //console.log(container.getElement());
     //traveler.width = container.width - 5;
     console.log(elm);
@@ -119,11 +119,11 @@
     if (traveler.traditional_height <= 0) {
       traveler.traditional_gantt_height = traveler.full_height - traveler.full_mini_height -
 	2 * traveler.margin.top - traveler.margin.bottom -
-	traveler.colorBarHeight - traveler.scaleHeight;
+	traveler.colorBarHeight - traveler.scale_height;
     } else {
       traveler.traditional_gantt_height = traveler.traditional_height - 
 	2 * traveler.margin.top - traveler.margin.bottom -
-	traveler.colorBarHeight - traveler.scaleHeight;
+	traveler.colorBarHeight - traveler.scale_height;
     }
     console.log(traveler.width, traveler.traditional_height, traveler.full_height);
 
@@ -141,7 +141,7 @@
     traveler.xAxis.scale(traveler.mini_scale);
     traveler.traditional
       .attr('width', '100%')
-      .attr('height', '97%'); // Hack to get around overhang issue fighting with inline block
+      .attr('height', '100%'); // Hack to get around overhang issue fighting with inline block
     
     traveler.yphys
       .range([0, traveler.traditional_gantt_height]);
@@ -150,7 +150,7 @@
     
     traveler.phys
       .attr('width', traveler.gantt_width)
-      .attr('height', traveler.traditional_gantt_height);
+      .attr('height', traveler.traditional_gantt_height + traveler.scale_height);
 
     traveler.mini 
       .attr('width', traveler.gantt_width) 
@@ -177,13 +177,14 @@
 	.attr('height', traveler.traditional_gantt_height);
 
     traveler.traditional_scale_clip
-	.attr('width', traveler.gantt_width)
-	.attr('height', traveler.scaleHeight);
+	.attr('height', traveler.scale_height)
+        .attr('y', traveler.traditional_gantt_height)
+	.attr('width', traveler.gantt_width);
 
     // White backgrounds for the views
     traveler.phys_background
       .attr('width', traveler.gantt_width)
-      .attr('height', traveler.traditional_gantt_height);
+      .attr('height', traveler.traditional_gantt_height); // + traveler.scale_height);
 
     traveler.phys_axis
       .attr('transform', 'translate(0,' + traveler.traditional_gantt_height + ')')
@@ -303,7 +304,7 @@
       .append('svg:svg')
       .attr('id', 'traditional')
       .attr('width', '100%')
-      .attr('height', '97%') // Hack to get around overhang issue fighting with inline block
+      .attr('height', '100%') // Hack to get around overhang issue fighting with inline block
       .attr('class', 'traditional')
       .call(traveler.zoom);
 
@@ -316,7 +317,7 @@
     traveler.phys = traveler.traditional.append('g')
       .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
       .attr('width', traveler.gantt_width)
-      .attr('height', traveler.traditional_gantt_height + traveler.scaleHeight)
+      .attr('height', traveler.traditional_gantt_height + traveler.scale_height)
       .attr('class', 'phys');
    
     traveler.overlayY = traveler.traditional
@@ -345,7 +346,7 @@
       .append('rect')
         .attr('y', traveler.traditional_gantt_height)
 	.attr('width', traveler.gantt_width)
-        .attr('height', traveler.scaleHeight);
+        .attr('height', traveler.scale_height);
     
     // White backgrounds for the views
     traveler.phys_background = traveler.phys.append('rect')
