@@ -7,12 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" type="text/css" href="traveler.css" />
+  <link rel="stylesheet" type="text/css" href="arbtooltip.css" />
   <link rel="stylesheet" type="text/css" href="goldenlayout-base.css" />
   <link rel="stylesheet" type="text/css" href="goldenlayout-light-theme.css" />
   <script src="d3.v5.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
   <!-- <script src="d3.tip.v0.6.3.js"></script> -->
-  <script src="d3-tip.js"></script>
+  <!-- <script src="d3-tip.js"></script> -->
+  <script src="arbtooltip.js"></script>
   <!-- <script src="split.js"></script> -->
   <script src="goldenlayout.min.js"></script>
 </head>
@@ -589,8 +591,8 @@
       traveler.hover_id = task.id;
       traveler.hover_task = task.guid;
       traveler.hover_data = task;
-      traveler.event_tip.hide(task);
-      traveler.event_tip_south.hide(task);
+      //traveler.event_tip.hide(task);
+      //traveler.event_tip_south.hide(task);
 
     /*
       var tip_height = traveler.extended_tips ? 25 * 5 + 20 : 25 * 1 + 20;
@@ -758,6 +760,7 @@
   }
 
 
+/*
   traveler.event_tip_south = d3.tip()
     .attr('class', 'd3-tip-s')
     .offset(d => {
@@ -792,7 +795,7 @@
 	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>";
 	}
     });
-
+*/
 
   traveler.ranked_function_color = function(fxn) {
     var rank = traveler.data.functions[fxn].rank;

@@ -1,0 +1,15 @@
+#tooltip {
+  position: absolute;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  background: #333;
+  color: #fff;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.25);
+}
+
+.hoverable {
+  display: inline-block;
+  cursor: pointer;
+  padding: 1em;
+}
+
