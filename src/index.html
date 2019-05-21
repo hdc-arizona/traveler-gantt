@@ -591,6 +591,7 @@
       traveler.hover_id = task.id;
       traveler.hover_task = task.guid;
       traveler.hover_data = task;
+      hideTooltip()
       //traveler.event_tip.hide(task);
       //traveler.event_tip_south.hide(task);
 
@@ -602,14 +603,30 @@
         traveler.event_tip.show(task);
       }
       */
+      var tipHTML = 
+        "<p class='event-tip'>" + traveler.data.functions[task.function].name + "</p>";
+      if (traveler.extended_tips) {
+	  tipHTML = "<p class='event-tip'>" + traveler.data.functions[task.function].name + "</p>" +
+	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + task.guid + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + task.parent_guid + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + task.enter + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + task.exit + "</p>" + 
+	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + task.id + "</p>";
+      }
+      console.log('hover bounding rect', d3.select('#task' + task.id).node().getBoundingClientRect());
+      showTooltip({
+	content: tipHTML,
+	targetBounds: d3.select('#task' + task.id).node().getBoundingClientRect(),
+        hideAfterMs: 0
+      });
+
     } else {
       traveler.hover_id = "0";
       traveler.hover_task = "0";
       traveler.hover_data = null;
-	/*
-      traveler.event_tip_south.hide(task);
-      traveler.event_tip.hide(task);
-      */
+      hideTooltip();
+      //traveler.event_tip_south.hide(task);
+      //traveler.event_tip.hide(task);
     }
     traveler.draw_traditional();
     
@@ -873,6 +890,7 @@
 	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; });
 
       rects.enter().append('rect')
+	.attr('id', d => { return 'task' + d.id; })
 	.attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
 	.attr('y', d => { return traveler.yphys(d.entity + 0.1); })
 	.attr('height', barHeight)
@@ -951,6 +969,7 @@
 
     rects.enter().append('rect')
       //.attr('x', d => { return traveler.phys_scale(d.enter); })
+      .attr('id', d => { return 'task' + d.id })
       .attr('x', d => { return d3.max([traveler.phys_scale(d.enter), -10]); })
       .attr('y', d => { return traveler.yphys(d.entity + 0.1); })
       .attr('height', barHeight)
@@ -1036,7 +1055,7 @@
 
   // Draw the overview plot.
   traveler.draw_overview = function () {
-    console.log(traveler.data.overview);
+    //console.log(traveler.data.overview);
     var rects;
     traveler.mini_y_scale.domain([0, 1]);
     //traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
@@ -1081,6 +1100,8 @@ travelerLayout.registerComponent('Utilization',
 );
 
 travelerLayout.init();
+// <div id="tooltip" class="gl_keep" style="display:none"></div>
+
 console.log('init layout');
 
 // Get the initial data
@@ -1091,6 +1112,12 @@ jQuery(function() {
     console.log('first ajax call', traveler.traditional_container);
     init_traveler_gantt(traveler.traditional_container);
     init_traveler_overview(traveler.overview_container);
+    var body = document.getElementsByTagName('body')[0];
+    var tipNode = document.createElement('div');
+    tipNode.setAttribute('id', 'tooltip');
+    tipNode.setAttribute('class', 'gl_keep');
+    tipNode.setAttribute('style', 'display:none');
+    body.appendChild(tipNode);
     traveler.init_state = true;
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
