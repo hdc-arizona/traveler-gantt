@@ -44,6 +44,7 @@
 		isClosable: false
 	    }, {
 		type: 'component',
+		id: 'details0',
 		componentName: 'Details',
 		componentState: { label: 'Task Details' }
 	    }],
@@ -772,6 +773,11 @@
       traveler.lanes.push(traveler.data.entity_start + i);
     }
     traveler.init_display();
+    
+    var detailChild = travelerLayout.root.getItemsById('GanttRow')[0].contentItems[1];
+    travelerLayout.root.getItemsById('GanttRow')[0].removeChild(detailChild);
+    traveler.draw_traditional();
+    traveler.draw_overview();
   };
 
 
