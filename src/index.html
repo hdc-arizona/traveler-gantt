@@ -35,9 +35,21 @@
       content: [{
 	type: 'column',
 	content: [{
-	    type: 'component',
-	    componentName: 'Gantt Chart',
-	    componentState: { label: 'Gantt' },
+	    type: 'row',
+	    content: [{
+		type: 'component',
+		componentName: 'Gantt Chart',
+		componentState: { label: 'Gantt' },
+		//height: 80,
+		isClosable: false
+	    }, {
+		type: 'component',
+		componentName: 'Details',
+		componentState: { label: 'Task Details' }
+	    }],
+	    id: 'GanttRow',
+	    componentName: 'GanttRow',
+	    componentState: { label: 'GanttRow' },
 	    height: 80,
 	    isClosable: false
 	},{
@@ -577,6 +589,19 @@
 	traveler.focus_time = task.enter;
 	traveler.focus_state = tenum.SINGLE;
     }
+
+    var row = travelerLayout.root.getItemsById('GanttRow');
+    //console.log('root is', travelerLayout.root);
+    //console.log('row is', row);
+    row[ 0 ].addChild({
+    //travelerLayout.root.contentItems[ 0 ].addChild({
+	title: 'Task Details',
+	type: 'component',
+	componentName: 'Details',
+	componentState: { text: 'Task Details' }
+    });
+
+
     traveler.draw_traditional();
     
     // Calculate hover ids
@@ -1090,6 +1115,11 @@ travelerLayout.registerComponent('Gantt Chart',
     }
 );
 
+travelerLayout.registerComponent('Details',
+    function(container, componentState) {
+	container.getElement().html('<div class="travelerDetails"></div>');
+    }
+);
 
 travelerLayout.registerComponent('Utilization', 
     function(container, componentState) {
