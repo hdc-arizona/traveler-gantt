@@ -118,14 +118,16 @@
   };
 
   // Figure out width and height of Gantt chart from the window size
-  traveler.calc_window_sizes = function (elm) {
+  traveler.calc_window_sizes = function (elm,  elm_overview) {
     traveler.full_mini_height = traveler.miniHeight + traveler.scale_height + traveler.margin.top;
     //console.log(container.getElement());
     //traveler.width = container.width - 5;
     console.log(elm);
     traveler.width = elm.offsetWidth - 5;
+    traveler.overview_width = elm_overview.offsetWidth - 5;
 
     traveler.gantt_width = traveler.width - traveler.margin.left - traveler.margin.right;
+    traveler.overview_width = traveler.overview_width - traveler.margin.left - traveler.margin.right;
     traveler.full_height = $(document).height() - $('body').offset().top;
     //traveler.traditional_height = container.height;
     traveler.traditional_height = elm.parentNode.offsetHeight;
@@ -148,7 +150,7 @@
   traveler.resize = function () {
     var old_brush_selection = d3.brushSelection(d3.select(".brush").node());
     traveler.mini_scale
-      .range([0, traveler.gantt_width]);
+      .range([0, traveler.overview_width]);
     traveler.phys_scale
       .range([0, traveler.gantt_width]);
 
@@ -168,12 +170,12 @@
       .attr('height', traveler.traditional_gantt_height + traveler.scale_height);
 
     traveler.mini 
-      .attr('width', traveler.gantt_width) 
+      .attr('width', traveler.ovreview_width) 
       .attr('height', traveler.miniHeight);
 
     d3.select('.brush').remove(); 
     traveler.gantt_brush = d3.brushX()
-      .extent([[0, 0], [traveler.gantt_width, traveler.miniHeight]])
+      .extent([[0, 0], [traveler.overview_width, traveler.miniHeight]])
       .on("brush end", traveler.gantt_brush_function);
     
     traveler.gantt_brush_group = traveler.mini.append('g')
@@ -210,7 +212,7 @@
 
     // Draw a white background for the overview
     traveler.mini_background
-      .attr("width", traveler.gantt_width);
+      .attr("width", traveler.overview_width);
     
     traveler.zoom 
       .translateExtent([[0, 0], [traveler.gantt_width, traveler.traditional_gantt_height]])
@@ -230,17 +232,19 @@
     window.onresize = function(event) {
 	if (!traveler.init_state) return;
 	var elm = document.getElementById('traditionalContainer');
+	var elm_overview = document.getElementById('overviewContainer');
 	traveler.old_gantt_width = traveler.gantt_width;
-	traveler.calc_window_sizes(elm);
+	traveler.calc_window_sizes(elm, elm_overview);
 	traveler.resize();
     }
   
 
   var init_traveler_gantt = function(container) {
     var elm = document.getElementById('traditionalContainer');
-    traveler.calc_window_sizes(elm);
+    var elm_overview = document.getElementById('overviewContainer');
+    traveler.calc_window_sizes(elm, elm_overview);
     traveler.old_gantt_width = traveler.gantt_width;
-    traveler.calc_window_sizes(elm);
+    traveler.calc_window_sizes(elm, elm_overview);
     //container.setSize(container.width, //container.getElement().node().offsetWidth,
     //	traveler.traditional_gantt_height);
 
@@ -400,7 +404,7 @@
     var elm = document.getElementById('overviewContainer');
     traveler.mini_scale = d3.scaleLinear()
       .domain([traveler.min_time, traveler.max_time])
-      .range([0, traveler.gantt_width])
+      .range([0, traveler.overview_width])
     traveler.mini_y_scale = d3.scaleLinear()
       .domain([0, 1])
       .range([0, traveler.miniHeight]);
@@ -414,7 +418,7 @@
 
     traveler.mini = traveler.overview.append('g')
       .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
-      .attr('width', traveler.gantt_width) //traveler.miniWidth)
+      .attr('width', traveler.overview_width) //traveler.miniWidth)
       .attr('height', traveler.miniHeight)
       .attr('class', 'mini')
       .on('click', traveler.handle_click);
@@ -454,7 +458,7 @@
     traveler.mini_background = traveler.mini.append('rect')
       .attr("x", 0)
       .attr("y", 0)
-      .attr("width", traveler.gantt_width)
+      .attr("width", traveler.overview_width)
       .attr("height", traveler.miniHeight)
       .attr("stroke", 0)
       .attr("fill", "white")
@@ -575,7 +579,7 @@
 
   // TODO: change this to ID and then have the GUID work backwards to 
   // find which GUID really creates things.
-  traveler.handle_task_click = function (task) {
+  traveler.handle_task_click = function (task, shift_key_pressed) {
     console.log('handle task click');
     if (traveler.focus_task === task.guid) {
 	if (traveler.focus_state === tenum.FULL) {
@@ -591,16 +595,18 @@
 	traveler.focus_state = tenum.SINGLE;
     }
 
-    var row = travelerLayout.root.getItemsById('GanttRow');
-    //console.log('root is', travelerLayout.root);
-    //console.log('row is', row);
-    row[ 0 ].addChild({
-    //travelerLayout.root.contentItems[ 0 ].addChild({
-	title: 'Task Details',
-	type: 'component',
-	componentName: 'Details',
-	componentState: { text: 'Task Details' }
-    });
+    if (shift_key_pressed) {
+	var row = travelerLayout.root.getItemsById('GanttRow');
+	//console.log('root is', travelerLayout.root);
+	//console.log('row is', row);
+	row[ 0 ].addChild({
+	//travelerLayout.root.contentItems[ 0 ].addChild({
+	    title: 'Task Details',
+	    type: 'component',
+	    componentName: 'Details',
+	    componentState: { text: 'Task Details' }
+	});
+    }
 
 
     traveler.draw_traditional();
@@ -674,7 +680,7 @@
       contentType: 'application/json',
       data: JSON.stringify({ 
 	"command" : 'overview',
-	"width" : traveler.gantt_width
+	"width" : traveler.overview_width
       }),
       success: function(json) {
 	traveler.data.overview = json.traceinfo;
@@ -931,7 +937,7 @@
 	.style('stroke-width', d => { return (d3.min([traveler.phys_scale(d.exit), traveler.gantt_width + 5]) -
 	  d3.max([traveler.phys_scale(d.enter), -10])) > 3 ? 1 : 0; })
 	.attr('class', 'parent')
-        .on('click', d => { return traveler.handle_task_click(d); })
+        .on('click', d => { return traveler.handle_task_click(d, d3.event.shiftKey); })
         .on('mouseover', d => { return travel.handle_task_mouseover(d, true); })
         .on('mouseout', d => { return travel.handle_task_mouseover(d, false); });
 	/*
@@ -1024,7 +1030,7 @@
 	      0.5 : 1;
       }) 
       .attr('class', 'traveler event')
-      .on('click', d => { return traveler.handle_task_click(d); })
+      .on('click', d => { return traveler.handle_task_click(d, d3.event.shiftKey); })
       .on('mouseover', d => { return traveler.handle_task_mouseover(d, true); })
       .on('mouseout', d => { return traveler.handle_task_mouseover(d, false); });
       //.append('svg:title')
