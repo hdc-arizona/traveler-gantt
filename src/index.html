@@ -40,13 +40,14 @@
 		type: 'component',
 		componentName: 'Gantt Chart',
 		componentState: { label: 'Gantt' },
-		//height: 80,
+		width: 90,
 		isClosable: false
 	    }, {
 		type: 'component',
 		id: 'details0',
 		componentName: 'Details',
-		componentState: { label: 'Task Details' }
+		componentState: { label: 'Task Details' },
+		width: 10
 	    }],
 	    id: 'GanttRow',
 	    componentName: 'GanttRow',
@@ -119,6 +120,7 @@
 
   // Figure out width and height of Gantt chart from the window size
   traveler.calc_window_sizes = function (elm,  elm_overview) {
+    console.log('calc window sizes');
     traveler.full_mini_height = traveler.miniHeight + traveler.scale_height + traveler.margin.top;
     //console.log(container.getElement());
     //traveler.width = container.width - 5;
@@ -600,6 +602,7 @@
 	var detail_id = 'task_detail_' + task.id;
 	//console.log('root is', travelerLayout.root);
 	//console.log('row is', row);
+	console.log('pre add child');
 	row[ 0 ].addChild({
 	//travelerLayout.root.contentItems[ 0 ].addChild({
 	    id: detail_id,
@@ -608,6 +611,11 @@
 	    componentName: 'Details',
 	    componentState: { text: 'Task Details' }
 	});
+	//https://github.com/golden-layout/golden-layout/issues/125
+	travelerLayout.root.getItemsById(detail_id)[0].parent.config.width = 10;
+	travelerLayout.updateSize();
+
+	console.log('post add child');
 	traveler.draw_details(detail_id, task);
     }
 
