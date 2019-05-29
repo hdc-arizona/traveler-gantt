@@ -132,6 +132,10 @@ rect {
     fill-opacity: .25;
 }
 
+.travelerDetails {
+    background: white;
+    padding: 20px;
+}
 
 .d3-tip-s {
   line-height: 1;

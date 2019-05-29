@@ -122,7 +122,7 @@
     traveler.full_mini_height = traveler.miniHeight + traveler.scale_height + traveler.margin.top;
     //console.log(container.getElement());
     //traveler.width = container.width - 5;
-    console.log(elm);
+    //console.log(elm);
     traveler.width = elm.offsetWidth - 5;
     traveler.overview_width = elm_overview.offsetWidth - 5;
 
@@ -597,15 +597,18 @@
 
     if (shift_key_pressed) {
 	var row = travelerLayout.root.getItemsById('GanttRow');
+	var detail_id = 'task_detail_' + task.id;
 	//console.log('root is', travelerLayout.root);
 	//console.log('row is', row);
 	row[ 0 ].addChild({
 	//travelerLayout.root.contentItems[ 0 ].addChild({
+	    id: detail_id,
 	    title: 'Task Details',
 	    type: 'component',
 	    componentName: 'Details',
 	    componentState: { text: 'Task Details' }
 	});
+	traveler.draw_details(detail_id, task);
     }
 
 
@@ -613,6 +616,30 @@
     
     // Calculate hover ids
     traveler.get_data(traveler.phys_scale.domain()[0], traveler.phys_scale.domain()[1]);
+  }
+
+  traveler.draw_details = function(detail_id, task) {
+    var elm = travelerLayout.root.getItemsById(detail_id)[0].element[0];
+    while (elm.className != "travelerDetails") {
+	elm =  elm.childNodes[0];
+    }
+    var height = elm.parentNode.offsetHeight;
+    elm.setAttribute('style', 'height: ' + height + 'px;');
+
+    var addPara  = function(txt) {
+	var textNode = document.createTextNode(txt);
+	var p = document.createElement('p');
+	p.setAttribute('class', 'detail');
+	p.appendChild(textNode);
+	elm.appendChild(p);
+    }
+
+    addPara('Function: ' + traveler.data.functions[task.function].name);
+    addPara('GUID: ' + task.guid);
+    addPara('Parent GUID: ' + task.parent_guid);
+    addPara('Enter Time: ' + task.enter);
+    addPara('Exit Time: ' + task.exit);
+    addPara('Internal ID: ' + task.id);
   }
 
   traveler.handle_task_mouseover = function(task, over) {
