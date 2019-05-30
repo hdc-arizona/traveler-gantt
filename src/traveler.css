@@ -137,6 +137,12 @@ rect {
     padding: 20px;
 }
 
+.colorKey {
+    background: white;
+    padding: 20px;
+}
+
+
 .d3-tip-s {
   line-height: 1;
   padding: 10px;

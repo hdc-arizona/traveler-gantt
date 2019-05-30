@@ -43,10 +43,17 @@
 		width: 90,
 		isClosable: false
 	    }, {
-		type: 'component',
-		id: 'details0',
-		componentName: 'Details',
-		componentState: { label: 'Task Details' },
+		type: 'stack',
+		content: [{
+		    type: 'component',
+		    componentName: 'Color Key',
+		    componentState: { label: 'Color Key' },
+		}, {
+		    type: 'component',
+		    componentName: 'Details',
+		    componentState: { label: 'Task Details' },
+		}],
+		id: 'DetailStack',
 		width: 10
 	    }],
 	    id: 'GanttRow',
@@ -429,6 +436,41 @@
     
   };  // traveler vars
 
+  var init_traveler_colorkey  = function()  {
+    var elm = document.getElementById('functionColorKey');
+    var height = elm.parentNode.offsetHeight;
+    elm.setAttribute('style', 'height: ' + height + 'px;');
+    traveler.colorkey = d3.select('#functionColorKey')
+      .append('svg:svg')
+      .attr('id', 'colorkey')
+      .attr('height', '100%')
+      .attr('width', '100%');
+  };
+
+  traveler.draw_colorkey = function() {
+    console.log('color key is being drawn');
+    colors = traveler.colorkey.selectAll('.colorKeyBars')
+      .data(traveler.data.colorkey);
+
+    colors.enter().append('rect')
+      .attr('x', 10)
+      .attr('width', 100)
+      .attr('y', (d, i) => { return i * 30; })
+      .attr('height', 30)
+      .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(i); })
+      .attr('class', 'colorKeyBars')
+      .append('svg:title')
+	.text((d, i) => { return (i === 8) ? "Other" : d.name; });
+    
+    color_text = traveler.colorkey.selectAll('.colorKeyText')
+      .data(traveler.data.colorkey);
+
+    color_text.enter().append('text')
+	.attr('x', 15)
+	.attr('y', (d, i) => { return i * 30 + 15; })
+	.attr('class', 'traveler colorKeyText')
+	.text(d => { return (i === 8) ? "Other" : d.name; });
+  }
 
   traveler.init_display = function () {
     traveler.min_time = traveler.data.mintime;
@@ -680,7 +722,6 @@
 	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + task.exit + "</p>" + 
 	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + task.id + "</p>";
       }
-      console.log('hover bounding rect', d3.select('#task' + task.id).node().getBoundingClientRect());
       showTooltip({
 	content: tipHTML,
 	targetBounds: d3.select('#task' + task.id).node().getBoundingClientRect(),
@@ -721,6 +762,23 @@
 	traveler.data.overview = json.traceinfo;
 	traveler.draw_overview();
 	traveler.get_overview_state = false;
+      }
+    });
+  };
+
+   traveler.get_function_colors = function () {
+    $.ajax({
+      //mimeType: 'text/json; charset=x-user-defined',
+      url: 'data', //'/playground/kisaacs/traveler/data',
+      method: 'POST',
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify({ 
+	"command" : 'functions',
+      }),
+      success: function(json) {
+	traveler.data.colorkey = json.traceinfo;
+	traveler.draw_colorkey();
       }
     });
   };
@@ -815,10 +873,11 @@
     }
     traveler.init_display();
     
-    var detailChild = travelerLayout.root.getItemsById('GanttRow')[0].contentItems[1];
-    travelerLayout.root.getItemsById('GanttRow')[0].removeChild(detailChild);
+    var detailChild = travelerLayout.root.getItemsById('DetailStack')[0].contentItems[1];
+    travelerLayout.root.getItemsById('DetailStack')[0].removeChild(detailChild);
     traveler.draw_traditional();
     traveler.draw_overview();
+    traveler.get_function_colors();
   };
 
 
@@ -887,8 +946,8 @@
 */
 
   traveler.ranked_function_color = function(fxn) {
-    var rank = traveler.data.functions[fxn].rank;
-    if (rank > 8) {
+    var rank = traveler.data.functions[fxn].rank - 1;
+    if (rank >= 8) {
 	return traveler.ranked_categorical_scale(8);
     } else {
 	return traveler.ranked_categorical_scale(rank);
@@ -1168,6 +1227,12 @@ travelerLayout.registerComponent('Details',
     }
 );
 
+travelerLayout.registerComponent('Color Key',
+    function(container, componentState) {
+	container.getElement().html('<div id="functionColorKey" class="colorKey"></div>');
+    }
+);
+
 travelerLayout.registerComponent('Utilization', 
     function(container, componentState) {
 	container.getElement().html('<div id="overviewContainer" class="travelerContainer"></div>');
@@ -1189,6 +1254,7 @@ jQuery(function() {
     console.log('first ajax call', traveler.traditional_container);
     init_traveler_gantt(traveler.traditional_container);
     init_traveler_overview(traveler.overview_container);
+    init_traveler_colorkey();
     var body = document.getElementsByTagName('body')[0];
     var tipNode = document.createElement('div');
     tipNode.setAttribute('id', 'tooltip');

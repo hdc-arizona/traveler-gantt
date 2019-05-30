@@ -101,6 +101,13 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
       std::cout << "overview called." << std::endl;
     }
   }
+  else if (cmd.compare("functions") == 0)
+  {
+    j["traceinfo"] = trace->functionRankOverview();
+    if (server_logging) {
+      std::cout << "function ranks called." << std::endl;
+    }
+  }
   else
   {
     j["debug"] = 0;

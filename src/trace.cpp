@@ -585,6 +585,18 @@ json Trace::timeOverview(unsigned long width, bool logging)
     return jo;
 }
 
+json Trace::functionRankOverview()
+{
+    std::vector<Function *>::const_iterator first = function_list->begin();
+    std::vector<Function *>::const_iterator last = function_list->begin() + 8;
+    if (function_list->size() < 8) {
+        last = function_list->end();
+    }
+    std::vector<Function *> top_functions(first, last);
+    json jo(top_functions);
+    return jo;
+}
+
 json Trace::initJSON(unsigned long width, bool logging)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
