@@ -640,12 +640,12 @@
     }
 
     if (shift_key_pressed) {
-	var row = travelerLayout.root.getItemsById('GanttRow');
+	var stack = travelerLayout.root.getItemsById('DetailStack');
 	var detail_id = 'task_detail_' + task.id;
 	//console.log('root is', travelerLayout.root);
 	//console.log('row is', row);
 	console.log('pre add child');
-	row[ 0 ].addChild({
+	stack[ 0 ].addChild({
 	//travelerLayout.root.contentItems[ 0 ].addChild({
 	    id: detail_id,
 	    title: 'Task Details',
@@ -654,8 +654,8 @@
 	    componentState: { text: 'Task Details' }
 	});
 	//https://github.com/golden-layout/golden-layout/issues/125
-	travelerLayout.root.getItemsById(detail_id)[0].parent.config.width = 10;
-	travelerLayout.updateSize();
+	//travelerLayout.root.getItemsById(detail_id)[0].parent.config.width = 10;
+	//travelerLayout.updateSize();
 
 	console.log('post add child');
 	traveler.draw_details(detail_id, task);
