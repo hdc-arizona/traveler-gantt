@@ -607,16 +607,22 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
     for (std::vector<Function *>::iterator fxn = function_list->begin();
         fxn != function_list->end(); ++fxn)
     {
-        // only take top 8 functions
-        if (rank < 8) {
-            top_functions.push_back(*fxn);
-            rank++;
-        }
+        // build histogram
         for (std::vector<unsigned long long>::iterator length = (*fxn)->task_lengths.begin();
             length != (*fxn)->task_lengths.end(); ++length)
         {
             the_pixel = (*length) / a_pixel;
+            if (the_pixel > 50) {
+                std::cout << "The pixel is " << the_pixel << " from " << (*fxn)->name.c_str() << 
+                    " with length " << (*length) << std::endl;
+            }
             histograms[rank][the_pixel] += 1;
+        }
+
+        // only take top 8 functions
+        if (rank < 8) {
+            top_functions.push_back(*fxn);
+            rank++;
         }
     }
 

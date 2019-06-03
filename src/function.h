@@ -19,6 +19,7 @@ public:
     int comms; // max comms in a function
     unsigned long long count; // number of times it appears in trace
     int rank; // how it comes to other functions in terms of use
+    unsigned long long max_length;
     bool isMain;
 
 

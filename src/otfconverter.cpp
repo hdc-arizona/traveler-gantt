@@ -607,6 +607,12 @@ void OTFConverter::matchEvents()
                 if (task_length > trace->max_task_length)
                 {
                     trace->max_task_length = task_length;
+                    std::cout << "mask task length is now " << trace->max_task_length << 
+                        " from " << fxn->name.c_str() << std::endl;
+                }
+                if (task_length > trace->functions->at(e->function)->max_length)
+                {
+                    trace->functions->at(e->function)->max_length = task_length;
                 }
             }
             else // Begin a subroutine

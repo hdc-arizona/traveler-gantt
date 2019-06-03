@@ -109,7 +109,7 @@
     scale_height: 20,
     colorBarHeight: 30,
 
-    colorHistogramHeight: 30,
+    colorHistogramHeight: 50,
     colorHistogramWidth: 150,
 
     min_time: 0,
@@ -462,7 +462,7 @@
     }
     var functions = traveler.data.colorkey.ranked.slice(0, max_fxn);
 
-    color_backgrounds = traveler.controls.selectAll('.colorKeyBackgrounds')
+    var color_backgrounds = traveler.controls.selectAll('.colorKeyBackgrounds')
       .data(functions);
 
     color_backgrounds.enter().append('rect')
@@ -475,7 +475,7 @@
 
 
     // Solid color
-    colors = traveler.controls.selectAll('.colorKeyBars')
+    var colors = traveler.controls.selectAll('.colorKeyBars')
       .data(functions);
 
     colors.enter().append('rect')
@@ -488,14 +488,44 @@
     
 
     // Text labels
-    color_text = traveler.controls.selectAll('.colorKeyText')
+    var color_text = traveler.controls.selectAll('.colorKeyText')
       .data(functions);
 
     color_text.enter().append('text')
 	.attr('x', 22)
-	.attr('y', (d, i) => { return i * traveler.colorHistogramHeight + 20; })
+	.attr('y', (d, i) => { return i * traveler.colorHistogramHeight + 12; })
 	.attr('class', 'traveler colorKeyText')
 	.text((d, i) => { return (i === 8) ? "Other" : d.name; });
+    
+
+    var max_fxn_count = 0;
+    for (var i = 0; i <= max_fxn; i++) {
+	max_fxn_count = d3.max([max_fxn_count, d3.max(traveler.data.colorkey.histograms[i])]);
+    }
+    traveler.fxn_y_scale = d3.scaleLog()
+      .domain([1, max_fxn_count + 1])
+      .range([0, traveler.colorHistogramHeight]);
+
+    for (var j = 0; j <= max_fxn; j++) {
+	console.log(max_fxn_count, traveler.data.colorkey.histograms[j]);
+	var histograms = traveler.controls.selectAll('.fxnHistogram_' + j)
+	  .data(traveler.data.colorkey.histograms[j])
+	  .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(j); })
+	  .attr('x', (d, i) => { return 22 + i; })
+	  .attr('y', (d, i) => { return (j + 1) * traveler.colorHistogramHeight - traveler.fxn_y_scale(d + 1); })
+	  .attr('height', d => { return traveler.fxn_y_scale(d + 1); });
+
+	histograms.enter().append('rect')
+	  .attr('class', (d, i) => { return 'fxnHistogram_' + j; })
+	  .attr('width', 1)
+	  .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(j); })
+	  .attr('x', (d, i) => { return 22 + i; })
+	  .attr('y', (d, i) => { return (j + 1) * traveler.colorHistogramHeight - traveler.fxn_y_scale(d + 1); })
+	  .attr('height', d => { return traveler.fxn_y_scale(d + 1); });
+
+	histograms.exit().remove();
+    }
+    //traveler.xAxis = d3.axisBottom(traveler.mini_scale);
   }
 
   traveler.init_display = function () {
