@@ -46,8 +46,8 @@
 		type: 'stack',
 		content: [{
 		    type: 'component',
-		    componentName: 'Color Key',
-		    componentState: { label: 'Color Key' },
+		    componentName: 'Controls',
+		    componentState: { label: 'Controls' },
 		}, {
 		    type: 'component',
 		    componentName: 'Details',
@@ -436,33 +436,31 @@
     
   };  // traveler vars
 
-  var init_traveler_colorkey  = function()  {
-    var elm = document.getElementById('functionColorKey');
+  var init_traveler_controls  = function()  {
+    var elm = document.getElementById('travelerControls');
     var height = elm.parentNode.offsetHeight;
     elm.setAttribute('style', 'height: ' + height + 'px;');
-    traveler.colorkey = d3.select('#functionColorKey')
+    traveler.controls = d3.select('#travelerControls')
       .append('svg:svg')
       .attr('id', 'colorkey')
       .attr('height', '100%')
       .attr('width', '100%');
   };
 
-  traveler.draw_colorkey = function() {
+  traveler.draw_controls = function() {
     console.log('color key is being drawn');
-    colors = traveler.colorkey.selectAll('.colorKeyBars')
+    colors = traveler.controls.selectAll('.colorKeyBars')
       .data(traveler.data.colorkey);
 
     colors.enter().append('rect')
       .attr('x', 10)
-      .attr('width', 100)
+      .attr('width', 200)
       .attr('y', (d, i) => { return i * 30; })
       .attr('height', 30)
       .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(i); })
-      .attr('class', 'colorKeyBars')
-      .append('svg:title')
-	.text((d, i) => { return (i === 8) ? "Other" : d.name; });
+      .attr('class', 'colorKeyBars');
     
-    color_text = traveler.colorkey.selectAll('.colorKeyText')
+    color_text = traveler.controls.selectAll('.colorKeyText')
       .data(traveler.data.colorkey);
 
     color_text.enter().append('text')
@@ -642,17 +640,17 @@
     if (shift_key_pressed) {
 	var stack = travelerLayout.root.getItemsById('DetailStack');
 	var detail_id = 'task_detail_' + task.id;
-	//console.log('root is', travelerLayout.root);
-	//console.log('row is', row);
 	console.log('pre add child');
 	stack[ 0 ].addChild({
-	//travelerLayout.root.contentItems[ 0 ].addChild({
 	    id: detail_id,
 	    title: 'Task Details',
 	    type: 'component',
 	    componentName: 'Details',
 	    componentState: { text: 'Task Details' }
 	});
+
+	// Use this to force set the size -- no longer needed now that we
+	// assume the user as set the DetailStack to what they want
 	//https://github.com/golden-layout/golden-layout/issues/125
 	//travelerLayout.root.getItemsById(detail_id)[0].parent.config.width = 10;
 	//travelerLayout.updateSize();
@@ -778,7 +776,7 @@
       }),
       success: function(json) {
 	traveler.data.colorkey = json.traceinfo;
-	traveler.draw_colorkey();
+	traveler.draw_controls();
       }
     });
   };
@@ -906,44 +904,6 @@
     }
     return labels;
   }
-
-
-/*
-  traveler.event_tip_south = d3.tip()
-    .attr('class', 'd3-tip-s')
-    .offset(d => {
-	var tip_height = traveler.extended_tips ? 25 * 5 + 20 : 25 * 1 + 30;
-	return [20 + tip_height, 0];
-    })
-    .html(d => {
-	if (traveler.extended_tips) {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>" +
-	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + d.exit + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + d.id + "</p>"; 
-	} else {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>";
-	}
-    });
-
-  traveler.event_tip = d3.tip()
-    .attr('class', 'd3-tip')
-    .offset([-10, 0])
-    .html(d => {
-	if (traveler.extended_tips) {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>" +
-	    "<p class='event-tip'><span class='event-bold'>GUID: </span>" + d.guid + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>Parent: </span>" + d.parent_guid + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>Enter: </span>" + d.enter + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>Exit: </span>" + d.exit + "</p>" + 
-	    "<p class='event-tip'><span class='event-bold'>ID: </span>" + d.id + "</p>"; 
-	} else {
-	  return "<p class='event-tip'>" + traveler.data.functions[d.function].name + "</p>";
-	}
-    });
-*/
 
   traveler.ranked_function_color = function(fxn) {
     var rank = traveler.data.functions[fxn].rank - 1;
@@ -1227,9 +1187,9 @@ travelerLayout.registerComponent('Details',
     }
 );
 
-travelerLayout.registerComponent('Color Key',
+travelerLayout.registerComponent('Controls',
     function(container, componentState) {
-	container.getElement().html('<div id="functionColorKey" class="colorKey"></div>');
+	container.getElement().html('<div id="travelerControls" class="colorKey"></div>');
     }
 );
 
@@ -1254,7 +1214,7 @@ jQuery(function() {
     console.log('first ajax call', traveler.traditional_container);
     init_traveler_gantt(traveler.traditional_container);
     init_traveler_overview(traveler.overview_container);
-    init_traveler_colorkey();
+    init_traveler_controls();
     var body = document.getElementsByTagName('body')[0];
     var tipNode = document.createElement('div');
     tipNode.setAttribute('id', 'tooltip');
