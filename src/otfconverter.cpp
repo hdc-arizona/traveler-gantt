@@ -602,6 +602,12 @@ void OTFConverter::matchEvents()
 
                 Function * fxn = trace->functions->at(e->function);
                 fxn->count += 1;
+                unsigned long long task_length = e->exit - e->enter;
+                fxn->task_lengths.push_back(task_length);
+                if (task_length > trace->max_task_length)
+                {
+                    trace->max_task_length = task_length;
+                }
             }
             else // Begin a subroutine
             {

@@ -45,6 +45,7 @@ Trace::Trace(int nt, int np)
       mpi_group(-1),
       max_time(0),
       min_time(ULLONG_MAX),
+      max_task_length(0),
       isProcessed(false)
 {
     for (int i = 0; i < std::max(nt, np); i++) {

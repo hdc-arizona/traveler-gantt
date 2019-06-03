@@ -109,6 +109,9 @@
     scale_height: 20,
     colorBarHeight: 30,
 
+    colorHistogramHeight: 30,
+    colorHistogramWidth: 150,
+
     min_time: 0,
     max_time: 1,
     max_step: 0,
@@ -455,8 +458,8 @@
     color_backgrounds.enter().append('rect')
       .attr('x', 0)
       .attr('width', 200)
-      .attr('y', (d, i) => { return i * 30; })
-      .attr('height', 30)
+      .attr('y', (d, i) => { return i * traveler.colorHistogramHeight; })
+      .attr('height', traveler.colorHistogramHeight)
       .attr('fill', 'white')
       .attr('class', '.colorKeyBackgrounds');
 
@@ -468,8 +471,8 @@
     colors.enter().append('rect')
       .attr('x', 0)
       .attr('width', 20)
-      .attr('y', (d, i) => { return i * 30; })
-      .attr('height', 30)
+      .attr('y', (d, i) => { return i * traveler.colorHistogramHeight; })
+      .attr('height', traveler.colorHistogramHeight)
       .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(i); })
       .attr('class', 'colorKeyBars');
     
@@ -480,7 +483,7 @@
 
     color_text.enter().append('text')
 	.attr('x', 22)
-	.attr('y', (d, i) => { return i * 30 + 20; })
+	.attr('y', (d, i) => { return i * traveler.colorHistogramHeight + 20; })
 	.attr('class', 'traveler colorKeyText')
 	.text(d => { return (i === 8) ? "Other" : d.name; });
   }
@@ -1246,7 +1249,8 @@ jQuery(function() {
       data: JSON.stringify({ 
 	"command" : 'load', 
 	"width" : traveler.gantt_width,
-	"overview" : traveler.overview_width
+	"overview" : traveler.overview_width,
+	"functions" : traveler.colorHistogramWidth
       }),
       success: function(json) {
 	traveler.extended_tips = json.tips;

@@ -2,6 +2,7 @@
 #define FUNCTION_H
 
 #include <string>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -21,6 +22,7 @@ public:
     bool isMain;
 
 
+    std::vector<unsigned long long> task_lengths;
 
     static bool functionCountGreaterThan(const Function * f1, const Function * f2)
     {

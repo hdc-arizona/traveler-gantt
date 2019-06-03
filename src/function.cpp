@@ -7,7 +7,8 @@ Function::Function(std::string _n, int _g, std::string _s, int _c)
       comms(_c),
       count(0),
       rank(0),
-      isMain(false)
+      isMain(false),
+      task_lengths(std::vector<unsigned long long>())
 {
 }
 

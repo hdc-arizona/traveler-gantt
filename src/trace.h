@@ -79,6 +79,7 @@ public:
     unsigned long long min_time; // starting time
     unsigned long long last_init; // time at which MPI_Init stops
     unsigned long long last_finalize; // time at which last Finalize -starts-
+    unsigned long long max_task_length; // max length of a task
 
 private:
     bool isProcessed; // Partitions exist
