@@ -40,10 +40,13 @@ public:
                     unsigned long traceback_state,
                     unsigned long long hover,
                     bool logging);
-    json initJSON(unsigned long width, unsigned long overview_width, bool logging);
+    json initJSON(unsigned long width, 
+                  unsigned long overview_width, 
+                  unsigned long functin_width,
+                  bool logging);
     json timeOverview(unsigned long width, bool logging);
     json utilOverview(unsigned long width, bool logging);
-    json functionRankOverview();
+    json functionRankOverview(unsigned long width, bool logging);
     std::string name;
     std::string fullpath;
     int num_entities;

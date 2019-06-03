@@ -84,10 +84,11 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   }
   else if (cmd.compare("load") == 0)
   {
-    unsigned long width, overview_width;
+    unsigned long width, overview_width, function_width;
     width = j["width"];
     overview_width = j["overview"];
-    j["traceinfo"] = trace->initJSON(width, overview_width, logging);
+    function_width = j["functions"];
+    j["traceinfo"] = trace->initJSON(width, overview_width, function_width, logging);
     j["tips"] = extended_tips;
     if (server_logging) {
       std::cout << "initJSON called." << std::endl;
@@ -95,7 +96,7 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   }
   else if (cmd.compare("overview") == 0)
   {
-    long width;
+    unsigned long width;
     width = j["width"];
     j["traceinfo"] = trace->utilOverview(width, logging);
     if (server_logging) {
@@ -104,7 +105,9 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   }
   else if (cmd.compare("functions") == 0)
   {
-    j["traceinfo"] = trace->functionRankOverview();
+    unsigned long width;
+    width = j["width"];
+    j["traceinfo"] = trace->functionRankOverview(width, logging);
     if (server_logging) {
       std::cout << "function ranks called." << std::endl;
     }

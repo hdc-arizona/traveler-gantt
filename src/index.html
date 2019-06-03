@@ -452,8 +452,18 @@
 
   traveler.draw_controls = function() {
     // Give backgrounds for future selection
+    console.log(traveler.data.colorkey)
+    var max_fxn = traveler.data.colorkey.ranked.length - 1;
+    for (var i = 0; i <= max_fxn; i++) {
+	if (traveler.data.colorkey.ranked[i].count <= 0) {
+	    max_fxn = i;
+	    continue;
+	}
+    }
+    var functions = traveler.data.colorkey.ranked.slice(0, max_fxn);
+
     color_backgrounds = traveler.controls.selectAll('.colorKeyBackgrounds')
-      .data(traveler.data.colorkey);
+      .data(functions);
 
     color_backgrounds.enter().append('rect')
       .attr('x', 0)
@@ -466,7 +476,7 @@
 
     // Solid color
     colors = traveler.controls.selectAll('.colorKeyBars')
-      .data(traveler.data.colorkey);
+      .data(functions);
 
     colors.enter().append('rect')
       .attr('x', 0)
@@ -479,13 +489,13 @@
 
     // Text labels
     color_text = traveler.controls.selectAll('.colorKeyText')
-      .data(traveler.data.colorkey);
+      .data(functions);
 
     color_text.enter().append('text')
 	.attr('x', 22)
 	.attr('y', (d, i) => { return i * traveler.colorHistogramHeight + 20; })
 	.attr('class', 'traveler colorKeyText')
-	.text(d => { return (i === 8) ? "Other" : d.name; });
+	.text((d, i) => { return (i === 8) ? "Other" : d.name; });
   }
 
   traveler.init_display = function () {
@@ -791,6 +801,7 @@
       contentType: 'application/json',
       data: JSON.stringify({ 
 	"command" : 'functions',
+	"width" : traveler.colorHistogramWidth
       }),
       success: function(json) {
 	traveler.data.colorkey = json.traceinfo;

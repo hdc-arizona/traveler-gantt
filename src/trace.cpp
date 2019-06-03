@@ -586,19 +586,65 @@ json Trace::timeOverview(unsigned long width, bool logging)
     return jo;
 }
 
-json Trace::functionRankOverview()
+json Trace::functionRankOverview(unsigned long width, bool logging)
 {
+    json jo;
+
+    int rank = 0;
+    std::vector<Function *> top_functions = std::vector<Function *>();
+
+ 
+    unsigned long a_pixel = (max_task_length + 1) / width;
+    std::vector<std::vector<unsigned long long> > histograms =
+        std::vector<std::vector<unsigned long long> >();
+    for (int i = 0; i <= 8; i++)
+    {
+        std::vector<unsigned long long> pixels = std::vector<unsigned long long>(width, 0);
+        histograms.push_back(pixels);
+    }
+
+    unsigned long the_pixel = 0;
+    for (std::vector<Function *>::iterator fxn = function_list->begin();
+        fxn != function_list->end(); ++fxn)
+    {
+        // only take top 8 functions
+        if (rank < 8) {
+            top_functions.push_back(*fxn);
+            rank++;
+        }
+        for (std::vector<unsigned long long>::iterator length = (*fxn)->task_lengths.begin();
+            length != (*fxn)->task_lengths.end(); ++length)
+        {
+            the_pixel = (*length) / a_pixel;
+            histograms[rank][the_pixel] += 1;
+        }
+    }
+
+    Function * other = new Function("", 0);
+    other->count = 0;
+    if (function_list->size() > 8) 
+    {
+        other->count = 1;
+    }
+    top_functions.push_back(other);
+
+    /*
     std::vector<Function *>::const_iterator first = function_list->begin();
-    std::vector<Function *>::const_iterator last = function_list->begin() + 8;
-    if (function_list->size() < 8) {
+    std::vector<Function *>::const_iterator last = function_list->begin() + 9;
+    if (function_list->size() < 9) {
         last = function_list->end();
     }
     std::vector<Function *> top_functions(first, last);
-    json jo(top_functions);
+    */
+    jo["ranked"] = top_functions;
+    jo["histograms"] = histograms;
+    
+    
     return jo;
 }
 
-json Trace::initJSON(unsigned long width, unsigned long overview_width, bool logging)
+json Trace::initJSON(unsigned long width, unsigned long overview_width, 
+    unsigned long function_width, bool logging)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
     unsigned long long span = 1000000;
@@ -608,6 +654,7 @@ json Trace::initJSON(unsigned long width, unsigned long overview_width, bool log
     }
     json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, 0, logging);
     jo["overview"] = utilOverview(overview_width, logging);
+    jo["colorkey"] = functionRankOverview(function_width, logging);
 
     return jo;
 }
