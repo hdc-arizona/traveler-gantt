@@ -54,7 +54,7 @@
 		    componentState: { label: 'Task Details' },
 		}],
 		id: 'DetailStack',
-		width: 10
+		width: 20
 	    }],
 	    id: 'GanttRow',
 	    componentName: 'GanttRow',
@@ -448,24 +448,39 @@
   };
 
   traveler.draw_controls = function() {
-    console.log('color key is being drawn');
+    // Give backgrounds for future selection
+    color_backgrounds = traveler.controls.selectAll('.colorKeyBackgrounds')
+      .data(traveler.data.colorkey);
+
+    color_backgrounds.enter().append('rect')
+      .attr('x', 0)
+      .attr('width', 200)
+      .attr('y', (d, i) => { return i * 30; })
+      .attr('height', 30)
+      .attr('fill', 'white')
+      .attr('class', '.colorKeyBackgrounds');
+
+
+    // Solid color
     colors = traveler.controls.selectAll('.colorKeyBars')
       .data(traveler.data.colorkey);
 
     colors.enter().append('rect')
-      .attr('x', 10)
-      .attr('width', 200)
+      .attr('x', 0)
+      .attr('width', 20)
       .attr('y', (d, i) => { return i * 30; })
       .attr('height', 30)
       .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(i); })
       .attr('class', 'colorKeyBars');
     
+
+    // Text labels
     color_text = traveler.controls.selectAll('.colorKeyText')
       .data(traveler.data.colorkey);
 
     color_text.enter().append('text')
-	.attr('x', 15)
-	.attr('y', (d, i) => { return i * 30 + 15; })
+	.attr('x', 22)
+	.attr('y', (d, i) => { return i * 30 + 20; })
 	.attr('class', 'traveler colorKeyText')
 	.text(d => { return (i === 8) ? "Other" : d.name; });
   }
@@ -1189,7 +1204,8 @@ travelerLayout.registerComponent('Details',
 
 travelerLayout.registerComponent('Controls',
     function(container, componentState) {
-	container.getElement().html('<div id="travelerControls" class="colorKey"></div>');
+	container.getElement().html('<div id="travelerControls" class="colorKey">' +
+	'</div>');
     }
 );
 
@@ -1202,25 +1218,24 @@ travelerLayout.registerComponent('Utilization',
 );
 
 travelerLayout.init();
-// <div id="tooltip" class="gl_keep" style="display:none"></div>
-
-console.log('init layout');
 
 // Get the initial data
 jQuery(function() {
 
   $(document).ready(function() {
-    //init_traveler_gantt();
-    console.log('first ajax call', traveler.traditional_container);
     init_traveler_gantt(traveler.traditional_container);
     init_traveler_overview(traveler.overview_container);
     init_traveler_controls();
+
+    // Make sure tool tip div is the last added so it is always on top
     var body = document.getElementsByTagName('body')[0];
     var tipNode = document.createElement('div');
     tipNode.setAttribute('id', 'tooltip');
     tipNode.setAttribute('class', 'gl_keep');
     tipNode.setAttribute('style', 'display:none');
     body.appendChild(tipNode);
+
+
     traveler.init_state = true;
     $.ajax({
       //mimeType: 'text/json; charset=x-user-defined',
@@ -1230,10 +1245,10 @@ jQuery(function() {
       contentType: 'application/json',
       data: JSON.stringify({ 
 	"command" : 'load', 
-	"width" : traveler.gantt_width
+	"width" : traveler.gantt_width,
+	"overview" : traveler.overview_width
       }),
       success: function(json) {
-	console.log('extended tips is', json.tips);
 	traveler.extended_tips = json.tips;
 	traveler.init(json.traceinfo);
       }

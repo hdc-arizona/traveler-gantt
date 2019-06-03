@@ -597,7 +597,7 @@ json Trace::functionRankOverview()
     return jo;
 }
 
-json Trace::initJSON(unsigned long width, bool logging)
+json Trace::initJSON(unsigned long width, unsigned long overview_width, bool logging)
 {
     unsigned long long a_pixel = (last_finalize - last_init) / width;
     unsigned long long span = 1000000;
@@ -606,7 +606,7 @@ json Trace::initJSON(unsigned long width, bool logging)
         span = a_pixel * 5;
     }
     json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, 0, logging);
-    jo["overview"] = utilOverview(width, logging);
+    jo["overview"] = utilOverview(overview_width, logging);
 
     return jo;
 }

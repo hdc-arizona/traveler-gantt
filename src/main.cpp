@@ -84,9 +84,10 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   }
   else if (cmd.compare("load") == 0)
   {
-    long width;
+    unsigned long width, overview_width;
     width = j["width"];
-    j["traceinfo"] = trace->initJSON(width, logging);
+    overview_width = j["overview"];
+    j["traceinfo"] = trace->initJSON(width, overview_width, logging);
     j["tips"] = extended_tips;
     if (server_logging) {
       std::cout << "initJSON called." << std::endl;

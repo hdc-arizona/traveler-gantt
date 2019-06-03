@@ -40,7 +40,7 @@ public:
                     unsigned long traceback_state,
                     unsigned long long hover,
                     bool logging);
-    json initJSON(unsigned long width, bool logging);
+    json initJSON(unsigned long width, unsigned long overview_width, bool logging);
     json timeOverview(unsigned long width, bool logging);
     json utilOverview(unsigned long width, bool logging);
     json functionRankOverview();
