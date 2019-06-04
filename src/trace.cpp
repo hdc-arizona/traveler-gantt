@@ -612,10 +612,12 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
             length != (*fxn)->task_lengths.end(); ++length)
         {
             the_pixel = (*length) / a_pixel;
+            /*
             if (the_pixel > 50) {
                 std::cout << "The pixel is " << the_pixel << " from " << (*fxn)->name.c_str() << 
                     " with length " << (*length) << std::endl;
             }
+            */
             histograms[rank][the_pixel] += 1;
         }
 
@@ -644,6 +646,7 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
     */
     jo["ranked"] = top_functions;
     jo["histograms"] = histograms;
+    jo["max_task_length"] = max_task_length;
     
     
     return jo;
