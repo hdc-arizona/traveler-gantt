@@ -12,10 +12,7 @@
   <link rel="stylesheet" type="text/css" href="goldenlayout-light-theme.css" />
   <script src="d3.v5.min.js"></script>
   <script src="jquery-1.11.0.min.js"></script>
-  <!-- <script src="d3.tip.v0.6.3.js"></script> -->
-  <!-- <script src="d3-tip.js"></script> -->
   <script src="arbtooltip.js"></script>
-  <!-- <script src="split.js"></script> -->
   <script src="goldenlayout.min.js"></script>
 </head>
 <body>
@@ -130,7 +127,7 @@
 
   // Figure out width and height of Gantt chart from the window size
   traveler.calc_window_sizes = function (elm,  elm_overview) {
-    console.log('calc window sizes');
+    //console.log('calc window sizes');
     traveler.full_mini_height = traveler.miniHeight + traveler.scale_height + traveler.margin.top;
     //console.log(container.getElement());
     //traveler.width = container.width - 5;
@@ -154,7 +151,7 @@
 	2 * traveler.margin.top - traveler.margin.bottom -
 	traveler.colorBarHeight - traveler.scale_height;
     }
-    console.log(traveler.width, traveler.traditional_height, traveler.full_height);
+    //console.log(traveler.width, traveler.traditional_height, traveler.full_height);
 
   }; // end traveler.calc_window_sizes
 
@@ -451,7 +448,13 @@
       .range([0, traveler.colorHistogramWidth]);
     
     traveler.fxnAxis = d3.axisBottom(traveler.fxn_x_scale)
-      .ticks(4);
+      .ticks(5)
+      .tickFormat(d3.format(".000s"));
+    /*
+    traveler.fxnAxisTicks = traveler.fxnAxis.ticks(5);
+    traveler.fxnAxisTickFormat = traveler.fxnAxis.tickFormat(5, "s");
+    traveler.fxnAxisTicks.map(traveler.fxnAxisTickFormat);
+    */
     traveler.fxn_axis = traveler.controls.append('g')
       .attr('transform', 'translate(22, ' + (8 * traveler.colorHistogramHeight) + ')')
       .attr('class', 'mini axis date')
@@ -514,7 +517,7 @@
       .domain([1, max_fxn_count + 1])
     traveler.fxn_x_scale
       .domain([0, traveler.data.colorkey.max_task_length])
-    console.log(traveler.data.colorkey.max_task_length, traveler.colorHistogramWidth);
+    //console.log(traveler.data.colorkey.max_task_length, traveler.colorHistogramWidth);
     traveler.fxnAxis.scale(traveler.fxn_x_scale);
 
     for (var j = 0; j <= max_fxn; j++) {
@@ -530,7 +533,7 @@
 	  .attr('class', (d, i) => { return 'fxnHistogram_' + j; })
 	  .attr('width', 1)
 	  .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(j); })
-	  .attr('x', (d, i) => { console.log(traveler.fxn_x_scale(d), i); return 22 + i; })
+	  .attr('x', (d, i) => { return 22 + i; })
 	  .attr('y', (d, i) => { return (j + 1) * traveler.colorHistogramHeight - traveler.fxn_y_scale(d + 1); })
 	  .attr('height', d => { return traveler.fxn_y_scale(d + 1); });
 
@@ -695,7 +698,7 @@
   // TODO: change this to ID and then have the GUID work backwards to 
   // find which GUID really creates things.
   traveler.handle_task_click = function (task, shift_key_pressed) {
-    console.log('handle task click');
+    //console.log('handle task click');
     if (traveler.focus_task === task.guid) {
 	if (traveler.focus_state === tenum.FULL) {
 	    traveler.focus_task = "0";
@@ -713,7 +716,7 @@
     if (shift_key_pressed) {
 	var stack = travelerLayout.root.getItemsById('DetailStack');
 	var detail_id = 'task_detail_' + task.id;
-	console.log('pre add child');
+	//console.log('pre add child');
 	stack[ 0 ].addChild({
 	    id: detail_id,
 	    title: 'Task Details',
@@ -728,7 +731,7 @@
 	//travelerLayout.root.getItemsById(detail_id)[0].parent.config.width = 10;
 	//travelerLayout.updateSize();
 
-	console.log('post add child');
+	//console.log('post add child');
 	traveler.draw_details(detail_id, task);
     }
 
@@ -1247,7 +1250,7 @@
 travelerLayout.registerComponent('Gantt Chart', 
     function(container, componentState) {
 	container.getElement().html('<div id="traditionalContainer" height="100%" class="travelerContainer"></div>');
-	console.log('set container gantt', container);
+	//console.log('set container gantt', container);
 	traveler.traditonal_container = container;
 	container.on( 'resize', function(){
 	    $(window).trigger( 'resize' );
@@ -1271,7 +1274,7 @@ travelerLayout.registerComponent('Controls',
 travelerLayout.registerComponent('Utilization', 
     function(container, componentState) {
 	container.getElement().html('<div id="overviewContainer" class="travelerContainer"></div>');
-	console.log('set container overview');
+	//console.log('set container overview');
 	traveler.overview_container = container;
     }
 );
@@ -1311,6 +1314,7 @@ jQuery(function() {
       success: function(json) {
 	traveler.extended_tips = json.tips;
 	traveler.init(json.traceinfo);
+	console.log('units is', json.traceinfo.units);
       }
     });
   });

@@ -183,6 +183,7 @@ json Trace::timeToJSON(unsigned long long start, unsigned long long stop,
     jo["maxtime"] = last_finalize + 10; // So the finalize has some length
     jo["starttime"] = start;
     jo["stoptime"] = stop;
+    jo["units"] = units;
     jo["max_depth"] = max_depth;
     jo["entities"] = entities;
     jo["entity_start"] = entity_start;
