@@ -108,6 +108,7 @@
 
     colorHistogramHeight: 50,
     colorHistogramWidth: 150,
+    selected_function: -1,
 
     min_time: 0,
     max_time: 1,
@@ -467,7 +468,7 @@
 
   traveler.draw_controls = function() {
     // Give backgrounds for future selection
-    console.log(traveler.data.colorkey)
+    console.log(traveler.data.colorkey);
     var max_fxn = traveler.data.colorkey.ranked.length - 1;
     for (var i = 0; i <= max_fxn; i++) {
 	if (traveler.data.colorkey.ranked[i].count <= 0) {
@@ -836,10 +837,15 @@
       contentType: 'application/json',
       data: JSON.stringify({ 
 	"command" : 'overview',
-	"width" : traveler.overview_width
+	"width" : traveler.overview_width,
+	"get_function" : (traveler.selected_function === -1) ? 0 : 1,
+	"function" : traveler.selected_function
       }),
       success: function(json) {
-	traveler.data.overview = json.traceinfo;
+	console.log(json.traceinfo);
+	traveler.data.overview = json.traceinfo.overview;
+	traveler.data.function_overview = json.traceinfo.function_overview;
+	traveler.data.selected_function = json.traceinfo.selected_function;
 	traveler.draw_overview();
 	traveler.get_overview_state = false;
       }

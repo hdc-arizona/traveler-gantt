@@ -45,7 +45,9 @@ public:
                   unsigned long functin_width,
                   bool logging);
     json timeOverview(unsigned long width, bool logging);
-    json utilOverview(unsigned long width, bool logging);
+    json utilOverview(unsigned long width, 
+                      bool get_function, unsigned long function,
+                      bool logging);
     json functionRankOverview(unsigned long width, bool logging);
     std::string name;
     std::string fullpath;

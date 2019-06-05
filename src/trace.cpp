@@ -492,10 +492,11 @@ void Trace::timeEventToJSON(Event * evt, int depth, unsigned long long start,
 
 
 // Instead of how many functions, calculate how much utilization
-json Trace::utilOverview(unsigned long width, bool logging)
+json Trace::utilOverview(unsigned long width, bool get_function, unsigned long function, bool logging)
 {
     float a_pixel = (last_finalize - last_init) / width;
     std::vector<float> pixels = std::vector<float>();
+    std::vector<float> fxn_pixels = std::vector<float>();
     for (unsigned long i = 0; i <= width; i++)
     {
         pixels.push_back(0.0);
@@ -523,18 +524,40 @@ json Trace::utilOverview(unsigned long width, bool logging)
             if (pixel_start == pixel_end) {
                 // Add the portion of a pixel
                 pixels[pixel_start] += ((*evt)->exit - (*evt)->enter); 
+                if (get_function && (*evt)->function == function)
+                {
+                    fxn_pixels[pixel_start] += ((*evt)->exit - (*evt)->enter); 
+                }
             } else {
                 // Add the portion of utilization the second pixel
                 pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter + last_init;
                 
                 // Add the amount of utilization over the last pixel
                 pixels[pixel_end] += (*evt)->exit - last_init - pixel_end * a_pixel;
+
+                if (get_function && (*evt)->function == function)
+                {
+                    // Add the portion of utilization the second pixel
+                    fxn_pixels[pixel_start] += (pixel_start + 1) * a_pixel - (*evt)->enter + last_init;
+                    
+                    // Add the amount of utilization over the last pixel
+                    fxn_pixels[pixel_end] += (*evt)->exit - last_init - pixel_end * a_pixel;
+                }
+
             }
 
 
             for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
             {
                 pixels[i] += a_pixel;
+            }
+
+            if (get_function && (*evt)->function == function)
+            {
+                for (unsigned long i = pixel_start + 1; i < pixel_end; i++)
+                {
+                    fxn_pixels[i] += a_pixel;
+                }
             }
         }
     }
@@ -545,7 +568,17 @@ json Trace::utilOverview(unsigned long width, bool logging)
     for (unsigned long i = 0; i <= width; i++) {
         pixels[i] /= all_time_per_pixel;
     }
-    json jo(pixels);
+    json jo;
+    jo["overview"] = pixels;
+    if (get_function) 
+    {
+        jo["selected_function"] = function;
+    }
+    else
+    {
+        jo["selected_function"] = -1;
+    }
+    jo["function_overview"] = fxn_pixels;
     return jo;
 }
 
@@ -663,7 +696,10 @@ json Trace::initJSON(unsigned long width, unsigned long overview_width,
         span = a_pixel * 5;
     }
     json jo = timeToJSON(last_init, span + last_init, 0, roots->size(), width, 0, 0, 0, 0, logging);
-    jo["overview"] = utilOverview(overview_width, logging);
+    json overview = utilOverview(overview_width, false, 0, logging);
+    jo["overview"] = overview["overview"];
+    jo["function_overview"] = overview["function_overview"];
+    jo["selected_function"] = overview["selected_function"];
     jo["colorkey"] = functionRankOverview(function_width, logging);
 
     return jo;

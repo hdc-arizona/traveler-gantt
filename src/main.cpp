@@ -96,9 +96,12 @@ static void handle_data_call(struct mg_connection *nc, struct http_message *hm) 
   }
   else if (cmd.compare("overview") == 0)
   {
-    unsigned long width;
+    unsigned long width, function;
+    int function_flag;
     width = j["width"];
-    j["traceinfo"] = trace->utilOverview(width, logging);
+    function_flag = j["get_function"];
+    function = j["function"];
+    j["traceinfo"] = trace->utilOverview(width, function_flag, function, logging);
     if (server_logging) {
       std::cout << "overview called." << std::endl;
     }
