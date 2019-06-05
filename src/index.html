@@ -459,6 +459,10 @@
       .attr('transform', 'translate(22, ' + (8 * traveler.colorHistogramHeight) + ')')
       .attr('class', 'mini axis date')
       .call(traveler.fxnAxis);
+    traveler.fxn_axis_label = traveler.controls.append('text')
+      .attr('transform', 'translate(22, ' + (8 * traveler.colorHistogramHeight + 1.5 * traveler.scale_heigth) + ')')
+      .attr('class', 'evtText')
+      .text('Duration in Nanoseconds');
   };
 
   traveler.draw_controls = function() {
@@ -543,6 +547,8 @@
     traveler.fxn_axis
       .attr('transform', 'translate(22, ' + (max_fxn * traveler.colorHistogramHeight) + ')')
     traveler.fxn_axis.call(traveler.fxnAxis);
+    traveler.fxn_axis_label 
+      .attr('transform', 'translate(22, ' + (max_fxn * traveler.colorHistogramHeight + 1.5 * traveler.scale_height) + ')')
 
   }
 
