@@ -11,8 +11,9 @@ using json = nlohmann::json;
 class Function
 {
 public:
-    Function(std::string _n, int _g, std::string _s = "", int _c = 0);
+    Function(unsigned long _id, std::string _n, int _g, std::string _s = "", int _c = 0);
 
+    unsigned long id;
     std::string name;
     std::string shortname;
     int group;

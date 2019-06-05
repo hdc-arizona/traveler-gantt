@@ -633,12 +633,12 @@ void OTF2Importer::defineEntities()
 
 void OTF2Importer::processDefinitions()
 {
-    int index = 0;
+    int index = 1;
     for (std::map<OTF2_RegionRef, OTF2Region *>::iterator region = regionMap->begin();
          region != regionMap->end(); ++region)
     {
         regionIndexMap->insert(std::pair<OTF2_RegionRef, int>(region->first, index));
-        functions->insert(std::pair<int, Function *>(index, new Function(stringMap->at(region->second->name),
+        functions->insert(std::pair<int, Function *>(index, new Function(index, stringMap->at(region->second->name),
                                               (region->second)->paradigm)));
         index++;
     }

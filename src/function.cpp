@@ -1,7 +1,8 @@
 #include "function.h"
 
-Function::Function(std::string _n, int _g, std::string _s, int _c)
-    : name(_n),
+Function::Function(unsigned long _id, std::string _n, int _g, std::string _s, int _c)
+    : id(_id),
+      name(_n),
       shortname(_s),
       group(_g),
       comms(_c),
@@ -18,6 +19,7 @@ Function::Function(std::string _n, int _g, std::string _s, int _c)
 void to_json(json& j, const Function& f)
 {
     j = json{
+        {"id", f.id},
         {"name", f.name},
         {"shortname", f.shortname},
         {"count", std::to_string(f.count)},
@@ -28,6 +30,7 @@ void to_json(json& j, const Function& f)
 
 void from_json(const json& j, Function& f)
 {
+    f.id = std::stoul(j.at("id").get<std::string>());
     f.name = j.at("name").get<std::string>();
     f.shortname = j.at("shortname").get<std::string>();
     f.count = std::stoull(j.at("count").get<std::string>());
@@ -38,6 +41,7 @@ void from_json(const json& j, Function& f)
 void to_json(json& j, const Function * f)
 {
     j = json{
+        {"id", f->id},
         {"name", f->name},
         {"shortname", f->shortname},
         {"count", std::to_string(f->count)},
@@ -48,6 +52,7 @@ void to_json(json& j, const Function * f)
 
 void from_json(const json& j, Function * f)
 {
+    f->id = std::stoul(j.at("id").get<std::string>());
     f->name = j.at("name").get<std::string>();
     f->shortname = j.at("shortname").get<std::string>();
     f->count = std::stoull(j.at("count").get<std::string>());

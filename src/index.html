@@ -109,6 +109,7 @@
     colorHistogramHeight: 50,
     colorHistogramWidth: 150,
     selected_function: -1,
+    selected_rank: -1,
 
     min_time: 0,
     max_time: 1,
@@ -500,7 +501,8 @@
       .attr('y', (d, i) => { return i * traveler.colorHistogramHeight; })
       .attr('height', traveler.colorHistogramHeight)
       .attr('fill', (d, i) => { return traveler.ranked_categorical_scale(i); })
-      .attr('class', 'colorKeyBars');
+      .attr('class', 'colorKeyBars')
+      .on('click', (d, i) => { return traveler.handle_function_click(d, i); });
     
 
     // Text labels
@@ -551,6 +553,12 @@
     traveler.fxn_axis_label 
       .attr('transform', 'translate(22, ' + (max_fxn * traveler.colorHistogramHeight + 1.5 * traveler.scale_height) + ')')
 
+  }
+
+  traveler.handle_function_click = function(fxn, rank) {
+    traveler.selected_function = (traveler.selected_function === fxn.id) ? -1 : fxn.id;
+    traveler.selected_rank = (traveler.selected_rank === fxn.rank) ? -1: fxn.rank;
+    traveler.get_overview();
   }
 
   traveler.init_display = function () {
@@ -1236,7 +1244,7 @@
   // Draw the overview plot.
   traveler.draw_overview = function () {
     //console.log(traveler.data.overview);
-    var rects;
+    var rects, fxn_rects;
     traveler.mini_y_scale.domain([0, 1]);
     //traveler.mini_y_scale.domain([0, d3.max(traveler.data.overview)]);
 
@@ -1252,10 +1260,27 @@
       .attr('width', 1)
       .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
       .attr('height', d => { return traveler.mini_y_scale(d); })
-      .attr('fill', 'blue')
+      .attr('fill', 'black')
       .attr('class', 'overviewBar');
 
     rects.exit().remove();
+
+    fxn_rects = traveler.mini_bars.selectAll('.fxnOverviewBar')
+      .data(traveler.data.function_overview)
+      .attr('fill', d => { return traveler.ranked_function_color(traveler.selected_rank); })
+      .attr('x', (d, i) => { return i; })
+      .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
+      .attr('height', d => { return traveler.mini_y_scale(d); });
+
+    fxn_rects.enter().append('rect')
+      .attr('x', (d, i) => { return i; })
+      .attr('width', 1)
+      .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
+      .attr('height', d => { return traveler.mini_y_scale(d); })
+      .attr('fill', d => { return traveler.ranked_function_color(traveler.selected_rank); })
+      .attr('class', 'fxnOverviewBar');
+
+    fxn_rects.exit().remove();
   };
 
 

@@ -500,6 +500,7 @@ json Trace::utilOverview(unsigned long width, bool get_function, unsigned long f
     for (unsigned long i = 0; i <= width; i++)
     {
         pixels.push_back(0.0);
+        fxn_pixels.push_back(0.0);
     }
     for (unsigned long long entity = 0; entity < events->size(); entity++)
     {
@@ -567,18 +568,20 @@ json Trace::utilOverview(unsigned long width, bool get_function, unsigned long f
     std::cout << "Events size is " << events->size() << std::endl;
     for (unsigned long i = 0; i <= width; i++) {
         pixels[i] /= all_time_per_pixel;
+        fxn_pixels[i] /= all_time_per_pixel;
     }
     json jo;
     jo["overview"] = pixels;
     if (get_function) 
     {
         jo["selected_function"] = function;
+        jo["function_overview"] = fxn_pixels;
     }
     else
     {
         jo["selected_function"] = -1;
+        jo["function_overview"] = std::vector<float>();
     }
-    jo["function_overview"] = fxn_pixels;
     return jo;
 }
 
@@ -662,7 +665,7 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
         }
     }
 
-    Function * other = new Function("", 0);
+    Function * other = new Function(0, "", 0);
     other->count = 0;
     if (function_list->size() > 8) 
     {
