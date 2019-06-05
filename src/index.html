@@ -599,6 +599,8 @@
     
     traveler.mini_bars = traveler.mini.append('g')
       .attr('class', 'overviewBar');
+    traveler.fxn_mini_bars = traveler.mini.append('g')
+      .attr('class', 'fxnOverviewBar');
 
     traveler.gantt_brush_group = traveler.mini.append('g')
       .attr("class", "traveler brush")
@@ -1265,9 +1267,9 @@
 
     rects.exit().remove();
 
-    fxn_rects = traveler.mini_bars.selectAll('.fxnOverviewBar')
+    fxn_rects = traveler.fxn_mini_bars.selectAll('.fxnOverviewBar')
       .data(traveler.data.function_overview)
-      .attr('fill', d => { return traveler.ranked_function_color(traveler.selected_rank); })
+      .attr('fill', d => { return traveler.ranked_categorical_scale(traveler.selected_rank - 1); })
       .attr('x', (d, i) => { return i; })
       .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
       .attr('height', d => { return traveler.mini_y_scale(d); });
@@ -1277,7 +1279,7 @@
       .attr('width', 1)
       .attr('y', d => { return traveler.miniHeight - traveler.mini_y_scale(d); })
       .attr('height', d => { return traveler.mini_y_scale(d); })
-      .attr('fill', d => { return traveler.ranked_function_color(traveler.selected_rank); })
+      .attr('fill', d => { return traveler.ranked_categorical_scale(traveler.selected_rank - 1); })
       .attr('class', 'fxnOverviewBar');
 
     fxn_rects.exit().remove();
