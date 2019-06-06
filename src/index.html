@@ -97,13 +97,14 @@
     },
 
     margin: {
-      top: 20,
+      top: 10,
       right: 20,
       bottom: 10,
       left: 50
     },
     miniHeight: 60,
     scale_height: 20,
+    scale_label_height: 20,
     colorBarHeight: 30,
 
     colorHistogramHeight: 50,
@@ -130,7 +131,8 @@
   // Figure out width and height of Gantt chart from the window size
   traveler.calc_window_sizes = function (elm,  elm_overview) {
     //console.log('calc window sizes');
-    traveler.full_mini_height = traveler.miniHeight + traveler.scale_height + traveler.margin.top;
+    traveler.full_mini_height = traveler.miniHeight + 
+	  traveler.scale_height + traveler.scale_label_height + traveler.margin.top;
     //console.log(container.getElement());
     //traveler.width = container.width - 5;
     //console.log(elm);
@@ -138,20 +140,20 @@
     traveler.overview_width = elm_overview.offsetWidth - 5;
 
     traveler.gantt_width = traveler.width - traveler.margin.left - traveler.margin.right;
-    traveler.overview_width = traveler.overview_width - traveler.margin.left - traveler.margin.right;
+    traveler.overview_width = traveler.overview_width - 2 * traveler.margin.right;
     traveler.full_height = $(document).height() - $('body').offset().top;
     //traveler.traditional_height = container.height;
     traveler.traditional_height = elm.parentNode.offsetHeight;
     elm.setAttribute('style', 'height: ' + traveler.traditional_height + 'px;');
 
     if (traveler.traditional_height <= 0) {
-      traveler.traditional_gantt_height = traveler.full_height - traveler.full_mini_height -
-	2 * traveler.margin.top - traveler.margin.bottom -
-	traveler.colorBarHeight - traveler.scale_height;
+      traveler.traditional_gantt_height = traveler.full_height
+	traveler.margin.top - traveler.margin.bottom -
+	traveler.scale_height;
     } else {
       traveler.traditional_gantt_height = traveler.traditional_height - 
-	2 * traveler.margin.top - traveler.margin.bottom -
-	traveler.colorBarHeight - traveler.scale_height;
+	traveler.margin.top - traveler.margin.bottom -
+	traveler.scale_height;
     }
     //console.log(traveler.width, traveler.traditional_height, traveler.full_height);
 
@@ -422,14 +424,18 @@
       .attr('class', 'overview')
 
     traveler.mini = traveler.overview.append('g')
-      .attr('transform', 'translate(' + traveler.margin.left + ',' + traveler.margin.top + ')')
+      .attr('transform', 'translate(' + traveler.margin.right + ',' + traveler.margin.top + ')')
       .attr('width', traveler.overview_width) //traveler.miniWidth)
       .attr('height', traveler.miniHeight)
       .attr('class', 'mini')
       .on('click', traveler.handle_click);
 
     traveler.xAxis = d3.axisBottom(traveler.mini_scale);
-    
+    traveler.miniAxisLabel = traveler.overview.append('text')
+      .attr('transform', 'translate(' + (traveler.margin.right + traveler.overview_width / 2) + 
+	  ',' + (traveler.full_mini_height - 10) + ')')
+      .attr('class', 'scaleLabelText')
+      .text('Time in Nanoseconds');    
   };  // traveler vars
 
   var init_traveler_controls  = function()  {
@@ -1283,6 +1289,10 @@
       .attr('class', 'fxnOverviewBar');
 
     fxn_rects.exit().remove();
+    
+    traveler.miniAxisLabel
+      .attr('transform', 'translate(' + (traveler.margin.right + traveler.overview_width / 2) + 
+	  ',' + (traveler.full_mini_height - 10) + ')');
   };
 
 

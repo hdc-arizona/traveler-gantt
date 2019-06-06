@@ -66,6 +66,11 @@ rect {
     font: 10px sans-serif;	
 }
 
+.scaleLabelText {
+    font: 10px sans-serif;
+    text-anchor: middle;
+}
+
 .traditional text {
     font: 10px sans-serif;	
 }
