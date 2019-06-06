@@ -445,13 +445,13 @@
     traveler.fxn_y_scale = d3.scaleLog()
       .domain([1, 2])
       .range([0, traveler.colorHistogramHeight]);
-    traveler.fxn_x_scale = d3.scaleLinear()
-      .domain([0, 2])
+    traveler.fxn_x_scale = d3.scaleLog()
+      .domain([1e6, 1e12])
       .range([0, traveler.colorHistogramWidth]);
     
     traveler.fxnAxis = d3.axisBottom(traveler.fxn_x_scale)
-      .ticks(5)
-      .tickFormat(d3.format(".000s"));
+      .ticks(2)
+      .tickFormat(d3.format(",.1s"));
     /*
     traveler.fxnAxisTicks = traveler.fxnAxis.ticks(5);
     traveler.fxnAxisTickFormat = traveler.fxnAxis.tickFormat(5, "s");
@@ -505,17 +505,6 @@
       .on('click', (d, i) => { return traveler.handle_function_click(d, i); });
     
 
-    // Text labels
-    var color_text = traveler.controls.selectAll('.colorKeyText')
-      .data(functions);
-
-    color_text.enter().append('text')
-	.attr('x', 22)
-	.attr('y', (d, i) => { return i * traveler.colorHistogramHeight + 12; })
-	.attr('class', 'traveler colorKeyText')
-	.text((d, i) => { return (i === 8) ? "Other" : d.name; });
-    
-
     var max_fxn_count = 0;
     for (var i = 0; i <= max_fxn; i++) {
 	max_fxn_count = d3.max([max_fxn_count, d3.max(traveler.data.colorkey.histograms[i])]);
@@ -523,7 +512,7 @@
     traveler.fxn_y_scale
       .domain([1, max_fxn_count + 1])
     traveler.fxn_x_scale
-      .domain([0, traveler.data.colorkey.max_task_length])
+      .domain([100000, traveler.data.colorkey.max_task_length + 1])
     //console.log(traveler.data.colorkey.max_task_length, traveler.colorHistogramWidth);
     traveler.fxnAxis.scale(traveler.fxn_x_scale);
 
@@ -546,6 +535,17 @@
 
 	histograms.exit().remove();
     }
+    
+    // Text labels
+    var color_text = traveler.controls.selectAll('.colorKeyText')
+      .data(functions);
+
+    color_text.enter().append('text')
+	.attr('x', 22)
+	.attr('y', (d, i) => { return i * traveler.colorHistogramHeight + 12; })
+	.attr('class', 'traveler colorKeyText')
+	.text((d, i) => { return (i === 8) ? "Other" : d.name; });
+    
     
     traveler.fxn_axis
       .attr('transform', 'translate(22, ' + (max_fxn * traveler.colorHistogramHeight) + ')')

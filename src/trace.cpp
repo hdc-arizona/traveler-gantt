@@ -631,7 +631,9 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
     std::vector<Function *> top_functions = std::vector<Function *>();
 
  
-    unsigned long a_pixel = (max_task_length + 1) / width;
+    //unsigned long a_pixel = (max_task_length + 1) / width;
+    double log_max_length = log10(max_task_length + 1);
+    double log_micro = log10(100000);
     std::vector<std::vector<unsigned long long> > histograms =
         std::vector<std::vector<unsigned long long> >();
     for (int i = 0; i <= 8; i++)
@@ -641,6 +643,7 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
     }
 
     unsigned long the_pixel = 0;
+    double log_value = 0;
     for (std::vector<Function *>::iterator fxn = function_list->begin();
         fxn != function_list->end(); ++fxn)
     {
@@ -648,13 +651,17 @@ json Trace::functionRankOverview(unsigned long width, bool logging)
         for (std::vector<unsigned long long>::iterator length = (*fxn)->task_lengths.begin();
             length != (*fxn)->task_lengths.end(); ++length)
         {
-            the_pixel = (*length) / a_pixel;
+            //the_pixel = (*length) / a_pixel;
             /*
             if (the_pixel > 50) {
                 std::cout << "The pixel is " << the_pixel << " from " << (*fxn)->name.c_str() << 
                     " with length " << (*length) << std::endl;
             }
             */
+            log_value = log10((*length) + 1);
+            the_pixel = static_cast<unsigned long>(
+                trunc(149 * (log_value - log_micro) / (log_max_length - log_micro)));
+
             histograms[rank][the_pixel] += 1;
         }
 
