@@ -1,6 +1,8 @@
 Traveler Gantt Chart
 ====================
 
+**The Gantt chart development is now most active under Traveler-Integrated: [https://github.com/hdc-arizona/traveler-integrated](https://github.com/hdc-arizona/traveler-integrated).**
+
 Traveler Gantt Chart is an under-development OTF2 Viewer for [HPX Parallel
 Runtime](https://github.com/STEllAR-GROUP/hpx) with
 [APEX](https://khuck.github.io/xpress-apex) support.
